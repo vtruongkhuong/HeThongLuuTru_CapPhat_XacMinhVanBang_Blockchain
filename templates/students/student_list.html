@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Danh sách sinh viên{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="text-xl font-semibold text-gray-900">Danh sách sinh viên</h1>
+        <p class="text-sm text-gray-500">{{ page_obj.paginator.count }} sinh viên</p>
+    </div>
+    <div class="flex gap-2">
+        <a href="{% url 'students:student_import' %}"
+           class="inline-flex items-center gap-1 border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-lg px-4 py-2">
+            <span class="material-symbols-outlined text-base">upload_file</span> Import Excel
+        </a>
+        <a href="{% url 'students:student_create' %}"
+           class="inline-flex items-center gap-1 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg px-4 py-2">
+            <span class="material-symbols-outlined text-base">add</span> Thêm sinh viên
+        </a>
+    </div>
+</div>
+
+<form method="get" class="bg-white border border-gray-200 rounded-xl p-4 mb-6 flex flex-wrap gap-3 items-end">
+    <div class="flex-1 min-w-[200px]">
+        <label class="block text-xs font-medium text-gray-500 mb-1">Từ khóa</label>
+        {{ form.keyword }}
+    </div>
+    <div class="w-56">
+        <label class="block text-xs font-medium text-gray-500 mb-1">Khoa</label>
+        {{ form.faculty }}
+    </div>
+    <button type="submit" class="bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-lg px-4 py-2">
+        Tìm kiếm
+    </button>
+</form>
+
+<div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
+            <tr>
+                <th class="text-left px-4 py-3">Mã SV</th>
+                <th class="text-left px-4 py-3">Họ và tên</th>
+                <th class="text-left px-4 py-3">Khoa</th>
+                <th class="text-left px-4 py-3">Ngành</th>
+                <th class="text-left px-4 py-3">Khóa</th>
+                <th class="text-right px-4 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for student in page_obj %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 font-medium text-gray-900">{{ student.student_code }}</td>
+                <td class="px-4 py-3">{{ student.full_name }}</td>
+                <td class="px-4 py-3 text-gray-500">{{ student.faculty.code }}</td>
+                <td class="px-4 py-3 text-gray-500">{{ student.major.code }}</td>
+                <td class="px-4 py-3 text-gray-500">{{ student.enrollment_year }}</td>
+                <td class="px-4 py-3 text-right">
+                    <a href="{% url 'students:student_detail' student.pk %}" class="text-primary-600 hover:underline">Xem</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="px-4 py-10 text-center text-gray-400">Chưa có sinh viên nào.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if page_obj.paginator.num_pages > 1 %}
+<div class="flex justify-center gap-2 mt-6 text-sm">
+    {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50">Trước</a>
+    {% endif %}
+    <span class="px-3 py-1.5 text-gray-500">Trang {{ page_obj.number }}/{{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1.5 rounded-lg border border-gray-300 hover:bg-gray-50">Sau</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

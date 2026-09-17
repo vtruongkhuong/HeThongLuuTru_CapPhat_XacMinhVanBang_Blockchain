@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}{% if student %}Sửa sinh viên{% else %}Thêm sinh viên{% endif %}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <a href="{% url 'students:student_list' %}" class="text-sm text-gray-500 hover:text-primary-600">&larr; Danh sách sinh viên</a>
+    <h1 class="text-xl font-semibold text-gray-900 mt-1 mb-6">
+        {% if student %}Sửa thông tin: {{ student.full_name }}{% else %}Thêm sinh viên mới{% endif %}
+    </h1>
+
+    <form method="post" class="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
+        {% csrf_token %}
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Mã sinh viên</label>
+                {{ form.student_code }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Họ và tên</label>
+                {{ form.full_name }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Ngày sinh</label>
+                {{ form.date_of_birth }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Giới tính</label>
+                {{ form.gender }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">CCCD/CMND</label>
+                {{ form.national_id }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                {{ form.email }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
+                {{ form.phone_number }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Năm nhập học</label>
+                {{ form.enrollment_year }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Khoa</label>
+                {{ form.faculty }}
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Ngành</label>
+                {{ form.major }}
+            </div>
+        </div>
+
+        {% for field in form %}
+            {% if field.errors %}
+                <p class="text-xs text-red-600">{{ field.label }}: {{ field.errors.0 }}</p>
+            {% endif %}
+        {% endfor %}
+
+        <div class="flex justify-end gap-2 pt-2">
+            <a href="{% url 'students:student_list' %}" class="text-sm text-gray-600 px-4 py-2 hover:bg-gray-50 rounded-lg">Hủy</a>
+            <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg px-5 py-2">
+                Lưu
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

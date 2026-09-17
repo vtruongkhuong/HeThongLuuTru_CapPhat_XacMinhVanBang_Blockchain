@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Trang chủ{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-xl font-semibold text-gray-900">Xin chào, {{ user.get_full_name|default:user.username }} 👋</h1>
+    <p class="text-sm text-gray-500">Tổng quan hệ thống Quản lý &amp; Cấp phát Văn bằng trên Blockchain</p>
+</div>
+
+<!-- Thống kê nhanh -->
+<div class="grid grid-cols-4 gap-4 mb-8">
+    <div class="bg-white border border-gray-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-medium text-gray-500 uppercase">Sinh viên</span>
+            <span class="material-symbols-outlined text-primary-500">groups</span>
+        </div>
+        <p class="text-2xl font-semibold text-gray-900">{{ stats.total_students }}</p>
+    </div>
+    <div class="bg-white border border-gray-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-medium text-gray-500 uppercase">Khoa</span>
+            <span class="material-symbols-outlined text-primary-500">corporate_fare</span>
+        </div>
+        <p class="text-2xl font-semibold text-gray-900">{{ stats.total_faculties }}</p>
+    </div>
+    <div class="bg-white border border-gray-200 rounded-xl p-5">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-medium text-gray-500 uppercase">Ngành</span>
+            <span class="material-symbols-outlined text-primary-500">school</span>
+        </div>
+        <p class="text-2xl font-semibold text-gray-900">{{ stats.total_majors }}</p>
+    </div>
+    <div class="bg-white border border-gray-200 rounded-xl p-5 opacity-60">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-medium text-gray-500 uppercase">Văn bằng đã cấp</span>
+            <span class="material-symbols-outlined text-gray-400">workspace_premium</span>
+        </div>
+        <p class="text-2xl font-semibold text-gray-400">—</p>
+        <p class="text-[11px] text-gray-400 mt-1">Sắp có (module degrees)</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-3 gap-6">
+    <!-- Lối tắt module -->
+    <div class="col-span-2">
+        <h2 class="text-sm font-semibold text-gray-700 mb-3">Các module trong hệ thống</h2>
+        <div class="grid grid-cols-2 gap-4">
+
+            <a href="{% url 'students:student_list' %}"
+               class="bg-white border border-gray-200 hover:border-primary-300 hover:shadow-sm rounded-xl p-4 flex items-start gap-3 transition">
+                <span class="material-symbols-outlined text-primary-600 bg-primary-50 rounded-lg p-2">groups</span>
+                <div>
+                    <p class="font-medium text-gray-900 text-sm">Quản lý sinh viên</p>
+                    <p class="text-xs text-gray-500 mt-0.5">Danh sách, thêm, sửa, import Excel/CSV</p>
+                </div>
+            </a>
+
+            <a href="/admin/academic/faculty/"
+               class="bg-white border border-gray-200 hover:border-primary-300 hover:shadow-sm rounded-xl p-4 flex items-start gap-3 transition">
+                <span class="material-symbols-outlined text-primary-600 bg-primary-50 rounded-lg p-2">corporate_fare</span>
+                <div>
+                    <p class="font-medium text-gray-900 text-sm">Danh mục đào tạo</p>
+                    <p class="text-xs text-gray-500 mt-0.5">Khoa, Ngành, Loại văn bằng</p>
+                </div>
+            </a>
+
+            <div class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-4 flex items-start gap-3">
+                <span class="material-symbols-outlined text-gray-400 bg-gray-100 rounded-lg p-2">event_available</span>
+                <div>
+                    <p class="font-medium text-gray-500 text-sm">Đợt tốt nghiệp</p>
+                    <p class="text-xs text-gray-400 mt-0.5">Đang phát triển — module graduation</p>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-4 flex items-start gap-3">
+                <span class="material-symbols-outlined text-gray-400 bg-gray-100 rounded-lg p-2">workspace_premium</span>
+                <div>
+                    <p class="font-medium text-gray-500 text-sm">Văn bằng &amp; Blockchain</p>
+                    <p class="text-xs text-gray-400 mt-0.5">Đang phát triển — module degrees/blockchain</p>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-4 flex items-start gap-3">
+                <span class="material-symbols-outlined text-gray-400 bg-gray-100 rounded-lg p-2">verified</span>
+                <div>
+                    <p class="font-medium text-gray-500 text-sm">Cổng xác minh công khai</p>
+                    <p class="text-xs text-gray-400 mt-0.5">Đang phát triển — module verification</p>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 border border-dashed border-gray-300 rounded-xl p-4 flex items-start gap-3">
+                <span class="material-symbols-outlined text-gray-400 bg-gray-100 rounded-lg p-2">bar_chart</span>
+                <div>
+                    <p class="font-medium text-gray-500 text-sm">Báo cáo thống kê</p>
+                    <p class="text-xs text-gray-400 mt-0.5">Đang phát triển — module reporting</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Hoạt động gần đây -->
+    <div>
+        <h2 class="text-sm font-semibold text-gray-700 mb-3">Import sinh viên gần đây</h2>
+        <div class="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100">
+            {% for batch in stats.recent_imports %}
+            <div class="p-4 flex items-center justify-between text-sm">
+                <div>
+                    <p class="text-gray-900 font-medium">#{{ batch.id }} · {{ batch.imported_by|default:"—" }}</p>
+                    <p class="text-xs text-gray-500">{{ batch.created_at|date:"d/m/Y H:i" }}</p>
+                </div>
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                    {% if batch.status == 'completed' %} bg-green-50 text-green-700
+                    {% elif batch.status == 'failed' %} bg-red-50 text-red-700
+                    {% elif batch.status == 'processing' %} bg-yellow-50 text-yellow-700
+                    {% else %} bg-gray-100 text-gray-600 {% endif %}">
+                    {{ batch.get_status_display }}
+                </span>
+            </div>
+            {% empty %}
+            <p class="p-4 text-sm text-gray-400 text-center">Chưa có lần import nào.</p>
+            {% endfor %}
+        </div>
+
+        <a href="{% url 'students:student_import' %}"
+           class="mt-3 block text-center bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg py-2.5 transition">
+            + Import sinh viên mới
+        </a>
+    </div>
+</div>
+{% endblock %}

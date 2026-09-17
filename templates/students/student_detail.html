@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}{{ student.full_name }}{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <a href="{% url 'students:student_list' %}" class="text-sm text-gray-500 hover:text-primary-600">&larr; Danh sách sinh viên</a>
+        <h1 class="text-xl font-semibold text-gray-900 mt-1">{{ student.full_name }}</h1>
+        <p class="text-sm text-gray-500">Mã SV: {{ student.student_code }}</p>
+    </div>
+    <a href="{% url 'students:student_update' student.pk %}"
+       class="inline-flex items-center gap-1 border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-lg px-4 py-2">
+        <span class="material-symbols-outlined text-base">edit</span> Chỉnh sửa
+    </a>
+</div>
+
+<div class="bg-white border border-gray-200 rounded-xl p-6 grid grid-cols-2 gap-x-8 gap-y-4 text-sm">
+    <div>
+        <p class="text-xs text-gray-400 mb-1">Ngày sinh</p>
+        <p class="text-gray-900">{{ student.date_of_birth|default:"—" }}</p>
+    </div>
+    <div>
+        <p class="text-xs text-gray-400 mb-1">Giới tính</p>
+        <p class="text-gray-900">{{ student.get_gender_display|default:"—" }}</p>
+    </div>
+    <div>
+        <p class="text-xs text-gray-400 mb-1">CCCD/CMND</p>
+        <p class="text-gray-900">{{ student.national_id|default:"—" }}</p>
+    </div>
+    <div>
+        <p class="text-xs text-gray-400 mb-1">Email</p>
+        <p class="text-gray-900">{{ student.email|default:"—" }}</p>
+    </div>
+    <div>
+        <p class="text-xs text-gray-400 mb-1">Số điện thoại</p>
+        <p class="text-gray-900">{{ student.phone_number|default:"—" }}</p>
+    </div>
+    <div>
+        <p class="text-xs text-gray-400 mb-1">Năm nhập học</p>
+        <p class="text-gray-900">{{ student.enrollment_year }}</p>
+    </div>
+    <div>
+        <p class="text-xs text-gray-400 mb-1">Khoa</p>
+        <p class="text-gray-900">{{ student.faculty.name }}</p>
+    </div>
+    <div>
+        <p class="text-xs text-gray-400 mb-1">Ngành</p>
+        <p class="text-gray-900">{{ student.major.name }}</p>
+    </div>
+</div>
+{% endblock %}

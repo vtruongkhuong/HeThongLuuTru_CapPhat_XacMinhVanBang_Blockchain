@@ -1,0 +1,10 @@
+Django>=5.0,<5.1
+django-unfold>=0.104
+mysqlclient>=2.2
+celery>=5.3
+redis>=5.0
+web3>=6.15
+weasyprint>=61.0
+openpyxl>=3.1
+python-dotenv>=1.0
+Pillow>=10.0

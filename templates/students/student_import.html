@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Import sinh viên{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto">
+    <a href="{% url 'students:student_list' %}" class="text-sm text-gray-500 hover:text-primary-600">&larr; Danh sách sinh viên</a>
+    <h1 class="text-xl font-semibold text-gray-900 mt-1 mb-1">Import sinh viên từ file Excel/CSV</h1>
+    <p class="text-sm text-gray-500 mb-6">
+        File cần có các cột: student_code, full_name, date_of_birth, gender, national_id,
+        email, phone_number, faculty_code, major_code, enrollment_year.
+    </p>
+
+    <form method="post" enctype="multipart/form-data" class="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
+        {% csrf_token %}
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Chọn file</label>
+            {{ form.upload_file }}
+            {% if form.upload_file.errors %}
+                <p class="text-xs text-red-600 mt-1">{{ form.upload_file.errors.0 }}</p>
+            {% endif %}
+            <p class="text-xs text-gray-400 mt-1">Chấp nhận .csv, .xlsx, .xls — tối đa 10MB</p>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+            <a href="{% url 'students:import_history' %}" class="text-sm text-gray-600 px-4 py-2 hover:bg-gray-50 rounded-lg">
+                Xem lịch sử import
+            </a>
+            <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg px-5 py-2">
+                Tải lên &amp; xử lý
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
