@@ -24,6 +24,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    #Google
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+
     # Local apps
     'apps.core',
     'apps.accounts',
@@ -40,6 +47,8 @@ INSTALLED_APPS = [
     'apps.reporting',
 ]
 
+SITE_ID = 1
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -49,6 +58,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'apps.audit.middleware.AuditLogMiddleware',
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -73,6 +83,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 ASGI_APPLICATION = 'config.asgi.application'
 
 AUTH_USER_MODEL = 'accounts.User'
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
 
 LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'dashboard'
@@ -110,6 +125,19 @@ from django.templatetags.static import static
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 
+# --- HÀM HELPER: KIỂM TRA QUYỀN ĐỂ ẨN/HIỆN MENU ĐỘNG ---
+def check_menu_role(request, allowed_roles):
+    """Ẩn menu nếu user không có role nằm trong danh sách allowed_roles."""
+    if not hasattr(request, 'user') or not request.user.is_authenticated:
+        return False
+    if request.user.is_superuser:
+        return True
+    try:
+        user_roles = request.user.roles.values_list('code', flat=True)
+        return any(role in user_roles for role in allowed_roles)
+    except Exception:
+        return False
+
 UNFOLD = {
     "SITE_TITLE": "Văn bằng Blockchain - Admin",
     "SITE_HEADER": "Hệ thống Quản lý Văn bằng Blockchain",
@@ -139,16 +167,19 @@ UNFOLD = {
                         "title": _("Người dùng"),
                         "icon": "person",
                         "link": reverse_lazy("admin:accounts_user_changelist"),
+                        "permission": lambda request: request.user.is_superuser, # Chỉ Admin tối cao
                     },
                     {
                         "title": _("Vai trò"),
                         "icon": "shield",
                         "link": reverse_lazy("admin:accounts_role_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
                     },
                     {
                         "title": _("Quyền hạn"),
                         "icon": "key",
                         "link": reverse_lazy("admin:accounts_permission_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
                     },
                 ],
             },
@@ -160,21 +191,26 @@ UNFOLD = {
                         "title": _("Khoa"),
                         "icon": "corporate_fare",
                         "link": reverse_lazy("admin:academic_faculty_changelist"),
+                        "permission": lambda request: check_menu_role(request, ['officer_a', 'academic_staff']),
                     },
                     {
                         "title": _("Ngành"),
                         "icon": "school",
                         "link": reverse_lazy("admin:academic_major_changelist"),
+                        "permission": lambda request: check_menu_role(request, ['officer_a', 'academic_staff']),
                     },
                     {
                         "title": "Đợt tốt nghiệp",
-                        "icon": "calendar_month", # Icon cuốn lịch cho đúng chất sự kiện
+                        "icon": "calendar_month", 
                         "link": reverse_lazy("admin:graduation_graduationbatch_changelist"),
+                        # Cả Nhập liệu và Phê duyệt đều cần thấy menu này
+                        "permission": lambda request: check_menu_role(request, ['officer_a', 'academic_staff', 'officer_b', 'reviewer', 'approver']),
                     },
                     {
                         "title": _("Loại văn bằng"),
                         "icon": "workspace_premium",
                         "link": reverse_lazy("admin:academic_degreetype_changelist"),
+                        "permission": lambda request: check_menu_role(request, ['officer_a', 'academic_staff']),
                     },
                 ],
             },
@@ -186,11 +222,13 @@ UNFOLD = {
                         "title": _("Danh sách sinh viên"),
                         "icon": "groups",
                         "link": reverse_lazy("admin:students_student_changelist"),
+                        "permission": lambda request: check_menu_role(request, ['officer_a', 'academic_staff']),
                     },
                     {
                         "title": _("Lịch sử import"),
                         "icon": "upload_file",
                         "link": reverse_lazy("admin:students_importbatch_changelist"),
+                        "permission": lambda request: check_menu_role(request, ['officer_a', 'academic_staff']),
                     },
                 ],
             },

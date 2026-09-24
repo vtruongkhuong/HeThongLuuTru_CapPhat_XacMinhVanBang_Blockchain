@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.contrib.auth.views import LoginView as DjangoLoginView
 
-from .forms import LoginForm, ChangePasswordForm, UserProfileForm
+from .forms import LoginForm, ChangePasswordForm, UserProfileForm, RegisterForm
 
 
 class LoginView(DjangoLoginView):
@@ -56,31 +56,26 @@ def register_view(request):
         return redirect('accounts:profile')
 
     if request.method == 'POST':
-        # Lấy dữ liệu từ form HTML
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        password_confirm = request.POST.get('password_confirm')
-
-        # 1. Kiểm tra mật khẩu có khớp không
-        if password != password_confirm:
-            messages.error(request, 'Mật khẩu xác nhận không khớp.')
-            return render(request, 'accounts/register.html')
-
-        # 2. Kiểm tra tên đăng nhập đã tồn tại chưa
-        if User.objects.filter(username=username).exists():
-            messages.error(request, 'Tên đăng nhập này đã được sử dụng.')
-            return render(request, 'accounts/register.html')
-
-        # 3. Tạo tài khoản mới
-        user = User.objects.create_user(username=username, email=email, password=password)
+        # Giao toàn bộ dữ liệu POST cho Django Form xử lý
+        form = RegisterForm(request.POST)
         
-        # 4. Tự động đăng nhập
-        login(request, user)
-        messages.success(request, 'Đăng ký thành công! Chào mừng bạn.')
-        
-        # 5. Chuyển hướng vào trang danh sách sinh viên
-        return redirect('students:student_list')
+        # Hàm is_valid() sẽ tự động kiểm tra: username trùng, email trùng, password yếu, password không khớp...
+        if form.is_valid():
+            # Lưu user vào database
+            user = form.save()
+            
+            # Tự động đăng nhập
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            messages.success(request, 'Đăng ký thành công! Chào mừng bạn.')
+            
+            # Chuyển hướng vào trang danh sách sinh viên
+            return redirect('dashboard')
+        else:
+            # Nếu có lỗi (mật khẩu yếu, trùng tên...), hiển thị thông báo lỗi chung
+            messages.error(request, 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin bên dưới.')
+    else:
+        # Nếu là phương thức GET thì tạo form trống
+        form = RegisterForm()
 
-    # Nếu là phương thức GET thì chỉ hiển thị giao diện form
-    return render(request, 'accounts/register.html')
+    # Truyền biến 'form' ra giao diện
+    return render(request, 'accounts/register.html', {'form': form})

@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Tra cứu Văn bằng Blockchain{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-8">
+    
+    <!-- Header / Tiêu đề -->
+    <div class="text-center space-y-2 mt-4">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-100 text-primary-600 mb-2">
+            <span class="material-symbols-outlined text-3xl">verified</span>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-900">Cổng Tra Cứu Văn Bằng</h1>
+        <p class="text-gray-500 max-w-2xl mx-auto">
+            Hệ thống tra cứu và xác thực văn bằng công khai ứng dụng công nghệ Blockchain, đảm bảo tính minh bạch và không thể giả mạo.
+        </p>
+    </div>
+
+    <!-- Form Tìm Kiếm -->
+    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-gray-200">
+        <form method="POST" action="{% url 'public_verify' %}" class="flex flex-col md:flex-row gap-4">
+            {% csrf_token %}
+            <div class="flex-1 relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <span class="material-symbols-outlined text-gray-400">search</span>
+                </div>
+                <input type="text" name="search_query" required
+                    class="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-300 text-gray-900 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                    placeholder="Nhập Mã số sinh viên (VD: B1906...) hoặc CCCD"
+                    value="{{ request.POST.search_query }}">
+            </div>
+            <button type="submit" class="px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2">
+                <span>Tra cứu</span>
+                <span class="material-symbols-outlined text-sm">arrow_forward</span>
+            </button>
+        </form>
+    </div>
+
+    <!-- Khu vực Hiển thị Kết quả (Chỉ hiện khi có dữ liệu) -->
+    {% if searched and degree %}
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            
+            <!-- Banner Trạng thái -->
+            {% if degree.status == 'ISSUED' and is_verified_on_chain %}
+                <div class="bg-green-50 border-b border-green-200 px-6 py-4 flex items-start gap-3">
+                    <span class="material-symbols-outlined text-green-600 text-2xl mt-0.5">verified_user</span>
+                    <div>
+                        <h3 class="text-green-800 font-semibold text-lg">Văn bằng hợp lệ (Verified)</h3>
+                        <p class="text-green-700 text-sm">Dữ liệu đã được đối chiếu và xác thực chữ ký toàn vẹn trên mạng lưới Blockchain.</p>
+                    </div>
+                </div>
+            {% elif degree.status == 'REVOKED' %}
+                <div class="bg-red-50 border-b border-red-200 px-6 py-4 flex items-start gap-3">
+                    <span class="material-symbols-outlined text-red-600 text-2xl mt-0.5">gpp_bad</span>
+                    <div>
+                        <h3 class="text-red-800 font-semibold text-lg">Văn bằng đã bị thu hồi</h3>
+                        <p class="text-red-700 text-sm">Văn bằng này không còn giá trị sử dụng do đã bị hệ thống/cơ quan cấp phát thu hồi.</p>
+                    </div>
+                </div>
+            {% else %}
+                <div class="bg-yellow-50 border-b border-yellow-200 px-6 py-4 flex items-start gap-3">
+                    <span class="material-symbols-outlined text-yellow-600 text-2xl mt-0.5">pending_actions</span>
+                    <div>
+                        <h3 class="text-yellow-800 font-semibold text-lg">Đang chờ phát hành</h3>
+                        <p class="text-yellow-700 text-sm">Phôi bằng đã được duyệt nhưng đang chờ cán bộ tác vụ ghi nhận giao dịch lên Blockchain.</p>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Nội dung Thẻ Văn Bằng -->
+            <div class="p-6 md:p-10">
+                <!-- Header Quốc hiệu -->
+                <div class="text-center mb-8 border-b border-gray-100 pb-8">
+                    <h2 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-1">Cộng hòa Xã hội Chủ nghĩa Việt Nam</h2>
+                    <h3 class="text-xs font-semibold text-gray-400 mb-6 uppercase">Độc lập - Tự do - Hạnh phúc</h3>
+                    
+                    <div class="inline-block p-4 rounded-full bg-primary-50 border border-primary-100 mb-4 text-primary-600">
+                        <span class="material-symbols-outlined text-4xl">school</span>
+                    </div>
+                    
+                    <p class="text-gray-500 text-sm uppercase tracking-wide">Công nhận cấp văn bằng cho</p>
+                    <h1 class="text-3xl font-bold text-gray-900 mt-2 uppercase">{{ student.full_name }}</h1>
+                </div>
+
+                <!-- Lưới Thông tin chi tiết -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 px-4 md:px-8">
+                    <div>
+                        <span class="block text-sm text-gray-500 mb-1">Mã số sinh viên</span>
+                        <span class="block font-semibold text-gray-900">{{ student.student_code }}</span>
+                    </div>
+                    <div>
+                        <span class="block text-sm text-gray-500 mb-1">Ngày sinh</span>
+                        <span class="block font-semibold text-gray-900">{{ student.date_of_birth|date:"d/m/Y"|default:"---" }}</span>
+                    </div>
+                    <div>
+                        <span class="block text-sm text-gray-500 mb-1">Ngành đào tạo</span>
+                        <span class="block font-semibold text-gray-900">{{ student.major.name|default:"---" }}</span>
+                    </div>
+                    <div>
+                        <span class="block text-sm text-gray-500 mb-1">Khoa</span>
+                        <span class="block font-semibold text-gray-900">{{ student.faculty.name|default:"---" }}</span>
+                    </div>
+                    <div>
+                        <span class="block text-sm text-gray-500 mb-1">Loại văn bằng</span>
+                        <span class="block font-semibold text-gray-900 text-primary-700">{{ degree.degree_type.name|default:"Đang cập nhật" }}</span>
+                    </div>
+                    <div>
+                        <span class="block text-sm text-gray-500 mb-1">Năm nhập học</span>
+                        <span class="block font-semibold text-gray-900">{{ student.enrollment_year|default:"---" }}</span>
+                    </div>
+                </div>
+
+                <!-- Bảng Thông số kỹ thuật Blockchain -->
+                <div class="mt-10 border border-gray-200 rounded-xl overflow-hidden">
+                    <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-gray-500 text-sm">link</span>
+                        <h4 class="text-sm font-semibold text-gray-700">Dữ liệu định danh Blockchain</h4>
+                    </div>
+                    <div class="p-4 space-y-4 text-sm bg-white">
+                        <div>
+                            <span class="text-gray-500 block mb-1">Mã băm dữ liệu gốc (Canonical Hash):</span>
+                            <div class="font-mono text-xs bg-gray-50 border border-gray-200 p-2.5 rounded break-all text-gray-700">
+                                {{ degree.canonical_hash|default:"Chưa tạo mã băm" }}
+                            </div>
+                        </div>
+                        
+                        <!-- Hiển thị Tx Hash nếu bạn lưu trong DB khi Issuer ký giao dịch -->
+                        {% if degree.tx_hash %}
+                        <div>
+                            <span class="text-gray-500 block mb-1">Mã giao dịch trên mạng lưới (Transaction Hash):</span>
+                            <div class="font-mono text-xs bg-gray-50 border border-gray-200 p-2.5 rounded break-all">
+                                <a href="https://sepolia.etherscan.io/tx/{{ degree.tx_hash }}" target="_blank" class="text-primary-600 hover:text-primary-800 hover:underline flex items-center gap-1">
+                                    {{ degree.tx_hash }}
+                                    <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

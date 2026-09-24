@@ -1,11 +1,15 @@
 from django.contrib import admin
-from unfold.admin import ModelAdmin
+from apps.core.admin import BaseRoleAdmin
 
 from .models import Faculty, Major, DegreeType
 
+# Cấp quyền cho nhóm Cán bộ nhập liệu / Cán bộ đào tạo
+ALLOWED_ACADEMIC_ROLES = ['officer_a', 'academic_staff']
+
 
 @admin.register(Faculty)
-class FacultyAdmin(ModelAdmin):
+class FacultyAdmin(BaseRoleAdmin):
+    allowed_roles = ALLOWED_ACADEMIC_ROLES
     list_display = ('code', 'name', 'is_active')
     search_fields = ('code', 'name')
     list_filter = ('is_active',)
@@ -13,7 +17,8 @@ class FacultyAdmin(ModelAdmin):
 
 
 @admin.register(Major)
-class MajorAdmin(ModelAdmin):
+class MajorAdmin(BaseRoleAdmin):
+    allowed_roles = ALLOWED_ACADEMIC_ROLES
     list_display = ('code', 'name', 'faculty', 'is_active')
     search_fields = ('code', 'name')
     list_filter = ('faculty', 'is_active')
@@ -22,7 +27,8 @@ class MajorAdmin(ModelAdmin):
 
 
 @admin.register(DegreeType)
-class DegreeTypeAdmin(ModelAdmin):
+class DegreeTypeAdmin(BaseRoleAdmin):
+    allowed_roles = ALLOWED_ACADEMIC_ROLES
     list_display = ('code', 'name', 'template_name', 'is_active')
     search_fields = ('code', 'name')
     list_filter = ('is_active',)

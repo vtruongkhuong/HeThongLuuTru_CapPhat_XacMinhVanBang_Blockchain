@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm
+from django.contrib.auth.forms import AuthenticationForm, SetPasswordForm, UserCreationForm
 
 from .models import User
 
@@ -60,3 +60,26 @@ class UserProfileForm(forms.ModelForm):
             'phone_number': forms.TextInput(attrs={'class': INPUT_CLS}),
             'department': forms.TextInput(attrs={'class': INPUT_CLS}),
         }
+
+class RegisterForm(UserCreationForm):
+    """Form đăng ký người dùng mới, tự động kiểm tra độ mạnh mật khẩu và xử lý giao diện."""
+    email = forms.EmailField(
+        required=True, 
+        widget=forms.EmailInput(attrs={'class': INPUT_CLS})
+    )
+
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = ['username', 'email'] # Mật khẩu sẽ được UserCreationForm tự động thêm vào
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email and User.objects.filter(email=email).exists():
+            raise forms.ValidationError("Email này đã được sử dụng.", code='email_exists')
+        return email
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Áp dụng class Tailwind cho tất cả các input (bao gồm cả username, password)
+        for field_name, field in self.fields.items():
+            field.widget.attrs['class'] = INPUT_CLS

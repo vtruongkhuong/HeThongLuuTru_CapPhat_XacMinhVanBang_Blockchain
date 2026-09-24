@@ -28,25 +28,49 @@
 </head>
 <body class="bg-gray-50 font-sans text-gray-900 min-h-screen flex flex-col">
 
-    {% if user.is_authenticated %}
+    <!-- ĐÃ XÓA THẺ IF Ở ĐÂY ĐỂ MENU LUÔN HIỆN -->
     <nav class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shadow-sm">
-        <a href="{% url 'dashboard' %}" class="flex items-center gap-2 font-semibold text-primary-700">
+        <a href="{% url 'public_verify' %}" class="flex items-center gap-2 font-semibold text-primary-700">
             <span class="material-symbols-outlined text-primary-600">school</span>
             Văn bằng Blockchain
         </a>
         <div class="flex items-center gap-4 text-sm">
-            <a href="{% url 'dashboard' %}" class="text-gray-600 hover:text-primary-700">Trang chủ</a>
-            <a href="{% url 'students:student_list' %}" class="text-gray-600 hover:text-primary-700">Sinh viên</a>
-            <a href="{% url 'students:student_import' %}" class="text-gray-600 hover:text-primary-700">Import</a>
-            <a href="/admin/" class="text-gray-600 hover:text-primary-700">Trang quản trị</a>
-            <div class="w-px h-5 bg-gray-200"></div>
-            <a href="{% url 'accounts:profile' %}" class="text-gray-600 hover:text-primary-700">
-                {{ user.get_full_name|default:user.username }}
-            </a>
-            <a href="{% url 'accounts:logout' %}" class="text-red-600 hover:text-red-700 font-medium">Đăng xuất</a>
+            
+            {% if user.is_authenticated %}
+                <!-- NẾU ĐÃ ĐĂNG NHẬP: Hiện các menu cũ -->
+                
+                {% if not user.is_staff and not user.is_superuser %}
+                    <a href="{% url 'accounts:profile' %}" class="text-gray-600 hover:text-primary-700 font-medium">Hồ sơ cá nhân</a>
+                {% endif %}
+                
+                <a href="{% url 'public_verify' %}" class="text-gray-600 hover:text-primary-700 font-medium">Tra cứu văn bằng</a>
+                
+                {% if user.is_staff or user.is_superuser %}
+                    <a href="/admin/" class="text-primary-600 hover:text-primary-800 font-semibold bg-primary-50 px-4 py-1.5 rounded-lg border border-primary-100 transition-colors">
+                        <span class="material-symbols-outlined text-sm align-middle mr-1">admin_panel_settings</span>
+                        Vào Không gian làm việc
+                    </a>
+                {% endif %}
+
+                <div class="w-px h-5 bg-gray-200 mx-2"></div>
+                
+                <a href="{% url 'accounts:profile' %}" class="text-gray-600 hover:text-primary-700 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-lg">account_circle</span>
+                    {{ user.get_full_name|default:user.username }}
+                </a>
+                <a href="{% url 'accounts:logout' %}" class="text-red-600 hover:text-red-700 font-medium ml-2">Đăng xuất</a>
+            
+            {% else %}
+                <!-- NẾU CHƯA ĐĂNG NHẬP: Hiện nút Tra cứu và nút Đăng nhập nổi bật -->
+                <a href="{% url 'public_verify' %}" class="text-gray-600 hover:text-primary-700 font-medium">Tra cứu văn bằng</a>
+                <a href="{% url 'accounts:login' %}" class="px-5 py-2 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors shadow-sm">
+                    Đăng nhập hệ thống
+                </a>
+            {% endif %}
+
         </div>
     </nav>
-    {% endif %}
+    <!-- ĐÃ XÓA THẺ ENDIF Ở ĐÂY -->
 
     <main class="flex-1 max-w-6xl w-full mx-auto px-6 py-8">
         {% if messages %}
@@ -65,8 +89,8 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="text-center text-xs text-gray-400 py-4">
-        Hệ thống Quản lý &amp; Cấp phát Văn bằng trên nền tảng Blockchain
+    <footer class="text-center text-xs text-gray-400 py-4 border-t border-gray-200 mt-auto bg-white">
+        Hệ thống Quản lý & Cấp phát Văn bằng trên nền tảng Blockchain
     </footer>
 </body>
 </html>
