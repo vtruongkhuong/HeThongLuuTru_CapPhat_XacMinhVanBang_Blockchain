@@ -1,17 +1,15 @@
 from .base import *  # noqa
-
+import dj_database_url
 DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'vanbang_blockchain'),
-        'USER': os.getenv('DB_USER', 'postgres'),
-        'PASSWORD': os.getenv('DB_PASSWORD', '12'),
-        'HOST': os.getenv('DB_HOST', '127.0.0.1'),
-        'PORT': os.getenv('DB_PORT', '5432'),
-    }
+    'default': dj_database_url.config(
+        # Dán cái chuỗi Connection String bạn vừa copy bên Neon vào đây:
+        default='postgresql://neondb_owner:npg_jT67dSXxZIih@ep-lingering-frost-b30wp3po-pooler.c-4.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 INTERNAL_IPS = ['127.0.0.1']
