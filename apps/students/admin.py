@@ -15,7 +15,7 @@ class BaseRoleAdmin(ModelAdmin):
         if request.user.is_superuser:
             return True
         # Lấy danh sách các role (ví dụ: 'officer_a', 'issuer') của user đang đăng nhập
-        user_roles = request.user.roles.values_list('code', flat=True)
+        user_roles = request.user.roles.values_list('code', flat=True) if request.user.is_authenticated else []
         return any(role in user_roles for role in self.allowed_roles)
 
     def has_module_permission(self, request):

@@ -45,7 +45,7 @@ def profile_view(request):
             return redirect('accounts:profile')
     else:
         form = UserProfileForm(instance=request.user)
-    return render(request, 'accounts/profile.html', {'form': form, 'user_roles': request.user.roles.all()})
+    return render(request, 'accounts/profile.html', {'form': form, 'user_roles': request.user.roles.all() if request.user.is_authenticated else []})
 
 
 User = get_user_model()
