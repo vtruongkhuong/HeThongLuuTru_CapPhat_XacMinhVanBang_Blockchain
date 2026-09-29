@@ -24,7 +24,7 @@ class GraduationBatchAdmin(BaseRoleAdmin):
     @admin.action(description="1. Trình duyệt danh sách (Dành cho Maker)")
     def submit_for_approval(self, request, queryset):
         # --- KIỂM TRA QUYỀN ACTION CỦA TÁC NHÂN ---
-        user_roles = request.user.roles.values_list('code', flat=True)
+        user_roles = request.user.roles.values_list('code', flat=True) if request.user.is_authenticated else []
         is_maker = request.user.is_superuser or 'officer_a' in user_roles or 'academic_staff' in user_roles
         
         if not is_maker:
@@ -47,7 +47,7 @@ class GraduationBatchAdmin(BaseRoleAdmin):
     @admin.action(description="2. Phê duyệt & Tạo phôi Blockchain (Dành cho Checker)")
     def approve_batch(self, request, queryset):
         # --- KIỂM TRA QUYỀN ACTION CỦA TÁC NHÂN ---
-        user_roles = request.user.roles.values_list('code', flat=True)
+        user_roles = request.user.roles.values_list('code', flat=True) if request.user.is_authenticated else []
         is_checker = request.user.is_superuser or 'officer_b' in user_roles or 'reviewer' in user_roles or 'approver' in user_roles
         
         if not is_checker:

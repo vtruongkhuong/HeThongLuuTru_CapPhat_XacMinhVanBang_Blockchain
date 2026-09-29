@@ -133,7 +133,7 @@ def check_menu_role(request, allowed_roles):
     if request.user.is_superuser:
         return True
     try:
-        user_roles = request.user.roles.values_list('code', flat=True)
+        user_roles = request.user.roles.values_list('code', flat=True) if request.user.is_authenticated else []
         return any(role in user_roles for role in allowed_roles)
     except Exception:
         return False

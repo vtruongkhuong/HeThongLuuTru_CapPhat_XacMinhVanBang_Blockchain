@@ -7,7 +7,7 @@ class BaseRoleAdmin(ModelAdmin):
     def _has_role(self, request):
         if request.user.is_superuser:
             return True
-        user_roles = request.user.roles.values_list('code', flat=True)
+        user_roles = request.user.roles.values_list('code', flat=True) if request.user.is_authenticated else []
         return any(role in user_roles for role in self.allowed_roles)
 
     def has_module_permission(self, request):
