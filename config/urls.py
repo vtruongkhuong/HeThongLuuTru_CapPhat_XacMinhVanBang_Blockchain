@@ -14,9 +14,13 @@ urlpatterns = [
     path('tracuu/', verification_views.public_verify_view, name='public_verify'),
     
     path('tracuu-tam-thoi/', verification_views.verify_temp_cert_view, name='verify_temp_cert'),
+    
+    # THÊM DÒNG NÀY: Mở đường cho Trạm điều phối hoạt động
+    path('dashboard/', dashboard_view, name='dashboard'),
+    
     path('admin/', admin.site.urls),
 
-path('cap-nhat-ho-so/', student_views.update_profile_view, name='profile_update'),
+    path('cap-nhat-ho-so/', student_views.update_profile_view, name='profile_update'),
     path('accounts/', include('apps.accounts.urls')),
     path('academic/', include('apps.academic.urls')),
     path('students/', include('apps.students.urls')),
