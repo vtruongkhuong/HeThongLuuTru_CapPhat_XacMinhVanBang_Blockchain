@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Văn bằng của tôi - Cổng Sinh viên{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8">
+    
+    <!-- Banner Profile Cá Nhân (Gradient sang trọng) -->
+    <div class="bg-gradient-to-r from-ntt-dark to-ntt-light rounded-[24px] shadow-soft p-8 md:p-10 flex flex-col md:flex-row items-center justify-between text-white relative overflow-hidden border border-ntt-dark">
+        <!-- Pattern Icon chìm -->
+        <div class="absolute right-0 top-0 opacity-10 transform translate-x-1/4 -translate-y-1/4 pointer-events-none">
+            <span class="material-symbols-outlined text-[250px]">workspace_premium</span>
+        </div>
+        
+        <div class="relative z-10 flex flex-col md:flex-row items-center gap-6 md:gap-8 text-center md:text-left">
+            <div class="w-24 h-24 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border-2 border-white/30 shadow-inner">
+                <span class="material-symbols-outlined text-5xl text-white">person</span>
+            </div>
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold text-white uppercase tracking-wide mb-1">
+                    {{ student.full_name|default:"NGUYỄN MINH NGHĨA" }}
+                </h1>
+                <p class="text-blue-200 text-sm font-medium uppercase tracking-widest mb-4">Sinh viên Đại học</p>
+                <div class="flex flex-col md:flex-row gap-4 text-sm bg-black/15 w-fit px-5 py-2.5 rounded-xl backdrop-blur-sm border border-white/10 mx-auto md:mx-0">
+                    <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px] text-blue-300">badge</span> MSSV: <strong class="text-white">{{ student.student_code|default:"Chưa cập nhật" }}</strong></span>
+                    <span class="hidden md:inline text-blue-400">|</span>
+                    <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[18px] text-blue-300">account_balance</span> Khoa CNTT</span>
+                </div>
+            </div>
+        </div>
+        <div class="relative z-10 mt-6 md:mt-0">
+            <span class="px-6 py-3 bg-green-500/20 text-green-300 rounded-xl font-bold text-sm border border-green-500/30 flex items-center gap-2 backdrop-blur-md shadow-sm">
+                <span class="material-symbols-outlined text-green-400">check_circle</span>
+                Tài khoản hợp lệ
+            </span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Bảng Thông tin Văn bằng -->
+        <div class="lg:col-span-2 bg-white rounded-[24px] shadow-soft border border-gray-100 p-8 relative overflow-hidden hover:shadow-hover transition-shadow duration-300">
+            <div class="flex justify-between items-center mb-8 border-b border-gray-100 pb-5">
+                <h2 class="text-xl font-bold text-ntt-dark uppercase flex items-center gap-2">
+                    <span class="material-symbols-outlined text-ntt-light">school</span> Dữ liệu Văn bằng
+                </h2>
+                <span class="px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider
+                    {% if degree.status == 'ISSUED' or not degree %} bg-green-50 text-green-700 border border-green-200
+                    {% else %} bg-yellow-50 text-yellow-700 border border-yellow-200 {% endif %}">
+                    {{ degree.status|default:"ĐÃ CẤP PHÁT" }}
+                </span>
+            </div>
+            
+            <div class="space-y-0 text-sm rounded-2xl overflow-hidden border border-gray-200 bg-gray-50">
+                <div class="grid grid-cols-1 md:grid-cols-3 p-5 border-b border-gray-200 gap-2 md:gap-0">
+                    <span class="text-gray-500 font-bold uppercase text-xs flex items-center">Ngành đào tạo</span>
+                    <span class="md:col-span-2 font-semibold text-gray-900 text-base">{{ degree.major|default:"Kỹ thuật Phần mềm" }}</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 p-5 bg-white border-b border-gray-200 gap-2 md:gap-0">
+                    <span class="text-gray-500 font-bold uppercase text-xs flex items-center">Xếp loại tốt nghiệp</span>
+                    <span class="md:col-span-2 font-bold text-ntt-light text-base uppercase">{{ degree.classification|default:"Giỏi" }}</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 p-5 border-b border-gray-200 gap-2 md:gap-0">
+                    <span class="text-gray-500 font-bold uppercase text-xs flex items-center">Năm tốt nghiệp</span>
+                    <span class="md:col-span-2 font-semibold text-gray-900 text-base">{{ degree.graduation_year|default:"2026" }}</span>
+                </div>
+                <div class="p-5 bg-white">
+                    <span class="text-gray-500 font-bold uppercase text-xs mb-3 flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[18px]">link</span> Mã giao dịch (TxHash)
+                    </span>
+                    <span class="font-mono text-sm text-ntt-dark break-all bg-blue-50/50 border border-blue-100 p-4 rounded-xl block">
+                        {{ degree.tx_hash|default:"0x7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b" }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cột Công cụ Tải & QR -->
+        <div class="space-y-6">
+            <!-- QR Code Block -->
+            <div class="bg-white rounded-[24px] shadow-soft border border-gray-100 p-8 flex flex-col items-center text-center hover:shadow-hover transition-shadow duration-300">
+                <h3 class="font-bold text-ntt-dark uppercase text-sm mb-6 tracking-widest">Mã QR Định danh</h3>
+                <div class="w-48 h-48 bg-white border-4 border-gray-50 shadow-inner rounded-2xl flex items-center justify-center p-3 mb-6 relative group cursor-pointer">
+                    <!-- Nền quét giả lập khi đưa chuột vào -->
+                    <div class="absolute inset-0 bg-blue-50/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"></div>
+                    <span class="material-symbols-outlined text-[100px] text-gray-200 group-hover:text-ntt-light transition-colors relative z-10">qr_code_2</span>
+                </div>
+                <p class="text-sm text-gray-500 font-medium leading-relaxed">Sử dụng Camera trên ứng dụng để quét mã và xác minh tính toàn vẹn của văn bằng.</p>
+            </div>
+
+            <!-- Nút Tải về -->
+            <button class="w-full bg-ntt-light hover:bg-ntt-dark text-white py-4.5 rounded-2xl font-bold uppercase text-sm transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2 group border border-transparent hover:border-ntt-dark">
+                <span class="material-symbols-outlined group-hover:-translate-y-1 transition-transform">download</span>
+                Tải văn bằng (Bản PDF)
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}

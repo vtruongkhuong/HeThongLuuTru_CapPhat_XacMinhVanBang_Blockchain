@@ -25,7 +25,7 @@ class Student(BaseModel):
     full_name = models.CharField(max_length=255)
     date_of_birth = models.DateField(null=True, blank=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True)
-
+    
     national_id = models.CharField(
         max_length=20, blank=True,
         help_text="Số CCCD/CMND, dùng để đối chiếu khi cấp văn bằng."
@@ -37,7 +37,22 @@ class Student(BaseModel):
     major = models.ForeignKey(Major, on_delete=models.PROTECT, related_name='students')
 
     enrollment_year = models.PositiveIntegerField(help_text="Năm nhập học, vd: 2020", null=True, blank=True)
-
+    avatar = models.ImageField(
+        upload_to='avatars/students/', 
+        null=True, 
+        blank=True,
+        help_text="Ảnh đại diện hiển thị trên Dashboard"
+    )
+    current_address = models.CharField(
+        max_length=255, 
+        blank=True,
+        help_text="Địa chỉ liên hệ hiện tại của sinh viên"
+    )
+    personal_link = models.URLField(
+        max_length=255, 
+        blank=True,
+        help_text="Liên kết hồ sơ cá nhân (LinkedIn, Portfolio... để nhà tuyển dụng xem)"
+    )
     class Meta:
         db_table = 'students_student'
         ordering = ['student_code']

@@ -4,15 +4,12 @@ from django.contrib import messages
 # Import model Degree (Phôi bằng) và Student (Sinh viên) để tra cứu
 from apps.degrees.models import Degree
 from apps.students.models import Student
-
+from .models import VerificationLog
 # Nếu bạn đã có hàm check Smart Contract, hãy import vào đây. Ví dụ:
 # from apps.blockchain.services import verify_on_chain
-
+def landing_view(request):
+    return render(request, 'verification/landing.html')
 def public_verify_view(request):
-    """
-    Trang tra cứu văn bằng công khai dành cho Nhà tuyển dụng/Bên thứ 3.
-    Không yêu cầu đăng nhập.
-    """
     context = {
         'searched': False,
         'degree': None,
@@ -21,52 +18,49 @@ def public_verify_view(request):
     }
 
     if request.method == 'POST':
-        # Lấy từ khóa tra cứu từ form HTML (Mã sinh viên, CCCD hoặc Mã văn bằng)
+        # 1. NHẬN MÃ: Lấy chuỗi từ Form nhập tay hoặc từ QR Code bắn qua
         search_query = request.POST.get('search_query', '').strip()
 
-        if not search_query:
-            messages.error(request, "Vui lòng nhập mã tra cứu (Mã sinh viên hoặc CCCD).")
-        else:
+        if search_query:
             context['searched'] = True
-            try:
-                # 1. TÌM KIẾM TRONG DATABASE
-                # Tìm văn bằng dựa trên mã sinh viên hoặc CCCD
-                degree = Degree.objects.filter(
-                    student__student_code=search_query
-                ).first()
+            
+            # 2. TRUY VẤN DB: Check xem mã SV hoặc CCCD có tồn tại không
+            degree = Degree.objects.filter(student__student_code=search_query).first()
+            if not degree:
+                degree = Degree.objects.filter(student__national_id=search_query).first()
+
+            # 3. GHI LOG: Lưu lại lịch sử tra cứu của Nhà tuyển dụng
+            # Lấy IP của người tra cứu
+            client_ip = request.META.get('REMOTE_ADDR')
+            # Lấy thông tin trình duyệt
+            user_agent = request.META.get('HTTP_USER_AGENT', '')
+            
+            VerificationLog.objects.create(
+                search_query=search_query,
+                degree=degree, # Nếu tìm thấy thì lưu id văn bằng, không thì Null
+                ip_address=client_ip,
+                user_agent=user_agent,
+                is_successful=bool(degree)
+            )
+
+            # 4. TRẢ KẾT QUẢ VÀ KIỂM TRA THU HỒI
+            if degree:
+                context['degree'] = degree
+                context['student'] = degree.student
+                context['is_verified_on_chain'] = True # Tạm gán True chờ Khương ghép Web3
                 
-                # Nếu không tìm thấy theo mã sinh viên, thử tìm theo CCCD
-                if not degree:
-                    degree = Degree.objects.filter(
-                        student__national_id=search_query
-                    ).first()
+                if degree.status == 'REVOKED':
+                    messages.warning(request, "Cảnh báo: Văn bằng này đã bị thu hồi!")
+                elif degree.status == 'ISSUED':
+                    messages.success(request, "Văn bằng hợp lệ và tồn tại trên hệ thống!")
+            else:
+                messages.error(request, f"Không tìm thấy dữ liệu cho mã: {search_query}")
+        else:
+            messages.error(request, "Vui lòng nhập hoặc quét mã để tra cứu.")
 
-                if degree:
-                    context['degree'] = degree
-                    context['student'] = degree.student
-                    
-                    # 2. KIỂM TRA TRẠNG THÁI TRÊN BLOCKCHAIN (WEB3)
-                    # Chỉ kiểm tra blockchain nếu văn bằng đã được phát hành (ISSUED)
-                    if degree.status == 'ISSUED':
-                        # Gọi hàm kết nối Smart Contract thực tế của bạn ở đây.
-                        # Ví dụ: 
-                        # is_valid = verify_on_chain(degree.canonical_hash)
-                        # context['is_verified_on_chain'] = is_valid
-                        
-                        # Tạm thời gán True (Bạn sẽ thay bằng hàm gọi Web3 sau)
-                        context['is_verified_on_chain'] = True
-                        
-                        messages.success(request, "Văn bằng hợp lệ và đã được xác thực trên Blockchain!")
-                    elif degree.status == 'REVOKED':
-                        messages.warning(request, "CẢNH BÁO: Văn bằng này đã bị thu hồi!")
-                    else:
-                        messages.info(request, "Văn bằng đang trong quá trình xử lý, chưa được phát hành chính thức lên Blockchain.")
-                else:
-                    messages.error(request, f"Không tìm thấy thông tin văn bằng nào khớp với từ khóa: '{search_query}'.")
-
-            except Exception as e:
-                messages.error(request, "Đã xảy ra lỗi trong quá trình hệ thống tra cứu. Vui lòng thử lại sau.")
-                # print(f"Error during verification: {e}") # Bật log này khi code backend để debug
-
-    # Trả về giao diện tìm kiếm (Cả phương thức GET và POST)
     return render(request, 'verification/public_search.html', context)
+def verify_temp_cert_view(request):
+    """
+    Trang tra cứu Giấy chứng nhận tốt nghiệp tạm thời
+    """
+    return render(request, 'verification/verify_temp_cert.html')    

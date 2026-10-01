@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Tra Cứu Giấy Chứng Nhận Tạm Thời - CTUT{% endblock %}
+
+{% block content %}
+<div class="w-full relative flex flex-col items-center pb-20 bg-gray-50/50">
+    
+    <!-- Background Header Xanh -->
+    <div class="w-full bg-gradient-to-r from-ntt-dark to-ntt-light pt-16 pb-36 relative">
+        <h1 class="text-2xl md:text-3xl font-bold text-white uppercase text-center tracking-widest text-shadow-md relative z-10">
+            TRA CỨU GIẤY CHỨNG NHẬN TỐT NGHIỆP TẠM THỜI
+        </h1>
+        <!-- Đường cắt sóng -->
+        <svg class="absolute bottom-0 w-full h-12 md:h-16 text-gray-50/50" preserveAspectRatio="none" viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 120L1440 120V0C1440 0 1080 120 720 120C360 120 0 0 0 0V120Z" fill="currentColor"/>
+        </svg>
+    </div>
+
+    <!-- Khối Form Chính -->
+    <div class="max-w-4xl w-full mx-auto px-4 sm:px-6 -mt-24 relative z-20">
+        <div class="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 md:p-10 relative overflow-hidden">
+            
+            <!-- Watermark Logo -->
+            <div class="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none z-0">
+                <span class="material-symbols-outlined text-[350px]">workspace_premium</span>
+            </div>
+
+            <div class="relative z-10">
+                <!-- Tiêu đề Form -->
+                <div class="mb-6 border-b border-gray-100 pb-4">
+                    <h2 class="text-lg font-bold text-ntt-dark flex items-center gap-2 mb-1">
+                        <span class="material-symbols-outlined text-ntt-light">key</span> Nhập mã xác minh
+                    </h2>
+                    <p class="text-xs text-gray-500 font-medium">Mã gồm 12 ký tự được in trên giấy chứng nhận tốt nghiệp</p>
+                </div>
+
+                <form method="POST" action="">
+                    {% csrf_token %}
+                    
+                    <!-- Ô Nhập Mã -->
+                    <div class="mb-6">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Mã xác minh</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 font-medium">#</div>
+                            <input type="text" name="verify_code" required
+                                class="w-full pl-8 pr-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:outline-none focus:border-ntt-light focus:bg-white focus:ring-1 focus:ring-ntt-light transition-all text-sm font-medium uppercase placeholder-gray-300"
+                                placeholder="VD: JS4FIYKFMT1Q">
+                        </div>
+                    </div>
+
+                    <!-- Xác thực Captcha -->
+                    <div class="mb-8">
+                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Xác thực</label>
+                        <div class="border border-gray-200 rounded-lg bg-gray-50 p-3 flex items-center justify-between w-full md:w-[320px] shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" required class="w-6 h-6 rounded border-gray-300 text-ntt-light focus:ring-ntt-light cursor-pointer">
+                                <span class="text-sm font-medium text-gray-700">Tôi không phải là người máy</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <span class="material-symbols-outlined text-gray-400 text-2xl">sync</span>
+                                <span class="text-[8px] text-gray-400 mt-0.5">reCAPTCHA</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Nút Bấm -->
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+                        <button type="submit" class="w-full sm:w-auto bg-ntt-light hover:bg-ntt-dark text-white font-bold rounded-full px-8 py-2.5 flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all">
+                            <span class="material-symbols-outlined text-[20px]">search</span> Tra cứu xác minh
+                        </button>
+                        <button type="reset" class="w-full sm:w-auto bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 hover:text-gray-900 font-bold rounded-full px-8 py-2.5 flex items-center justify-center gap-2 transition-all">
+                            <span class="material-symbols-outlined text-[20px]">refresh</span> Nhập lại
+                        </button>
+                    </div>
+
+                    <!-- Cảnh báo Info -->
+                    <div class="bg-blue-50/80 border-l-4 border-ntt-light rounded-r-lg p-4 flex items-start gap-3">
+                        <span class="material-symbols-outlined text-ntt-light mt-0.5">info</span>
+                        <p class="text-sm text-gray-700 leading-relaxed font-medium">
+                            Nhập đúng mã xác minh <strong class="text-ntt-dark">12 ký tự</strong> được in trên giấy chứng nhận tốt nghiệp. Mã phân biệt chữ hoa/thường. Nếu cần hỗ trợ, liên hệ Phòng Quản lý đào tạo – ĐT: <strong>1900 2039</strong> – Nhấn phím 2.
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 3 Bước Hướng dẫn dưới Form -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+            <!-- Bước 1 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-start gap-4 hover:shadow-md transition-shadow">
+                <div class="w-8 h-8 rounded-full bg-ntt-dark text-white font-bold flex items-center justify-center shrink-0 text-sm">1</div>
+                <p class="text-xs text-gray-600 font-medium leading-relaxed">
+                    <strong class="text-gray-800 block mb-0.5">Tìm mã xác minh</strong>
+                    gồm 12 ký tự được in trên giấy chứng nhận
+                </p>
+            </div>
+            
+            <!-- Bước 2 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-start gap-4 hover:shadow-md transition-shadow">
+                <div class="w-8 h-8 rounded-full bg-ntt-dark text-white font-bold flex items-center justify-center shrink-0 text-sm">2</div>
+                <p class="text-xs text-gray-600 font-medium leading-relaxed">
+                    <strong class="text-gray-800 block mb-0.5">Nhập mã vào ô tìm kiếm</strong>
+                    và hoàn thành xác thực reCAPTCHA
+                </p>
+            </div>
+            
+            <!-- Bước 3 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-start gap-4 hover:shadow-md transition-shadow">
+                <div class="w-8 h-8 rounded-full bg-ntt-dark text-white font-bold flex items-center justify-center shrink-0 text-sm">3</div>
+                <p class="text-xs text-gray-600 font-medium leading-relaxed">
+                    <strong class="text-gray-800 block mb-0.5">Xem kết quả</strong>
+                    và tải file PDF giấy chứng nhận về máy
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Cập nhật Hồ sơ Sinh viên - CTUT{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl w-full mx-auto px-4 sm:px-6 py-8">
+    
+    <!-- Header -->
+    <div class="mb-8">
+        <a href="{% url 'dashboard' %}" class="inline-flex items-center gap-1 text-gray-500 hover:text-ntt-light font-medium transition-colors mb-2 text-sm">
+            <span class="material-symbols-outlined text-base">arrow_back</span> Quay lại Dashboard
+        </a>
+        <h1 class="text-2xl font-bold text-ntt-dark uppercase tracking-wide">Cập nhật Hồ sơ Cá nhân</h1>
+        <p class="text-sm text-gray-500 mt-1">Bổ sung thông tin để hồ sơ văn bằng của bạn chuyên nghiệp hơn.</p>
+    </div>
+
+    <!-- Khối Form -->
+    <div class="bg-white rounded-[24px] shadow-soft border border-gray-100 overflow-hidden">
+        
+        <!-- Bắt buộc phải có enctype="multipart/form-data" để up ảnh -->
+        <form method="POST" enctype="multipart/form-data" class="p-8 md:p-10">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <!-- Cột trái: Upload Ảnh đại diện -->
+                <div class="flex flex-col items-center border-r border-gray-100 pr-0 md:pr-10">
+                    <h3 class="text-sm font-bold text-gray-700 uppercase tracking-widest mb-4">Ảnh Đại Diện</h3>
+                    
+                    <div class="relative group cursor-pointer mb-4">
+                        <div class="w-40 h-40 rounded-full border-4 border-gray-50 shadow-inner overflow-hidden bg-gray-100 flex items-center justify-center">
+                            {% if student.avatar %}
+                                <img src="{{ student.avatar.url }}" alt="Avatar" class="w-full h-full object-cover">
+                            {% else %}
+                                <span class="material-symbols-outlined text-[80px] text-gray-300">person</span>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Lớp phủ khi hover -->
+                        <div class="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                            <span class="material-symbols-outlined text-white text-3xl">photo_camera</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Nút chọn file ẩn, kích hoạt qua label -->
+                    <label class="bg-ntt-light/10 text-ntt-light hover:bg-ntt-light hover:text-white px-5 py-2 rounded-full font-bold text-xs uppercase tracking-wider cursor-pointer transition-colors border border-ntt-light/20">
+                        <span class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[16px]">upload</span> Tải ảnh lên
+                        </span>
+                        <input type="file" name="avatar" class="hidden" accept="image/*">
+                    </label>
+                    <p class="text-[11px] text-gray-400 mt-3 text-center">Định dạng hỗ trợ: JPG, PNG. <br>Dung lượng tối đa 2MB.</p>
+                </div>
+
+                <!-- Cột phải: Thông tin liên hệ -->
+                <div class="md:col-span-2 space-y-6">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Họ và tên (Đọc từ Blockchain)</label>
+                        <input type="text" value="{{ student.full_name }}" disabled class="w-full bg-gray-100 border border-gray-200 text-gray-500 font-bold rounded-xl px-4 py-3 cursor-not-allowed">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Địa chỉ liên hệ hiện tại</label>
+                        <input type="text" name="current_address" value="{{ student.current_address|default:'' }}" placeholder="VD: Ninh Kiều, Cần Thơ..." class="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:border-ntt-light focus:ring-1 focus:ring-ntt-light transition-all shadow-sm">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                            Liên kết hồ sơ cá nhân <span class="material-symbols-outlined text-[14px] text-ntt-light">link</span>
+                        </label>
+                        <input type="url" name="personal_link" value="{{ student.personal_link|default:'' }}" placeholder="VD: https://linkedin.com/in/nguyenminhnghia" class="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 focus:outline-none focus:border-ntt-light focus:ring-1 focus:ring-ntt-light transition-all shadow-sm text-sm">
+                        <p class="text-xs text-gray-400 mt-1.5">Để lại link LinkedIn, Portfolio hoặc Facebook để nhà tuyển dụng dễ dàng liên hệ.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Block Nút Bấm -->
+            <div class="mt-10 pt-6 border-t border-gray-100 flex items-center justify-end gap-4">
+                <a href="{% url 'dashboard' %}" class="px-6 py-3 text-gray-500 hover:bg-gray-50 hover:text-gray-900 font-bold rounded-full transition-colors">
+                    Hủy bỏ
+                </a>
+                <button type="submit" class="bg-ntt-light hover:bg-ntt-dark text-white font-bold rounded-full px-8 py-3 flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 uppercase tracking-wider text-sm">
+                    <span class="material-symbols-outlined text-[20px]">save</span> Lưu thay đổi
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
