@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 
-{% block title %}Cập nhật Hồ sơ Sinh viên - CTUT{% endblock %}
+{% block title %}Cập nhật Hồ sơ Sinh viên {% endblock %}
 
 {% block content %}
 <div class="max-w-4xl w-full mx-auto px-4 sm:px-6 py-8">
     
     <!-- Header -->
     <div class="mb-8">
-        <a href="{% url 'dashboard' %}" class="inline-flex items-center gap-1 text-gray-500 hover:text-ntt-light font-medium transition-colors mb-2 text-sm">
+        <a href="{% url 'student_portal:dashboard' %}" class="inline-flex items-center gap-1 text-gray-500 hover:text-ntt-light font-medium transition-colors mb-2 text-sm">
             <span class="material-symbols-outlined text-base">arrow_back</span> Quay lại Dashboard
         </a>
         <h1 class="text-2xl font-bold text-ntt-dark uppercase tracking-wide">Cập nhật Hồ sơ Cá nhân</h1>
@@ -75,7 +75,7 @@
 
             <!-- Block Nút Bấm -->
             <div class="mt-10 pt-6 border-t border-gray-100 flex items-center justify-end gap-4">
-                <a href="{% url 'dashboard' %}" class="px-6 py-3 text-gray-500 hover:bg-gray-50 hover:text-gray-900 font-bold rounded-full transition-colors">
+                <a href="{% url 'student_portal:dashboard' %}" class="px-6 py-3 text-gray-500 hover:bg-gray-50 hover:text-gray-900 font-bold rounded-full transition-colors">
                     Hủy bỏ
                 </a>
                 <button type="submit" class="bg-ntt-light hover:bg-ntt-dark text-white font-bold rounded-full px-8 py-3 flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 uppercase tracking-wider text-sm">
