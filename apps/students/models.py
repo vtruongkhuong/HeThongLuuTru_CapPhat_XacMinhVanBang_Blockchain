@@ -42,7 +42,9 @@ class Student(BaseModel):
         max_length=20, blank=True,
         help_text="Số CCCD/CMND, dùng để đối chiếu khi cấp văn bằng."
     )
-    email = models.EmailField(blank=True)
+    email = models.EmailField(unique=True, error_messages={
+        'unique': "Email này đã được sử dụng cho một sinh viên khác."
+    })
     phone_number = models.CharField(max_length=20, blank=True)
 
     faculty = models.ForeignKey(Faculty, on_delete=models.PROTECT, related_name='students')

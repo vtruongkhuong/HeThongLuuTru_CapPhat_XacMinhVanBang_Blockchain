@@ -182,19 +182,27 @@ class StudentAdmin(BaseRoleAdmin):
                         mssv = str(row.get('mã sv', '')).strip()
                         ho_ten = str(row.get('họ tên', '')).strip()
                         ma_nganh = str(row.get('mã ngành', '')).strip()
+                        # Lấy thêm cột email từ Excel
+                        email_sv = str(row.get('email', '')).strip()
                         
                         if not mssv or mssv == 'nan':
                             continue 
 
                         try:
+                            # Kiểm tra rỗng Email
+                            if not email_sv or email_sv == 'nan':
+                                raise ValueError("Thiếu dữ liệu: Cột Email là bắt buộc.")
+
                             major_obj = Major.objects.filter(code=ma_nganh).first()
                             if not major_obj:
                                 raise ValueError(f"Không tìm thấy mã ngành: {ma_nganh}")
 
+                            # Thêm email vào block defaults để lưu xuống DB
                             student, created = Student.objects.update_or_create(
                                 student_code=mssv,
                                 defaults={
                                     'full_name': ho_ten,
+                                    'email': email_sv,
                                     'major': major_obj,
                                     'faculty': major_obj.faculty
                                 }
@@ -209,7 +217,7 @@ class StudentAdmin(BaseRoleAdmin):
                                 row_number=index + 2,
                                 student_code=mssv,
                                 action=action_type,
-                                new_value={'full_name': ho_ten, 'major': ma_nganh}
+                                new_value={'full_name': ho_ten, 'email': email_sv, 'major': ma_nganh}
                             )
 
                         except Exception as row_err:
