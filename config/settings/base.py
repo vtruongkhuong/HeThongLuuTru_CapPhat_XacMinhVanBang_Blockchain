@@ -117,6 +117,22 @@ CHAIN_ID = int(os.getenv('CHAIN_ID', '1337'))
 ISSUER_PRIVATE_KEY = os.getenv('ISSUER_PRIVATE_KEY', '')
 CONTRACT_ADDRESS = os.getenv('CONTRACT_ADDRESS', '')
 
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_AUTHENTICATION_METHOD = 'username_email' 
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'OAUTH_PKCE_ENABLED': True,
+    }
+}
+
 
 # ==============================================================================
 # Unfold — theme cho Django Admin (https://unfoldadmin.com)
@@ -222,7 +238,7 @@ UNFOLD = {
                         "title": _("Danh sách sinh viên"),
                         "icon": "groups",
                         "link": reverse_lazy("admin:students_student_changelist"),
-                        "permission": lambda request: check_menu_role(request, ['officer_a', 'academic_staff']),
+                        "permission": lambda request: check_menu_role(request, ['officer_a', 'academic_staff', 'officer_b', 'reviewer', 'approver']),
                     },
                     {
                         "title": _("Lịch sử import"),

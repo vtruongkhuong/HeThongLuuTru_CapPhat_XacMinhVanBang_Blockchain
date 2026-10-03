@@ -18,6 +18,18 @@ class Student(BaseModel):
         ('O', 'Khác'),
     ]
 
+    STATUS_CHOICES = [
+        ('draft', 'Nháp (Chưa duyệt)'),
+        ('pending', 'Chờ duyệt'),
+        ('approved', 'Đã duyệt'),
+    ]
+    status = models.CharField(
+        max_length=20, 
+        choices=STATUS_CHOICES, 
+        default='draft',
+        help_text="Trạng thái phê duyệt cấp bằng"
+    )
+
     # Liên kết với tài khoản đăng nhập (để sinh viên login vào Student Portal)
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='student_profile')
     
