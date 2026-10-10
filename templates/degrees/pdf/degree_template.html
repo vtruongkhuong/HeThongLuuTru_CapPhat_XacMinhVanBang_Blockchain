@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Văn Bằng</title>
+    <style>
+        @page { size: A4 landscape; margin: 2cm; }
+        body { font-family: "Helvetica", "Arial", sans-serif; text-align: center; }
+        .title { font-size: 24pt; font-weight: bold; margin-bottom: 20px; }
+        .name { font-size: 28pt; font-weight: bold; color: #b30000; margin: 15px 0; }
+        .info { font-size: 16pt; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="title">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM<br>Độc lập - Tự do - Hạnh phúc</div>
+    <br><br>
+    <h2>BẰNG CỬ NHÂN / KỸ SƯ</h2>
+    <div class="info">Cấp cho ông/bà:</div>
+    <div class="name">{{ student.full_name }}</div>
+    <div class="info">Mã sinh viên: {{ student.student_code }}</div>
+    <div class="info">Đợt tốt nghiệp: {{ degree.batch.name }}</div>
+    <br><br>
+    <div class="info">Mã tra cứu Blockchain (Merkle Leaf):<br><small>{{ degree.canonical_hash }}</small></div>
+</body>
+</html>

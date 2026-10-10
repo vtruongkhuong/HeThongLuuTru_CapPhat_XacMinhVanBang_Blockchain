@@ -1,0 +1,34 @@
+from django.contrib import admin
+from django.http import HttpResponse
+from apps.core.admin import BaseRoleAdmin
+from .models import Degree
+from .pdf_generator import get_degree_pdf
+
+@admin.register(Degree)
+class DegreeAdmin(BaseRoleAdmin):
+    # Quyền xem: Các cán bộ liên quan đến quy trình duyệt và phát hành
+    allowed_roles = ['officer_a', 'officer_b', 'reviewer', 'approver', 'issuer']
+    
+    list_display = ['student', 'batch', 'degree_type', 'status', 'created_at']
+    list_filter = ['batch', 'status', 'degree_type']
+    search_fields = ['student__full_name', 'student__student_code', 'canonical_hash']
+    
+    actions = ['preview_pdf']
+
+    @admin.action(description="Xem trước file PDF")
+    def preview_pdf(self, request, queryset):
+        # Lấy bản ghi đầu tiên trong các mục được chọn để xem trước
+        degree = queryset.first()
+        if not degree:
+            self.message_user(request, "Vui lòng chọn ít nhất 1 văn bằng để xem.")
+            return
+            
+        pdf_bytes = get_degree_pdf(degree)
+        
+        if pdf_bytes:
+            response = HttpResponse(pdf_bytes, content_type='application/pdf')
+            # 'inline' giúp trình duyệt mở file PDF thẳng trên tab mới thay vì tự động tải về
+            response['Content-Disposition'] = f'inline; filename="degree_{degree.student.student_code}.pdf"'
+            return response
+        else:
+            self.message_user(request, "Lỗi kết xuất PDF!", level='error')
