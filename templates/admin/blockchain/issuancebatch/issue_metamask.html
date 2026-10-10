@@ -1,0 +1,64 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block content %}
+<div style="padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <h2 style="color: #d9534f;">Phát hành Văn bằng lên Web3 (MetaMask)</h2>
+    <p><strong>Đợt tốt nghiệp:</strong> {{ batch.graduation_batch.name }}</p>
+    <p><strong>Merkle Root (Chuỗi băm):</strong> {{ batch.merkle_root }}</p>
+    <p><strong>Smart Contract:</strong> {{ contract_address }}</p>
+
+    <div style="margin-top: 20px;">
+        <button id="btn-connect" style="padding: 10px 15px; background: #f6851b; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+            1. Kết nối MetaMask
+        </button>
+        <span id="wallet-status" style="margin-left: 10px; color: green; font-weight: bold;"></span>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <button id="btn-sign" disabled style="padding: 10px 15px; background: #ccc; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+            2. Ký & Phát hành
+        </button>
+    </div>
+
+    <!-- Form ẩn để gửi tx_hash về lại Backend -->
+    <form id="tx-form" method="POST" action="{% url 'admin:blockchain_issuancebatch_save_tx_hash' %}" style="display: none;">
+        {% csrf_token %}
+        <input type="hidden" name="batch_id" value="{{ batch.id }}">
+        <input type="hidden" name="tx_hash" id="input-tx-hash">
+    </form>
+</div>
+
+<!-- Import file JS vừa tạo ở Bước 1 -->
+<script src="{% static 'js/wallet.js' %}"></script>
+<script>
+    let currentAccount = null;
+    const contractAddress = "{{ contract_address }}";
+    const txData = "{{ tx_data|escapejs }}";
+
+    document.getElementById('btn-connect').addEventListener('click', async () => {
+        currentAccount = await connectWallet();
+        if (currentAccount) {
+            document.getElementById('wallet-status').innerText = "Đã kết nối: " + currentAccount;
+            const btnSign = document.getElementById('btn-sign');
+            btnSign.disabled = false;
+            btnSign.style.background = "#28a745"; // Đổi màu xanh lá
+        }
+    });
+
+    document.getElementById('btn-sign').addEventListener('click', async () => {
+        if (!currentAccount) return;
+        
+        // Hiện thông báo chờ
+        document.getElementById('btn-sign').innerText = "Đang chờ MetaMask...";
+        
+        const txHash = await sendTransaction(currentAccount, contractAddress, txData);
+        if (txHash) {
+            document.getElementById('input-tx-hash').value = txHash;
+            document.getElementById('tx-form').submit(); // Submit mã hash về server
+        } else {
+            document.getElementById('btn-sign').innerText = "2. Ký & Phát hành";
+        }
+    });
+</script>
+{% endblock %}
