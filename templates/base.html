@@ -68,10 +68,11 @@
                         {{ user.get_full_name|default:user.username }}
                     </a>
                 {% else %}
-                    <a href="{% url 'accounts:profile' %}" class="text-gray-600 hover:text-ntt-dark flex items-center gap-1 transition-colors">
-                        <span class="material-symbols-outlined text-xl">account_circle</span>
-                        {{ user.get_full_name|default:user.username }}
-                    </a>
+                    <!-- Cán bộ thì chỉ hiện tên, không có link bấm vào Profile -->
+                    <span class="text-gray-600 flex items-center gap-1 cursor-default">
+                        <span class="material-symbols-outlined text-xl">shield_person</span>
+                        {{ user.get_full_name|default:user.username }} (Cán bộ)
+                    </span>
                 {% endif %}
                 
                 <a href="{% url 'accounts:logout' %}" class="text-gray-400 hover:text-red-500 transition-colors ml-2">Đăng xuất</a>

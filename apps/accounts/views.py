@@ -53,7 +53,7 @@ User = get_user_model()
 def register_view(request):
     # Nếu người dùng đã đăng nhập thì không cho vào trang đăng ký nữa
     if request.user.is_authenticated:
-        return redirect('accounts:profile')
+        return redirect('accounts:landing')
 
     if request.method == 'POST':
         # Giao toàn bộ dữ liệu POST cho Django Form xử lý
@@ -69,7 +69,7 @@ def register_view(request):
             messages.success(request, 'Đăng ký thành công! Chào mừng bạn.')
             
             # Chuyển hướng vào trang danh sách sinh viên
-            return redirect('dashboard')
+            return redirect('landing')
         else:
             # Nếu có lỗi (mật khẩu yếu, trùng tên...), hiển thị thông báo lỗi chung
             messages.error(request, 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin bên dưới.')
