@@ -2,24 +2,175 @@
 {% load static %}
 
 {% block content %}
-<div style="padding: 20px; background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-    <h2 style="color: #d9534f;">Phát hành Văn bằng lên Web3 (MetaMask)</h2>
-    <p><strong>Đợt tốt nghiệp:</strong> {{ batch.graduation_batch.name }}</p>
-    <p><strong>Merkle Root (Chuỗi băm):</strong> {{ batch.merkle_root }}</p>
-    <p><strong>Smart Contract:</strong> {{ contract_address }}</p>
+<style>
+    .iss {
+        --ink: #112953;
+        --ink-soft: #3b4d70;
+        --gold: #c09b4d;
+        --gold-soft: #f7f0e0;
+        --line: #dfe4ec;
+        --bg: #f4f6fa;
+        --ok: #1b7f4b;
+        --err: #b3261e;
+        --mm: #e8710a;
+        max-width: 880px;
+        margin: 28px auto 60px;
+        padding: 0 20px;
+        font-family: "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+        color: var(--ink);
+        line-height: 1.5;
+    }
+    .iss * { box-sizing: border-box; }
 
-    <div style="margin-top: 20px;">
-        <button id="btn-connect" style="padding: 10px 15px; background: #f6851b; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
-            1. Kết nối MetaMask
-        </button>
-        <span id="wallet-status" style="margin-left: 10px; color: green; font-weight: bold;"></span>
+    .iss-head h1 { margin: 0 0 4px; font-size: 26px; font-weight: 700; color: var(--ink); }
+    .iss-head p  { margin: 0; color: var(--ink-soft); font-size: 15px; }
+
+    /* ---- Thẻ thông tin đợt phát hành ---- */
+    .iss-card {
+        margin-top: 22px;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-left: 5px solid var(--gold);
+        border-radius: 10px;
+        padding: 22px 26px;
+    }
+    .iss-row { display: grid; grid-template-columns: 150px 1fr; gap: 6px 16px; padding: 11px 0; border-bottom: 1px solid var(--line); align-items: start; }
+    .iss-row:last-child { border-bottom: 0; padding-bottom: 0; }
+    .iss-row:first-child { padding-top: 0; }
+    .iss-label { font-size: 14px; color: var(--ink-soft); padding-top: 3px; }
+    .iss-value { font-size: 16px; font-weight: 600; word-break: break-all; }
+    .iss-mono  {
+        font-family: Consolas, "Courier New", monospace;
+        font-size: 13.5px; font-weight: 500;
+        background: var(--bg); border: 1px solid var(--line);
+        border-radius: 6px; padding: 8px 10px; display: block;
+        letter-spacing: .2px;
+    }
+    .iss-copy {
+        margin-top: 6px; background: none; border: 0; padding: 0;
+        color: var(--ink); font-size: 13px; cursor: pointer; text-decoration: underline;
+    }
+    .iss-copy:hover { color: var(--gold); }
+
+    /* ---- Các bước ---- */
+    .iss-steps { margin-top: 22px; display: grid; gap: 14px; }
+    .iss-step {
+        display: grid; grid-template-columns: 44px 1fr auto; gap: 16px; align-items: center;
+        background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 18px 22px;
+        transition: border-color .2s, opacity .2s;
+    }
+    .iss-step.is-active { border-color: var(--ink); box-shadow: 0 0 0 3px rgba(17,41,83,.08); }
+    .iss-step.is-locked { opacity: .55; }
+    .iss-step.is-done   { border-color: #b9dcc8; background: #f5fbf8; }
+
+    .iss-badge {
+        width: 44px; height: 44px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 18px;
+        background: var(--bg); color: var(--ink-soft); border: 2px solid var(--line);
+    }
+    .is-active .iss-badge { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .is-done   .iss-badge { background: var(--ok);  color: #fff; border-color: var(--ok); }
+
+    .iss-step h3 { margin: 0; font-size: 17px; font-weight: 700; color: var(--ink); }
+    .iss-step p  { margin: 2px 0 0; font-size: 14px; color: var(--ink-soft); }
+    .iss-step .iss-acct { color: var(--ok); font-weight: 600; font-family: Consolas, monospace; }
+
+    .iss-btn {
+        min-width: 170px; padding: 12px 20px; border: 0; border-radius: 8px;
+        font-size: 15px; font-weight: 700; color: #fff; cursor: pointer;
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        transition: filter .15s, transform .05s;
+    }
+    .iss-btn:hover:not(:disabled) { filter: brightness(1.08); }
+    .iss-btn:active:not(:disabled) { transform: translateY(1px); }
+    .iss-btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+    .iss-btn:disabled { background: #c5cbd6 !important; cursor: not-allowed; }
+    .iss-btn.mm   { background: var(--mm); }
+    .iss-btn.sign { background: var(--ink); }
+    .iss-btn.ghost { background: transparent; color: var(--ok); cursor: default; min-width: 0; padding: 0; font-weight: 600; }
+
+    .iss-spin {
+        width: 16px; height: 16px; border-radius: 50%;
+        border: 2px solid rgba(255,255,255,.4); border-top-color: #fff;
+        animation: iss-rot .8s linear infinite; display: none;
+    }
+    .is-busy .iss-spin { display: inline-block; }
+    @keyframes iss-rot { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { .iss-spin { animation-duration: 2s; } }
+
+    /* ---- Thông báo ---- */
+    .iss-note { margin-top: 18px; padding: 13px 16px; border-radius: 8px; font-size: 14.5px; display: none; }
+    .iss-note.show { display: block; }
+    .iss-note.err  { background: #fdecea; color: var(--err); border: 1px solid #f3c1bd; }
+    .iss-note.info { background: var(--gold-soft); color: #6b5217; border: 1px solid #ecdcb5; }
+
+    .iss-foot { margin-top: 20px; font-size: 13.5px; color: var(--ink-soft); }
+
+    @media (max-width: 640px) {
+        .iss-row { grid-template-columns: 1fr; }
+        .iss-step { grid-template-columns: 44px 1fr; }
+        .iss-step .iss-btn { grid-column: 1 / -1; width: 100%; }
+    }
+</style>
+
+<div class="iss">
+
+    <div class="iss-head">
+        <h1>Phát hành văn bằng lên blockchain</h1>
+        <p>Ký giao dịch bằng ví MetaMask để ghi Merkle Root của đợt tốt nghiệp lên smart contract. Giao dịch đã gửi thì không thể thu hồi.</p>
     </div>
 
-    <div style="margin-top: 20px;">
-        <button id="btn-sign" disabled style="padding: 10px 15px; background: #ccc; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
-            2. Ký & Phát hành
-        </button>
+    <!-- Thông tin đợt phát hành -->
+    <div class="iss-card">
+        <div class="iss-row">
+            <div class="iss-label">Đợt tốt nghiệp</div>
+            <div class="iss-value">{{ batch.graduation_batch.name }}</div>
+        </div>
+        <div class="iss-row">
+            <div class="iss-label">Merkle Root</div>
+            <div>
+                <code class="iss-mono" id="v-root">{{ batch.merkle_root }}</code>
+                <button type="button" class="iss-copy" data-copy="v-root">Sao chép</button>
+            </div>
+        </div>
+        <div class="iss-row">
+            <div class="iss-label">Smart contract</div>
+            <div>
+                <code class="iss-mono" id="v-contract">{{ contract_address }}</code>
+                <button type="button" class="iss-copy" data-copy="v-contract">Sao chép</button>
+            </div>
+        </div>
     </div>
+
+    <!-- Hai bước thao tác -->
+    <div class="iss-steps">
+        <div class="iss-step is-active" id="step-connect">
+            <div class="iss-badge" id="badge-connect">1</div>
+            <div>
+                <h3>Kết nối ví MetaMask</h3>
+                <p id="wallet-status">Chọn tài khoản có quyền phát hành văn bằng.</p>
+            </div>
+            <button type="button" class="iss-btn mm" id="btn-connect">
+                <span class="iss-spin"></span><span class="iss-label-text">Kết nối ví</span>
+            </button>
+        </div>
+
+        <div class="iss-step is-locked" id="step-sign">
+            <div class="iss-badge" id="badge-sign">2</div>
+            <div>
+                <h3>Ký và phát hành</h3>
+                <p id="sign-status">MetaMask sẽ hiện cửa sổ xác nhận giao dịch và phí gas.</p>
+            </div>
+            <button type="button" class="iss-btn sign" id="btn-sign" disabled>
+                <span class="iss-spin"></span><span class="iss-label-text">Ký và phát hành</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="iss-note" id="note" role="alert"></div>
+
+    <p class="iss-foot">Sau khi ký xong, hệ thống tự lưu mã giao dịch và chuyển bạn về trang quản trị.</p>
 
     <!-- Form ẩn để gửi tx_hash về lại Backend -->
     <form id="tx-form" method="POST" action="{% url 'admin:blockchain_issuancebatch_save_tx_hash' %}" style="display: none;">
@@ -29,36 +180,102 @@
     </form>
 </div>
 
-<!-- Import file JS vừa tạo ở Bước 1 -->
 <script src="{% static 'js/wallet.js' %}"></script>
 <script>
     let currentAccount = null;
     const contractAddress = "{{ contract_address }}";
     const txData = "{{ tx_data|escapejs }}";
 
-    document.getElementById('btn-connect').addEventListener('click', async () => {
-        currentAccount = await connectWallet();
-        if (currentAccount) {
-            document.getElementById('wallet-status').innerText = "Đã kết nối: " + currentAccount;
-            const btnSign = document.getElementById('btn-sign');
-            btnSign.disabled = false;
-            btnSign.style.background = "#28a745"; // Đổi màu xanh lá
-        }
+    const $ = (id) => document.getElementById(id);
+    const shortAddr = (a) => a.slice(0, 6) + "…" + a.slice(-4);
+
+    function showNote(kind, text) {
+        const n = $('note');
+        n.className = 'iss-note show ' + kind;
+        n.textContent = text;
+    }
+    function hideNote() { $('note').className = 'iss-note'; }
+
+    function setBusy(btn, busy, label) {
+        btn.classList.toggle('is-busy', busy);
+        btn.disabled = busy;
+        btn.querySelector('.iss-label-text').textContent = label;
+    }
+
+    // Sao chép Merkle Root / địa chỉ contract
+    document.querySelectorAll('.iss-copy').forEach((b) => {
+        b.addEventListener('click', async () => {
+            const text = $(b.dataset.copy).textContent.trim();
+            try {
+                await navigator.clipboard.writeText(text);
+                b.textContent = 'Đã sao chép';
+            } catch (e) {
+                b.textContent = 'Không sao chép được';
+            }
+            setTimeout(() => (b.textContent = 'Sao chép'), 1600);
+        });
     });
 
-    document.getElementById('btn-sign').addEventListener('click', async () => {
-        if (!currentAccount) return;
-        
-        // Hiện thông báo chờ
-        document.getElementById('btn-sign').innerText = "Đang chờ MetaMask...";
-        
-        const txHash = await sendTransaction(currentAccount, contractAddress, txData);
-        if (txHash) {
-            document.getElementById('input-tx-hash').value = txHash;
-            document.getElementById('tx-form').submit(); // Submit mã hash về server
-        } else {
-            document.getElementById('btn-sign').innerText = "2. Ký & Phát hành";
+    if (!window.ethereum) {
+        showNote('err', 'Trình duyệt chưa có MetaMask. Hãy cài tiện ích MetaMask rồi tải lại trang.');
+        $('btn-connect').disabled = true;
+    }
+
+    // Bước 1: kết nối ví
+    $('btn-connect').addEventListener('click', async () => {
+        hideNote();
+        const btn = $('btn-connect');
+        setBusy(btn, true, 'Đang kết nối...');
+
+        let account = null;
+        try { account = await connectWallet(); } catch (e) { console.error(e); }
+
+        if (!account) {
+            setBusy(btn, false, 'Kết nối ví');
+            showNote('err', 'Chưa kết nối được ví. Hãy mở MetaMask, mở khóa ví rồi thử lại.');
+            return;
         }
+
+        currentAccount = account;
+        $('wallet-status').innerHTML = 'Đã kết nối ví <span class="iss-acct" title="' + account + '">' + shortAddr(account) + '</span>';
+        $('step-connect').className = 'iss-step is-done';
+        $('badge-connect').textContent = '✓';
+
+        btn.className = 'iss-btn ghost';
+        btn.disabled = true;
+        btn.querySelector('.iss-label-text').textContent = 'Đã kết nối';
+
+        $('step-sign').className = 'iss-step is-active';
+        $('btn-sign').disabled = false;
+    });
+
+    // Bước 2: ký giao dịch
+    $('btn-sign').addEventListener('click', async () => {
+        if (!currentAccount) return;
+        hideNote();
+        const btn = $('btn-sign');
+        setBusy(btn, true, 'Đang chờ MetaMask...');
+        $('sign-status').textContent = 'Hãy xác nhận giao dịch trong cửa sổ MetaMask.';
+
+        let txHash = null;
+        try { txHash = await sendTransaction(currentAccount, contractAddress, txData); } catch (e) { console.error(e); }
+
+        if (!txHash) {
+            setBusy(btn, false, 'Ký và phát hành');
+            $('sign-status').textContent = 'MetaMask sẽ hiện cửa sổ xác nhận giao dịch và phí gas.';
+            showNote('err', 'Giao dịch chưa được gửi. Có thể bạn đã từ chối trong MetaMask hoặc ví không đủ phí gas. Bạn có thể thử lại.');
+            return;
+        }
+
+        $('step-sign').className = 'iss-step is-done';
+        $('badge-sign').textContent = '✓';
+        $('sign-status').textContent = 'Đã gửi giao dịch. Đang lưu mã giao dịch...';
+        btn.className = 'iss-btn ghost';
+        btn.querySelector('.iss-label-text').textContent = 'Đã ký';
+        showNote('info', 'Mã giao dịch: ' + txHash);
+
+        $('input-tx-hash').value = txHash;
+        $('tx-form').submit();
     });
 </script>
 {% endblock %}
