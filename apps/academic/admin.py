@@ -19,9 +19,9 @@ class FacultyAdmin(BaseRoleAdmin):
 @admin.register(Major)
 class MajorAdmin(BaseRoleAdmin):
     allowed_roles = ALLOWED_ACADEMIC_ROLES
-    list_display = ('code', 'name', 'faculty', 'is_active')
+    list_display = ('code', 'name', 'faculty','degree_type', 'is_active')
     search_fields = ('code', 'name')
-    list_filter = ('faculty', 'is_active')
+    list_filter = ('faculty', 'degree_type','is_active')
     list_filter_submit = True
     autocomplete_fields = ['faculty']
 

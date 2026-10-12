@@ -1,25 +1,74 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <title>Văn Bằng</title>
-    <style>
-        @page { size: A4 landscape; margin: 2cm; }
-        body { font-family: "Helvetica", "Arial", sans-serif; text-align: center; }
-        .title { font-size: 24pt; font-weight: bold; margin-bottom: 20px; }
-        .name { font-size: 28pt; font-weight: bold; color: #b30000; margin: 15px 0; }
-        .info { font-size: 16pt; margin: 10px 0; }
-    </style>
+<meta charset="utf-8">
+<title>Văn Bằng</title>
+<style>
+    @font-face { font-family: "VBFont"; src: url("{% static 'fonts/Tinos-Regular.ttf' %}"); }
+    @font-face { font-family: "VBFont"; font-weight: bold; src: url("{% static 'fonts/Tinos-Bold.ttf' %}"); }
+
+    @page {
+        size: a4 landscape;
+        margin: 2.2cm 2.8cm 2cm 2.8cm;
+        background-image: url("{% static 'img/degree_bg.png' %}");
+    }
+
+    body { font-family: "VBFont"; text-align: center; color: #1a1a1a; }
+
+    .quoc-hieu  { font-size: 16pt; font-weight: bold; }
+    .tieu-ngu   { font-size: 14pt; font-weight: bold; }
+    .school     { font-size: 13pt; font-weight: bold; color: #961419; }
+
+    .degree-type { font-size: 34pt; font-weight: bold; color: #961419; }
+    .info        { font-size: 15pt; }
+    .name        { font-size: 34pt; font-weight: bold; color: #000; }
+
+    .hash-title { font-size: 8pt; color: #666; text-align: left; }
+    .hash-code  { font-family: Courier; font-size: 8pt; color: #333; text-align: left; }
+
+    .sign-date { font-size: 12pt; }
+    .sign-role { font-size: 14pt; font-weight: bold; color: #961419; }
+    .sign-note { font-size: 9pt; color: #777; }
+</style>
 </head>
 <body>
-    <div class="title">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM<br>Độc lập - Tự do - Hạnh phúc</div>
-    <br><br>
-    <h2>BẰNG CỬ NHÂN / KỸ SƯ</h2>
+
+    {% if logo %}{% endif %}
+    <img src="{% static 'img/logo_ctut.png' %}" width="58"><br/>
+    <div class="quoc-hieu">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+    <div class="tieu-ngu">Độc lập - Tự do - Hạnh phúc</div>
+    <table width="22%" align="center"><tr>
+        <td style="border-top: 1px solid #c09b4d; font-size: 2pt;">&nbsp;</td>
+    </tr></table>
+    <div class="school">TRƯỜNG ĐẠI HỌC KỸ THUẬT - CÔNG NGHỆ CẦN THƠ</div>
+
+    <br/>
+    <div class="degree-type">BẰNG CỬ NHÂN / KỸ SƯ</div>
+    <table width="40%" align="center"><tr>
+        <td style="border-top: 2px solid #c09b4d; font-size: 2pt;">&nbsp;</td>
+    </tr></table>
+
     <div class="info">Cấp cho ông/bà:</div>
-    <div class="name">{{ student.full_name }}</div>
-    <div class="info">Mã sinh viên: {{ student.student_code }}</div>
+    <div class="name">{{ student.full_name|upper }}</div>
+    <br/>
+    <div class="info">Mã sinh viên: <b>{{ student.student_code }}</b></div>
     <div class="info">Đợt tốt nghiệp: {{ degree.batch.name }}</div>
-    <br><br>
-    <div class="info">Mã tra cứu Blockchain (Merkle Leaf):<br><small>{{ degree.canonical_hash }}</small></div>
+
+    <br/>
+    <table width="100%">
+        <tr>
+            <td width="62%" valign="bottom" align="left">
+                <div class="hash-title">Mã tra cứu Blockchain (Merkle Leaf):</div>
+                <div class="hash-code">{{ degree.canonical_hash }}</div>
+            </td>
+            <td width="38%" valign="bottom" align="center">
+                <div class="sign-date">Cần Thơ, ngày ..... tháng ..... năm .......</div>
+                <div class="sign-role">HIỆU TRƯỞNG</div>
+                <div class="sign-note">(Ký, ghi rõ họ tên và đóng dấu)</div>
+            </td>
+        </tr>
+    </table>
+
 </body>
 </html>

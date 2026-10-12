@@ -32,7 +32,7 @@ def dashboard_view(request):
         # Cán bộ phát hành (Authorized Issuer) -> Tới trang Giao dịch Blockchain
         elif 'issuer' in role_codes:
             # Sửa lại URL name cho khớp với namespace blockchain của bạn
-            return redirect('admin:blockchain_transaction_changelist') 
+            return redirect('admin:blockchain_issuancebatch_changelist') 
         
         # Cán bộ khác chưa phân vai trò cụ thể -> Cho xem trang thống kê mặc định của bạn
         stats = {

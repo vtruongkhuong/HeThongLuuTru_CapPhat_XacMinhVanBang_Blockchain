@@ -40,7 +40,10 @@ class IssuanceBatchAdmin(BaseRoleAdmin):
             
             # 2. Sinh dữ liệu giao dịch chưa ký (chỉ mã hóa dữ liệu, KHÔNG CẦN PRIVATE KEY)
             # Hàm trên Smart Contract là: storeMerkleRoot(string _batchName, string _merkleRoot)
-            tx_data = contract.encodeABI(fn_name="storeMerkleRoot", args=[batch.graduation_batch.name, batch.merkle_root])
+            tx_data = contract.functions.storeMerkleRoot(
+                batch.graduation_batch.name, 
+                batch.merkle_root
+            )._encode_transaction_data()
 
             # 3. Ném dữ liệu ra HTML để Frontend xử lý
             context = {

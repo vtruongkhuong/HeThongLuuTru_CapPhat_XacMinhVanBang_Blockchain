@@ -9,6 +9,7 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
+
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'change-me')
 
 INSTALLED_APPS = [
@@ -101,7 +102,6 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 

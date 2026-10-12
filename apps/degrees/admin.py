@@ -9,7 +9,7 @@ class DegreeAdmin(BaseRoleAdmin):
     # Quyền xem: Các cán bộ liên quan đến quy trình duyệt và phát hành
     allowed_roles = ['officer_a', 'officer_b', 'reviewer', 'approver', 'issuer']
     
-    list_display = ['student', 'batch', 'degree_type', 'status', 'created_at']
+    list_display = ['student', 'batch', 'degree_type', 'status', 'generated_at']
     list_filter = ['batch', 'status', 'degree_type']
     search_fields = ['student__full_name', 'student__student_code', 'canonical_hash']
     

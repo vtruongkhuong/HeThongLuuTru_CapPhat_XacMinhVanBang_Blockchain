@@ -29,6 +29,15 @@ class Major(TimeStampedModel):
     """Ngành đào tạo, thuộc 1 Khoa."""
 
     faculty = models.ForeignKey(Faculty, on_delete=models.PROTECT, related_name='majors')
+    
+    degree_type = models.ForeignKey(
+        'DegreeType', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        help_text="Loại văn bằng sẽ cấp cho ngành này"
+    )
+    
     code = models.CharField(max_length=20, unique=True, help_text="Vd: 7480201")
     name = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)

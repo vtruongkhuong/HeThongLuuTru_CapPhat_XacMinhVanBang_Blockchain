@@ -136,12 +136,13 @@ class GraduationBatchAdmin(BaseRoleAdmin):
 
                 # 6. Tạo DegreeMerkleProof cho Nghĩa xác thực
                 proofs_to_create = []
-                for degree, leaf_hash in zip(created_degrees, leaves):
+                for index, (degree, leaf_hash) in enumerate(zip(created_degrees, leaves)):
                     proofs_to_create.append(DegreeMerkleProof(
                         degree=degree,
                         issuance_batch=issuance_batch,
                         leaf_hash=leaf_hash,
-                        proof=json.dumps([])
+                        leaf_index=index, 
+                        proof_path=json.dumps([])
                     ))
                 DegreeMerkleProof.objects.bulk_create(proofs_to_create)
 
