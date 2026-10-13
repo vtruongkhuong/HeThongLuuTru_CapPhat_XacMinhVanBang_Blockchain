@@ -17,31 +17,24 @@ class BlockchainClient:
 
     def publish_merkle_root(self, issuance_batch):
         """Hàm nhận IssuanceBatch và đẩy merkle_root lên Blockchain"""
-        
         if not self.w3.is_connected():
             raise Exception("Lỗi: Không thể kết nối với mạng Blockchain!")
 
-        # Lấy địa chỉ ví tự động từ Private Key
         account = self.w3.eth.account.from_key(settings.ISSUER_PRIVATE_KEY)
         wallet_address = account.address
 
-        # 1. Khởi tạo giao dịch (Gọi hàm storeMerkleRoot đã viết bên Solidity)
         tx = self.contract.functions.storeMerkleRoot(
-            str(issuance_batch.graduation_batch.name),  # Tên đợt (VD: "Dot_1_2026")
-            str(issuance_batch.merkle_root)             # Mã băm
+            str(issuance_batch.graduation_batch.name),
+            str(issuance_batch.merkle_root)
         ).build_transaction({
             'chainId': int(settings.CHAIN_ID),
             'gas': 2000000,
             'nonce': self.w3.eth.get_transaction_count(wallet_address),
         })
 
-        # 2. Ký giao dịch bằng Private Key
         signed_tx = self.w3.eth.account.sign_transaction(tx, private_key=settings.ISSUER_PRIVATE_KEY)
-
-        # 3. Gửi lên Blockchain
         tx_hash = self.w3.eth.send_raw_transaction(signed_tx.rawTransaction)
         
-        # 4. Lưu lại lịch sử giao dịch vào Database của Django
         tx_hash_hex = self.w3.to_hex(tx_hash)
         BlockchainTransaction.objects.create(
             issuance_batch=issuance_batch,
@@ -49,5 +42,24 @@ class BlockchainClient:
             tx_hash=tx_hash_hex,
             status='pending'
         )
-        
         return tx_hash_hex
+
+    def get_merkle_root(self, batch_identifier):
+        """[N2] Đọc Merkle Root của đợt cấp phát từ Smart Contract"""
+        try:
+            if not self.w3.is_connected():
+                return None
+            return self.contract.functions.getMerkleRoot(str(batch_identifier)).call()
+        except Exception:
+            return None
+
+    def verify_degree_on_chain(self, degree_identifier):
+        """[N2] Kiểm tra trạng thái hiệu lực/thu hồi của văn bằng trên Smart Contract (sau K1)"""
+        try:
+            if not self.w3.is_connected():
+                return None
+            if hasattr(self.contract.functions, 'verifyDegree'):
+                return self.contract.functions.verifyDegree(str(degree_identifier)).call()
+            return None
+        except Exception:
+            return None

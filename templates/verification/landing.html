@@ -1,101 +1,89 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
-{% block title %}Trang chủ - Cổng Thông tin CTUT{% endblock %}
+{% block title %}Cổng Tra Cứu Văn Bằng - Chứng Chỉ{% endblock %}
 
 {% block content %}
-<div class="w-full relative flex flex-col items-center pb-24">
+<!-- Banner xanh -->
+<div class="bg-ntt-dark py-16 -mx-4 sm:-mx-6 lg:-mx-8 px-4 relative overflow-hidden flex flex-col items-center pt-[100px]">
+    <div class="absolute inset-0 opacity-10 bg-center bg-no-repeat bg-contain pointer-events-none" style="background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'white\'><path d=\'M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72l5 2.73 5-2.73v3.72z\'/></svg>');"></div>
+    <h1 class="text-3xl md:text-4xl font-bold text-white uppercase text-center relative z-10 tracking-wide mb-12">
+        CỔNG TRA CỨU VĂN BẰNG, CHỨNG CHỈ
+    </h1>
     
-    <!-- Hero Section -->
-    <div class="w-full bg-ntt-light pt-24 pb-48 relative flex justify-center">
-        <h1 class="text-3xl md:text-4xl font-bold text-white uppercase tracking-wider text-center px-4 relative z-10 text-shadow-md">
-            CỔNG TRA CỨU VÀ XÁC THỰC VĂN BẰNG, CHỨNG CHỈ
-        </h1>
-        <svg class="absolute bottom-0 w-full h-16 md:h-24 text-gray-50" preserveAspectRatio="none" viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0 120L1440 120V0C1440 0 1080 120 720 120C360 120 0 0 0 0V120Z" fill="currentColor"/>
-        </svg>
-    </div>
-
-    <!-- 3 Thẻ Chức năng theo thiết kế gốc -->
-    <div class="max-w-6xl w-full mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 relative -mt-32 z-20">
+    <!-- Box tra cứu -->
+    <div class="bg-white rounded-[30px] shadow-2xl p-8 md:p-12 w-full max-w-4xl relative z-10 mt-4 mx-auto border-4 border-white/20 backdrop-blur-sm">
         
-        <!-- CARD 1: TRA CỨU -->
-        <!-- Link hoạt động: Trỏ sang trang Tra cứu -->
-        <a href="{% url 'public_verify' %}" class="group bg-white rounded-3xl shadow-soft hover:shadow-hover transform hover:-translate-y-2 transition-all duration-300 overflow-hidden flex flex-col h-full border border-gray-100">
-            <!-- Nửa trên Xanh đậm + Viền Vàng -->
-            <div class="bg-ntt-dark pt-10 pb-8 flex flex-col items-center justify-center relative border-b-[3px] border-ntt-gold">
-                <div class="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-white mb-4 border border-white/20">
-                    <span class="material-symbols-outlined text-3xl">school</span>
-                </div>
-                <span class="px-5 py-1.5 bg-white/20 text-white text-xs font-bold rounded-full uppercase tracking-widest border border-white/10">Tra Cứu</span>
+        <!-- Tab selector -->
+        <div class="flex justify-center mb-10">
+            <div class="bg-gray-100 p-1.5 rounded-full flex gap-1 border border-gray-200">
+                <button class="px-6 py-2.5 bg-ntt-dark text-white rounded-full font-bold text-sm flex items-center gap-2 shadow-md">
+                    <span class="material-symbols-outlined text-[18px]">school</span> Tra cứu văn bằng
+                </button>
+                <a href="{% url 'verification:verify_temp_cert' %}" class="px-6 py-2.5 text-gray-600 hover:text-ntt-dark rounded-full font-bold text-sm flex items-center gap-2 transition-colors">
+                    <span class="material-symbols-outlined text-[18px]">workspace_premium</span> Tra cứu chứng chỉ
+                </a>
             </div>
-            <!-- Nửa dưới Trắng -->
-            <div class="p-8 flex flex-col flex-1">
-                <h3 class="font-bold text-gray-900 text-lg mb-3">Tra cứu văn bằng - chứng chỉ</h3>
-                <p class="text-[14px] text-gray-500 mb-8 flex-1 leading-relaxed">
-                    Tra cứu thông tin văn bằng, chứng chỉ đã được cấp bởi Trường Đại học Kỹ thuật Công nghệ Cần Thơ theo số hiệu hoặc thông tin cá nhân.
-                </p>
-                <div class="flex items-center justify-between mt-auto pt-4 border-t border-gray-50">
-                    <span class="text-ntt-light font-semibold text-sm group-hover:text-ntt-dark transition-colors flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[18px]">search</span> Tra cứu ngay
-                    </span>
-                    <div class="w-8 h-8 rounded-full bg-ntt-light text-white flex items-center justify-center group-hover:bg-ntt-dark transition-colors shadow-sm">
-                        <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-                    </div>
-                </div>
-            </div>
-        </a>
+        </div>
 
-        <!-- CARD 2: XÁC THỰC -->
-        <!-- Chưa có logic: Tạm để '#' -->
-        <!-- Sửa dòng này ở Card 2 -->
-<a href="{% url 'verify_temp_cert' %}" class="group bg-white rounded-3xl shadow-soft hover:shadow-hover transform hover:-translate-y-2 transition-all duration-300 overflow-hidden flex flex-col h-full border border-gray-100">
-            <div class="bg-ntt-dark pt-10 pb-8 flex flex-col items-center justify-center relative border-b-[3px] border-ntt-gold">
-                <div class="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-white mb-4 border border-white/20">
-                    <span class="material-symbols-outlined text-3xl">task</span>
+        <form action="{% url 'verification:public_verify' %}" method="POST" class="space-y-8">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Cột Họ tên -->
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Họ Tên</label>
+                    <input type="text" name="full_name" placeholder="Nhập họ tên" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:bg-white focus:border-ntt-light focus:ring-1 focus:ring-ntt-light outline-none transition-all placeholder-gray-400">
                 </div>
-                <span class="px-5 py-1.5 bg-white/20 text-white text-xs font-bold rounded-full uppercase tracking-widest border border-white/10">Xác Thực</span>
-            </div>
-            <div class="p-8 flex flex-col flex-1">
-                <h3 class="font-bold text-gray-900 text-lg mb-3">Tra cứu giấy chứng nhận tốt nghiệp tạm thời</h3>
-                <p class="text-[14px] text-gray-500 mb-8 flex-1 leading-relaxed">
-                    Xác thực tính hợp lệ của giấy chứng nhận tốt nghiệp tạm thời thông qua mã tra cứu hoặc quét mã QR được in trên giấy.
-                </p>
-                <div class="flex items-center justify-between mt-auto pt-4 border-t border-gray-50">
-                    <span class="text-ntt-light font-semibold text-sm group-hover:text-ntt-dark transition-colors flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[18px]">qr_code_scanner</span> Xác thực ngay
-                    </span>
-                    <div class="w-8 h-8 rounded-full bg-ntt-light text-white flex items-center justify-center group-hover:bg-ntt-dark transition-colors shadow-sm">
-                        <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-                    </div>
+                
+                <!-- Cột Ngày sinh -->
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Ngày sinh</label>
+                    <input type="text" name="dob" placeholder="VD: 01/01/1991" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:bg-white focus:border-ntt-light focus:ring-1 focus:ring-ntt-light outline-none transition-all placeholder-gray-400">
                 </div>
-            </div>
-        </a>
 
-        <!-- CARD 3: ĐĂNG KÝ -->
-        <!-- Chưa có logic: Tạm để '#' -->
-        <a href="#" class="group bg-white rounded-3xl shadow-soft hover:shadow-hover transform hover:-translate-y-2 transition-all duration-300 overflow-hidden flex flex-col h-full border border-gray-100">
-            <div class="bg-ntt-dark pt-10 pb-8 flex flex-col items-center justify-center relative border-b-[3px] border-ntt-gold">
-                <div class="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center text-white mb-4 border border-white/20">
-                    <span class="material-symbols-outlined text-3xl">edit_document</span>
-                </div>
-                <span class="px-5 py-1.5 bg-white/20 text-white text-xs font-bold rounded-full uppercase tracking-widest border border-white/10">Đăng Ký</span>
-            </div>
-            <div class="p-8 flex flex-col flex-1">
-                <h3 class="font-bold text-gray-900 text-lg mb-3">Đăng ký giấy chứng nhận tốt nghiệp tạm thời</h3>
-                <p class="text-[14px] text-gray-500 mb-8 flex-1 leading-relaxed">
-                    Nộp yêu cầu cấp giấy chứng nhận tốt nghiệp tạm thời trực tuyến trong thời gian đợt đăng ký được mở bởi phòng Quản lý Đào tạo.
-                </p>
-                <div class="flex items-center justify-between mt-auto pt-4 border-t border-gray-50">
-                    <span class="text-ntt-light font-semibold text-sm group-hover:text-ntt-dark transition-colors flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[18px]">edit_square</span> Đăng ký ngay
-                    </span>
-                    <div class="w-8 h-8 rounded-full bg-ntt-light text-white flex items-center justify-center group-hover:bg-ntt-dark transition-colors shadow-sm">
-                        <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-                    </div>
+                <!-- Cột Số hiệu/CCCD (Bắt buộc) -->
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Số hiệu văn bằng / CCCD <span class="text-red-500">(*)</span></label>
+                    <input type="text" name="search_query" required placeholder="Mã tra cứu bắt buộc..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-semibold text-ntt-dark focus:bg-white focus:border-ntt-light focus:ring-1 focus:ring-ntt-light outline-none transition-all placeholder-gray-400">
                 </div>
             </div>
-        </a>
 
+            <!-- Các nút bấm -->
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6 pt-4">
+                <!-- Captcha giả lập -->
+                <div class="flex items-center gap-3 bg-gray-50 border border-gray-200 px-4 py-3 rounded-xl w-full md:w-auto">
+                    <input type="checkbox" class="w-5 h-5 text-ntt-light border-gray-300 rounded focus:ring-ntt-light cursor-pointer">
+                    <span class="text-sm text-gray-600 font-medium">Tôi không phải là người máy</span>
+                    <span class="material-symbols-outlined text-gray-400 ml-4">sync</span>
+                </div>
+                
+                <div class="flex gap-4 w-full md:w-auto">
+                    <button type="submit" class="flex-1 md:flex-none bg-ntt-light hover:bg-ntt-dark text-white px-8 py-3.5 rounded-xl font-bold uppercase text-sm flex items-center justify-center gap-2 transition-colors shadow-md hover:shadow-lg">
+                        <span class="material-symbols-outlined text-[20px]">search</span> Tra cứu
+                    </button>
+                    <button type="button" class="flex-1 md:flex-none bg-white hover:bg-gray-50 text-ntt-dark border-2 border-gray-200 px-6 py-3.5 rounded-xl font-bold uppercase text-sm flex items-center justify-center gap-2 transition-colors">
+                        <span class="material-symbols-outlined text-[20px]">qr_code_scanner</span> Tra cứu bằng QR
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Hướng dẫn -->
+        <div class="mt-10 bg-blue-50/50 border border-blue-100 rounded-2xl p-6 space-y-4">
+            <h3 class="text-sm font-bold text-ntt-dark flex items-center gap-2">
+                <span class="material-symbols-outlined text-ntt-light">info</span> Hướng dẫn tra cứu:
+            </h3>
+            <ul class="space-y-3 text-sm text-gray-600 font-medium">
+                <li class="flex items-start gap-2">
+                    <span class="material-symbols-outlined text-green-500 text-[18px] mt-0.5 shrink-0">check_circle</span>
+                    <p><strong>Điều kiện tra cứu:</strong> Điền thông tin <strong>Số hiệu (*)</strong> hoặc <strong>CCCD (*)</strong> vào ô bắt buộc và xác thực captcha để thực hiện tra cứu. (Họ tên và ngày sinh là tùy chọn bổ sung).</p>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="material-symbols-outlined text-ntt-light text-[18px] mt-0.5 shrink-0">qr_code_2</span>
+                    <p><strong>Tra cứu bằng QR:</strong> Có thể chọn nút "Tra cứu bằng QR" để bật Camera quét mã in trên phôi bằng, hoặc hệ thống sẽ tự động quét file tải lên từ thiết bị.</p>
+                </li>
+            </ul>
+        </div>
     </div>
 </div>
 {% endblock %}

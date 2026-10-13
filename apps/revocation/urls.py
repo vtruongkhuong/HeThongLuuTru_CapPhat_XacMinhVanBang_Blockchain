@@ -1,7 +1,8 @@
 from django.urls import path
+from . import views
 
 app_name = 'revocation'
 
 urlpatterns = [
-    # Các đường dẫn của app revocation sẽ viết vào đây
+    path('execute/<int:pk>/', views.execute_revocation_metamask_view, name='execute_metamask'),
 ]

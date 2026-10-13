@@ -1,280 +1,112 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
-{% block title %}Tra Cứu Văn Bằng - CTUT{% endblock %}
-{% block extra_head %}
-<style>
-    /* Ép kiểu cho khung quét QR của thư viện */
-    #reader {
-        border: none !important;
-    }
-    
-    /* Nút bấm (Start Scanning, Stop) */
-    #reader button {
-        background-color: #2a63b2 !important; /* Màu ntt-light */
-        color: white !important;
-        font-weight: 700 !important;
-        padding: 8px 24px !important;
-        border-radius: 9999px !important;
-        border: none !important;
-        cursor: pointer !important;
-        transition: background-color 0.2s !important;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
-        margin-top: 10px !important;
-    }
+{% block title %}Kết quả Tra cứu Văn bằng{% endblock %}
 
-    #reader button:hover {
-        background-color: #112953 !important; /* Màu ntt-dark */
-    }
-
-    /* Ô chọn Camera */
-    #reader select {
-        width: 100% !important;
-        max-width: 250px !important;
-        padding: 8px 12px !important;
-        border-radius: 8px !important;
-        border: 1px solid #d1d5db !important;
-        margin: 10px auto !important;
-        font-size: 14px !important;
-        outline: none !important;
-        display: block !important;
-    }
-
-    /* Text liên kết (Scan an Image File) */
-    #reader a {
-        color: #2a63b2 !important;
-        text-decoration: none !important;
-        font-weight: 600 !important;
-        font-size: 14px !important;
-        display: inline-block !important;
-        margin-top: 12px !important;
-    }
-
-    #reader a:hover {
-        text-decoration: underline !important;
-    }
-</style>
-{% endblock %}
-
-
-<!-- Code cũ giữ nguyên bên dưới -->
 {% block content %}
-<div class="w-full relative flex flex-col items-center pb-20">
-    
-    <!-- Background Header Xanh -->
-    <div class="w-full bg-gradient-to-r from-ntt-dark to-ntt-light pt-16 pb-32">
-        <h1 class="text-3xl font-bold text-white uppercase text-center tracking-widest text-shadow-md">
-            CỔNG TRA CỨU VĂN BẰNG, CHỨNG CHỈ
-        </h1>
-    </div>
+<div class="max-w-4xl w-full mx-auto px-4 py-12">
+    <!-- Nút quay lại -->
+    <a href="{% url 'verification:landing' %}" class="inline-flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-ntt-dark mb-8 transition-colors">
+        <span class="material-symbols-outlined text-[18px]">arrow_back</span> QUAY LẠI TRANG TRA CỨU
+    </a>
 
-    <!-- Khối Form Chính -->
-    <div class="max-w-5xl w-full mx-auto px-4 sm:px-6 -mt-20 relative z-20">
-        <div class="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 md:p-12 overflow-hidden">
-            
-            <!-- Tabs -->
-            <div class="flex justify-center mb-10">
-                <div class="flex bg-gray-100 rounded-full p-1 shadow-inner">
-                    <button class="flex items-center gap-2 bg-ntt-light text-white px-8 py-2.5 rounded-full text-sm font-bold shadow-md">
-                        <span class="material-symbols-outlined text-[20px]">school</span> Tra cứu văn bằng
-                    </button>
-                    <button class="flex items-center gap-2 text-gray-500 hover:text-gray-800 px-8 py-2.5 rounded-full text-sm font-bold transition-colors">
-                        <span class="material-symbols-outlined text-[20px]">workspace_premium</span> Tra cứu chứng chỉ
-                    </button>
-                </div>
+    <!-- KHỐI KẾT QUẢ -->
+    {% if searched %}
+        <div class="bg-white rounded-[30px] shadow-soft border border-gray-100 overflow-hidden">
+            <!-- Header trạng thái -->
+            <div class="p-8 text-center text-white relative overflow-hidden
+                {% if verification_state == 'VALID' %} bg-gradient-to-r from-green-600 to-green-500
+                {% elif verification_state == 'REVOKED' %} bg-gradient-to-r from-red-600 to-red-500
+                {% else %} bg-gradient-to-r from-gray-600 to-gray-500 {% endif %}">
+                
+                <span class="material-symbols-outlined text-6xl mb-4">
+                    {% if verification_state == 'VALID' %}verified
+                    {% elif verification_state == 'REVOKED' %}gpp_bad
+                    {% else %}search_off{% endif %}
+                </span>
+                
+                <h2 class="text-2xl md:text-3xl font-bold uppercase tracking-wide mb-2">
+                    {% if verification_state == 'VALID' %}VĂN BẰNG HỢP LỆ
+                    {% elif verification_state == 'REVOKED' %}VĂN BẰNG ĐÃ BỊ THU HỒI
+                    {% else %}KHÔNG TÌM THẤY DỮ LIỆU{% endif %}
+                </h2>
+                
+                <p class="text-white/80 text-sm font-medium">
+                    {% if verification_state == 'VALID' %}Thông tin văn bằng khớp với hệ thống Blockchain của trường.
+                    {% elif verification_state == 'REVOKED' %}Văn bằng này đã bị hủy bỏ và không còn giá trị pháp lý.
+                    {% else %}Không có văn bằng nào khớp với mã tra cứu bạn vừa nhập.{% endif %}
+                </p>
             </div>
 
-            <form method="POST" action="{% url 'public_verify' %}" class="relative">
-                {% csrf_token %}
-                <!-- Watermark Logo ẩn mờ ở giữa -->
-                <div class="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none z-0">
-                    <span class="material-symbols-outlined text-[300px]">verified</span>
-                </div>
-
-                <!-- 3 Ô Input -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10 mb-8">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Họ tên</label>
-                        <input type="text" class="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:border-ntt-light focus:ring-1 focus:ring-ntt-light" placeholder="Nhập họ tên">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Ngày sinh</label>
-                        <input type="text" class="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:border-ntt-light focus:ring-1 focus:ring-ntt-light" placeholder="VD: 01/01/1991">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Số hiệu văn bằng / CCCD <span class="text-red-500">(*)</span></label>
-                        <input type="text" name="search_query" required value="{{ request.POST.search_query }}" class="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-lg px-4 py-3 focus:outline-none focus:border-ntt-light focus:ring-1 focus:ring-ntt-light shadow-sm" placeholder="Mã tra cứu bắt buộc...">
-                    </div>
-                </div>
-
-                <!-- Captcha & Nút chức năng -->
-                <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
-                    <!-- Captcha (UI Mô phỏng) -->
-                    <div class="border border-gray-200 rounded-lg bg-gray-50 p-3 flex items-center gap-4 w-full md:w-[300px] shadow-sm">
-                        <input type="checkbox" class="w-6 h-6 rounded border-gray-300 text-ntt-light focus:ring-ntt-light cursor-pointer">
-                        <span class="text-sm font-medium text-gray-700">Tôi không phải là người máy</span>
-                        <span class="material-symbols-outlined text-gray-400 ml-auto">sync</span>
-                    </div>
-
-                    <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-                        <button type="submit" class="bg-ntt-light hover:bg-ntt-dark text-white font-bold rounded-full px-10 py-3.5 flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5">
-                            <span class="material-symbols-outlined text-[20px]">search</span> Tra cứu
-                        </button>
-                        <button type="button" id="btn-scan-qr" class="bg-white text-gray-700 border-2 border-gray-200 hover:bg-gray-50 font-bold rounded-full px-8 py-3.5 flex items-center justify-center gap-2 shadow-sm transition-all group">
-    <span class="material-symbols-outlined text-[20px] text-gray-400 group-hover:text-ntt-light">qr_code_scanner</span> Tra cứu bằng QR
-</button>
-                    </div>
-                </div>
-            </form>
-            <!-- Modal Quét QR -->
-<div id="qr-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center backdrop-blur-sm">
-    <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md relative">
-        <button type="button" id="close-qr" class="absolute top-4 right-4 text-gray-400 hover:text-red-500">
-            <span class="material-symbols-outlined">close</span>
-        </button>
-        <h3 class="text-center font-bold text-ntt-dark mb-4">Đưa mã QR vào khung hình</h3>
-        <!-- ID reader là nơi thư viện JS sẽ chèn luồng Camera vào -->
-        <div id="reader" class="w-full rounded-lg overflow-hidden border-2 border-dashed border-ntt-light"></div>
-    </div>
-</div> 
-            <!-- Bảng Hướng dẫn -->
-            <div class="bg-blue-50/50 border border-blue-100 rounded-2xl p-6 mt-12 relative z-10">
-                <h4 class="font-bold text-ntt-dark text-sm flex items-center gap-2 mb-4">
-                    <span class="material-symbols-outlined text-lg text-ntt-light">info</span> Hướng dẫn tra cứu:
-                </h4>
-                <ul class="text-sm text-gray-700 space-y-3">
-                    <li class="flex items-start gap-3">
-                        <span class="material-symbols-outlined text-green-600 text-xl">check_circle</span>
-                        <span class="leading-relaxed"><strong>Điều kiện tra cứu:</strong> Điền thông tin <strong>Số hiệu (*)</strong> hoặc <strong>CCCD (*)</strong> vào ô bắt buộc và xác thực captcha để thực hiện tra cứu. (Họ tên và ngày sinh là tùy chọn bổ sung).</span>
-                    </li>
-                    <li class="flex items-start gap-3">
-                        <span class="material-symbols-outlined text-ntt-light text-xl">qr_code_scanner</span>
-                        <span class="leading-relaxed"><strong>Tra cứu bằng QR:</strong> Có thể chọn nút "Tra cứu bằng QR" để bật Camera quét mã in trên phôi bằng, hoặc hệ thống sẽ tự động quét file tải lên từ thiết bị.</span>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- BẢNG KẾT QUẢ HIỂN THỊ (Sau khi bấm nút Search) -->
-        {% if searched and degree %}
-            <div class="mt-8 bg-white rounded-3xl shadow-soft border border-gray-100 overflow-hidden">
-                <!-- Thanh Trạng thái -->
-                {% if degree.status == 'ISSUED' and is_verified_on_chain %}
-                    <div class="bg-green-50 px-8 py-5 flex items-center gap-3 border-b border-green-100">
-                        <span class="material-symbols-outlined text-green-600 text-3xl">verified</span>
-                        <div>
-                            <h3 class="font-bold text-green-800 text-lg uppercase tracking-wide">Văn bằng hợp lệ & Toàn vẹn trên Blockchain</h3>
-                            <p class="text-sm text-green-700">Dữ liệu đối soát khớp hoàn toàn với mạng lưới Smart Contract.</p>
-                        </div>
-                    </div>
-                {% elif degree.status == 'REVOKED' %}
-                    <div class="bg-red-50 px-8 py-5 flex items-center gap-3 border-b border-red-100">
-                        <span class="material-symbols-outlined text-red-600 text-3xl">cancel</span>
-                        <div>
-                            <h3 class="font-bold text-red-800 text-lg uppercase tracking-wide">Cảnh báo: Văn bằng đã bị thu hồi</h3>
-                            <p class="text-sm text-red-700">Văn bằng này không còn giá trị pháp lý.</p>
-                        </div>
-                    </div>
-                {% else %}
-                    <div class="bg-blue-50 px-8 py-5 flex items-center gap-3 border-b border-blue-100">
-                        <span class="material-symbols-outlined text-ntt-light text-3xl">pending_actions</span>
-                        <div>
-                            <h3 class="font-bold text-ntt-dark text-lg uppercase tracking-wide">Đang chờ phát hành Blockchain</h3>
-                            <p class="text-sm text-ntt-light">Văn bằng đang trong quá trình xử lý ký duyệt số.</p>
-                        </div>
-                    </div>
-                {% endif %}
-
-                <!-- Chi tiết Hồ sơ -->
-                <div class="p-8">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
-                        <div class="border-b border-gray-100 pb-2">
-                            <span class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Họ và tên</span>
-                            <span class="block font-bold text-ntt-dark text-xl uppercase">{{ student.full_name }}</span>
-                        </div>
-                        <div class="border-b border-gray-100 pb-2">
-                            <span class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Số hiệu / MSSV</span>
-                            <span class="block font-semibold text-gray-900 text-lg">{{ student.student_code }}</span>
-                        </div>
-                        <div class="border-b border-gray-100 pb-2">
-                            <span class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Ngành đào tạo</span>
-                            <span class="block font-medium text-gray-900 text-lg">{{ student.major.name|default:"---" }}</span>
-                        </div>
-                        <div class="border-b border-gray-100 pb-2">
-                            <span class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Xếp loại</span>
-                            <span class="block font-bold text-ntt-light text-lg uppercase">{{ degree.classification|default:"---" }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Dữ liệu Blockchain -->
-                    <div class="mt-8 bg-gray-50 rounded-2xl p-6 border border-gray-100">
-                        <h4 class="text-xs font-bold text-gray-800 uppercase tracking-widest mb-4 flex items-center gap-2">
-                            <span class="material-symbols-outlined text-base">link</span> Đối soát định danh Blockchain
-                        </h4>
+            <!-- Nội dung chi tiết (Chỉ hiện khi tìm thấy) -->
+            {% if degree %}
+                <div class="p-8 space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
+                        <!-- Cột 1 -->
                         <div class="space-y-4">
-                            <div>
-                                <p class="text-xs text-gray-500 font-bold mb-2">Mã băm dữ liệu gốc (Canonical Hash):</p>
-                                <p class="font-mono text-sm text-gray-700 break-all bg-white border border-gray-200 p-3 rounded-xl">{{ degree.canonical_hash|default:"Chưa có dữ liệu" }}</p>
+                            <div class="border-b border-gray-100 pb-3">
+                                <span class="text-gray-500 text-xs font-bold uppercase block mb-1">Họ và tên</span>
+                                <span class="text-gray-900 font-bold text-base uppercase">{{ student.full_name }}</span>
                             </div>
-                            {% if degree.tx_hash %}
-                            <div>
-                                <p class="text-xs text-gray-500 font-bold mb-2">Chuỗi giao dịch (TxHash):</p>
-                                <a href="https://sepolia.etherscan.io/tx/{{ degree.tx_hash }}" target="_blank" class="font-mono text-sm text-ntt-light hover:text-ntt-dark hover:underline break-all bg-white border border-gray-200 p-3 rounded-xl flex items-center justify-between group transition-colors">
-                                    {{ degree.tx_hash }}
-                                    <span class="material-symbols-outlined text-gray-300 group-hover:text-ntt-dark transition-colors">open_in_new</span>
-                                </a>
+                            <div class="border-b border-gray-100 pb-3">
+                                <span class="text-gray-500 text-xs font-bold uppercase block mb-1">Ngày sinh</span>
+                                <span class="text-gray-900 font-semibold">{{ student.date_of_birth|date:"d/m/Y"|default:"-" }}</span>
                             </div>
+                            <div class="border-b border-gray-100 pb-3">
+                                <span class="text-gray-500 text-xs font-bold uppercase block mb-1">Ngành đào tạo</span>
+                                <span class="text-gray-900 font-semibold">{{ student.major.name|default:"Chưa cập nhật" }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Cột 2 -->
+                        <div class="space-y-4">
+                            <div class="border-b border-gray-100 pb-3">
+                                <span class="text-gray-500 text-xs font-bold uppercase block mb-1">Xếp loại tốt nghiệp</span>
+                                <span class="text-ntt-light font-bold text-base uppercase">{{ degree.classification }}</span>
+                            </div>
+                            <div class="border-b border-gray-100 pb-3">
+                                <span class="text-gray-500 text-xs font-bold uppercase block mb-1">Số hiệu văn bằng</span>
+                                <span class="text-gray-900 font-mono font-bold">{{ degree.serial_number|default:"-" }}</span>
+                            </div>
+                            <div class="border-b border-gray-100 pb-3">
+                                <span class="text-gray-500 text-xs font-bold uppercase block mb-1">Năm tốt nghiệp</span>
+                                <span class="text-gray-900 font-semibold">{{ degree.graduation_year }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Block Blockchain -->
+                    <div class="mt-8 bg-blue-50/50 rounded-2xl p-6 border border-blue-100">
+                        <h3 class="text-sm font-bold text-ntt-dark uppercase mb-4 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[18px]">link</span> Dữ liệu xác thực Blockchain
+                        </h3>
+                        
+                        <div class="space-y-4 text-sm">
+                            <div>
+                                <span class="text-gray-500 text-xs font-bold uppercase block mb-1">Mã định danh hợp đồng (Credential ID)</span>
+                                <span class="text-ntt-dark font-mono bg-white px-3 py-2 rounded-lg border border-gray-200 block break-all">
+                                    {{ degree.credential_public_id|default:"-" }}
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500 text-xs font-bold uppercase block mb-1">Mã giao dịch phát hành (TxHash)</span>
+                                <span class="text-ntt-dark font-mono bg-white px-3 py-2 rounded-lg border border-gray-200 block break-all">
+                                    {{ degree.tx_hash|default:"-" }}
+                                </span>
+                            </div>
+                            {% if verification_state == 'VALID' %}
+                                <div class="flex items-center gap-2 text-green-600 font-bold text-xs uppercase pt-2">
+                                    <span class="material-symbols-outlined text-[16px]">verified_user</span> Dữ liệu toàn vẹn, khớp với Smart Contract (Sepolia)
+                                </div>
+                            {% elif verification_state == 'REVOKED' %}
+                                <div class="flex items-center gap-2 text-red-600 font-bold text-xs uppercase pt-2">
+                                    <span class="material-symbols-outlined text-[16px]">gpp_bad</span> Dữ liệu đã bị thu hồi trên Smart Contract
+                                </div>
                             {% endif %}
                         </div>
                     </div>
                 </div>
-            </div>
-        {% endif %}
-    </div>
+            {% endif %}
+        </div>
+    {% endif %}
 </div>
-<!-- Nhúng thư viện quét QR -->
-<script src="https://unpkg.com/html5-qrcode"></script>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const btnScan = document.getElementById('btn-scan-qr');
-        const modal = document.getElementById('qr-modal');
-        const btnClose = document.getElementById('close-qr');
-        const searchInput = document.getElementById('search-input');
-        const verifyForm = document.getElementById('verify-form');
-        let html5QrcodeScanner = null;
-
-        // Cấu hình khi quét thành công
-        function onScanSuccess(decodedText, decodedResult) {
-            // Dừng camera
-            html5QrcodeScanner.clear();
-            modal.classList.add('hidden');
-            
-            // Tự động điền mã vừa quét được vào ô input
-            searchInput.value = decodedText;
-            
-            // Tự động submit form gửi về Backend
-            verifyForm.submit();
-        }
-
-        // Bấm nút thì hiện Modal và bật Camera
-        btnScan.addEventListener('click', () => {
-            modal.classList.remove('hidden');
-            // Cấu hình thư viện quét
-            html5QrcodeScanner = new Html5QrcodeScanner(
-                "reader", 
-                { fps: 10, qrbox: {width: 250, height: 250} }, 
-                /* verbose= */ false
-            );
-            html5QrcodeScanner.render(onScanSuccess);
-        });
-
-        // Bấm tắt Modal thì tắt Camera
-        btnClose.addEventListener('click', () => {
-            if(html5QrcodeScanner) {
-                html5QrcodeScanner.clear();
-            }
-            modal.classList.add('hidden');
-        });
-    });
-</script>
 {% endblock %}

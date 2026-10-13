@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ký MetaMask Thực thi Thu hồi Văn bằng{% endblock %}
+
+{% block extra_head %}
+<script src="{% static 'js/wallet.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl w-full mx-auto px-4 py-10">
+    <div class="bg-white rounded-[24px] shadow-soft border border-gray-200 p-8 space-y-6">
+        <div class="flex items-center justify-between border-b border-gray-100 pb-4">
+            <div>
+                <h1 class="text-xl font-bold text-ntt-dark uppercase">Thực thi Thu hồi Văn bằng (UC-05)</h1>
+                <p class="text-sm text-gray-500 mt-1">Bước 3: Ký giao dịch thu hồi lên mạng lưới Blockchain (Sepolia)</p>
+            </div>
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-yellow-50 text-yellow-700 border border-yellow-200">
+                {{ rev_request.status }}
+            </span>
+        </div>
+
+        <div class="bg-gray-50 rounded-2xl p-5 border border-gray-200 space-y-3 text-sm">
+            <div class="flex justify-between">
+                <span class="text-gray-500 font-semibold">Văn bằng:</span>
+                <span class="font-bold text-gray-900">{{ degree }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-500 font-semibold">Mã định danh trên Chain:</span>
+                <span class="font-mono text-ntt-dark">{{ degree_identifier }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-500 font-semibold">Lý do thu hồi:</span>
+                <span class="font-semibold text-red-600">{{ rev_request.reason_code }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-500 font-semibold">Người yêu cầu (Officer A):</span>
+                <span>{{ rev_request.requested_by.username }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-500 font-semibold">Người phê duyệt (Officer B):</span>
+                <span>{{ rev_request.approved_by.username|default:"Chưa duyệt" }}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-gray-500 font-semibold">Người thực thi hiện tại (Issuer):</span>
+                <span class="font-bold text-ntt-light">{{ request.user.username }}</span>
+            </div>
+        </div>
+
+        <form id="revokeExecuteForm" method="POST" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="tx_hash" id="txHashInput" value="">
+
+            <div id="walletStatus" class="hidden p-4 rounded-xl text-sm font-medium bg-blue-50 text-blue-800 border border-blue-200 break-all"></div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                <!-- Nút 1: Ký thật bằng MetaMask -->
+                <button type="button" id="btnSignMetaMask" onclick="handleMetaMaskRevoke()"
+                    class="w-full bg-ntt-dark hover:bg-ntt-light text-white py-3.5 px-5 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined">account_balance_wallet</span>
+                    Kết nối MetaMask & Ký thu hồi
+                </button>
+
+                <!-- Nút 2: Giao dịch giả lập để test nhanh -->
+                <button type="button" onclick="handleMockRevoke()"
+                    class="w-full bg-amber-600 hover:bg-amber-700 text-white py-3.5 px-5 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined">science</span>
+                    Thực thi bằng Giao dịch giả (Test)
+                </button>
+            </div>
+
+            <div class="pt-2 text-center">
+                <a href="/admin/revocation/revocationrequest/" class="text-sm text-gray-500 hover:text-gray-800 underline">
+                    Quay lại trang Quản trị
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+const CONTRACT_ADDRESS = "{{ contract_address }}";
+const CHAIN_ID_DEC = {{ chain_id|default:11155111 }};
+const CHAIN_ID_HEX = "0x" + CHAIN_ID_DEC.toString(16);
+const TX_DATA = "{{ tx_data }}";
+
+async function handleMetaMaskRevoke() {
+    const statusBox = document.getElementById('walletStatus');
+    statusBox.className = "p-4 rounded-xl text-sm font-medium bg-blue-50 text-blue-800 border border-blue-200 break-all";
+    statusBox.classList.remove('hidden');
+    statusBox.innerText = "Đang kết nối ví MetaMask...";
+
+    try {
+        if (!window.ethereum) {
+            throw new Error("Trình duyệt của bạn chưa cài đặt tiện ích ví MetaMask!");
+        }
+
+        // 1. Kết nối tài khoản MetaMask
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const sender = accounts[0];
+
+        // 2. Kiểm tra và tự động chuyển sang mạng Sepolia (chainId: 11155111 / 0xaa36a7)
+        const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+        if (currentChainId.toLowerCase() !== CHAIN_ID_HEX.toLowerCase()) {
+            statusBox.innerText = "Đang chuyển mạng MetaMask sang Sepolia...";
+            await window.ethereum.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: CHAIN_ID_HEX }],
+            });
+        }
+
+        statusBox.innerText = "Đã kết nối ví " + sender + ". Vui lòng xác nhận ký giao dịch trên cửa sổ MetaMask...";
+
+        // 3. Gửi giao dịch thu hồi lên Smart Contract
+        let txHash = null;
+        if (typeof window.sendTransaction === 'function') {
+            // Nếu wallet.js của Khương có hàm sendTransaction(to, data)
+            txHash = await window.sendTransaction(CONTRACT_ADDRESS, TX_DATA);
+        } else {
+            // Gọi trực tiếp qua chuẩn EIP-1193 của MetaMask
+            txHash = await window.ethereum.request({
+                method: 'eth_sendTransaction',
+                params: [{
+                    from: sender,
+                    to: CONTRACT_ADDRESS,
+                    data: TX_DATA,
+                }],
+            });
+        }
+
+        if (txHash) {
+            document.getElementById('txHashInput').value = txHash;
+            statusBox.className = "p-4 rounded-xl text-sm font-medium bg-green-50 text-green-800 border border-green-200 break-all";
+            statusBox.innerText = "Ký giao dịch thành công! TxHash: " + txHash + ". Đang cập nhật trạng thái REVOKED...";
+            document.getElementById('revokeExecuteForm').submit();
+        }
+    } catch (err) {
+        statusBox.className = "p-4 rounded-xl text-sm font-medium bg-red-50 text-red-800 border border-red-200 break-all";
+        statusBox.innerText = "Lỗi MetaMask: " + (err.message || "Người dùng đã hủy hoặc giao dịch bị từ chối.");
+    }
+}
+
+function handleMockRevoke() {
+    const randomHex = Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
+    document.getElementById('txHashInput').value = "0x" + randomHex;
+    document.getElementById('revokeExecuteForm').submit();
+}
+</script>
+{% endblock %}

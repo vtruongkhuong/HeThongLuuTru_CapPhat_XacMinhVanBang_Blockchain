@@ -1,26 +1,24 @@
 from django.contrib import admin
 from django.urls import path, include
-from apps.verification import views as verification_views
 from django.conf import settings
 from django.conf.urls.static import static
-from apps.student_portal import views as student_views
+from apps.verification import views as verification_views
 from apps.core.views import dashboard_view
 
 urlpatterns = [
-   # Trang chủ mặc định hiển thị 3 thẻ bài
+    # Điều hướng gốc & tương thích ngược cho các template gọi trực tiếp tên URL
     path('', verification_views.landing_view, name='landing'),
-    
-    # Trang tra cứu mới (đường dẫn /tracuu/)
     path('tracuu/', verification_views.public_verify_view, name='public_verify'),
-    
     path('tracuu-tam-thoi/', verification_views.verify_temp_cert_view, name='verify_temp_cert'),
-    
-    # THÊM DÒNG NÀY: Mở đường cho Trạm điều phối hoạt động
+
+    # Route chuẩn có app_name = 'verification' theo yêu cầu N2
+    path('verify/', include('apps.verification.urls')),
+
+    # Trạm điều phối và Admin
     path('dashboard/', dashboard_view, name='dashboard'),
-    
     path('admin/', admin.site.urls),
 
-    path('cap-nhat-ho-so/', student_views.update_profile_view, name='profile_update'),
+    # Các module hệ thống
     path('accounts/', include('apps.accounts.urls')),
     path('academic/', include('apps.academic.urls')),
     path('students/', include('apps.students.urls')),
@@ -28,7 +26,6 @@ urlpatterns = [
     path('degrees/', include('apps.degrees.urls')),
     path('blockchain/', include('apps.blockchain.urls')),
     path('revocation/', include('apps.revocation.urls')),
-    path('verify/', include('apps.verification.urls')),
     path('portal/', include('apps.student_portal.urls')),
     path('reports/', include('apps.reporting.urls')),
     path('accounts/', include('allauth.urls')),
