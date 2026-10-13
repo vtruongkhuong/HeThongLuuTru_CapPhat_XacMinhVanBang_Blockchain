@@ -248,6 +248,19 @@ UNFOLD = {
                     },
                 ],
             },
+            {
+                "title": "Giám sát & Báo cáo",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Lịch sử hệ thống",
+                        "icon": "history",
+                        "link": reverse_lazy("admin:audit_auditlog_changelist"),
+                        # Tạm thời chỉ cho phép Admin tối cao xem log hệ thống
+                        "permission": lambda request: request.user.is_superuser, 
+                    },
+                ],
+            },
         ],
     },
 }
