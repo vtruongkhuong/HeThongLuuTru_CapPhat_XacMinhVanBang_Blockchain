@@ -25,7 +25,7 @@
             </div>
         </div>
 
-        <form action="{% url 'verification:public_verify' %}" method="POST" class="space-y-8">
+        <form id="search-form" action="{% url 'verification:public_verify' %}" method="POST" class="space-y-8">
             {% csrf_token %}
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -44,7 +44,7 @@
                 <!-- Cột Số hiệu/CCCD (Bắt buộc) -->
                 <div class="space-y-2">
                     <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Số hiệu văn bằng / CCCD <span class="text-red-500">(*)</span></label>
-                    <input type="text" name="search_query" required placeholder="Mã tra cứu bắt buộc..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-semibold text-ntt-dark focus:bg-white focus:border-ntt-light focus:ring-1 focus:ring-ntt-light outline-none transition-all placeholder-gray-400">
+                    <input type="text" id="search-input" name="search_query" required placeholder="Mã tra cứu bắt buộc..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-semibold text-ntt-dark focus:bg-white focus:border-ntt-light focus:ring-1 focus:ring-ntt-light outline-none transition-all placeholder-gray-400">
                 </div>
             </div>
 
@@ -61,7 +61,7 @@
                     <button type="submit" class="flex-1 md:flex-none bg-ntt-light hover:bg-ntt-dark text-white px-8 py-3.5 rounded-xl font-bold uppercase text-sm flex items-center justify-center gap-2 transition-colors shadow-md hover:shadow-lg">
                         <span class="material-symbols-outlined text-[20px]">search</span> Tra cứu
                     </button>
-                    <button type="button" class="flex-1 md:flex-none bg-white hover:bg-gray-50 text-ntt-dark border-2 border-gray-200 px-6 py-3.5 rounded-xl font-bold uppercase text-sm flex items-center justify-center gap-2 transition-colors">
+                    <button type="button" id="btn-scan-qr" class="flex-1 md:flex-none bg-white hover:bg-gray-50 text-ntt-dark border-2 border-gray-200 px-6 py-3.5 rounded-xl font-bold uppercase text-sm flex items-center justify-center gap-2 transition-colors">
                         <span class="material-symbols-outlined text-[20px]">qr_code_scanner</span> Tra cứu bằng QR
                     </button>
                 </div>
@@ -86,4 +86,66 @@
         </div>
     </div>
 </div>
+
+<!-- Khung chứa Camera (ẩn mặc định) -->
+<div id="qr-reader-container" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-2xl p-4 w-full max-w-md relative">
+        <button type="button" id="btn-close-qr" class="absolute top-2 right-2 text-gray-500 hover:text-red-500 material-symbols-outlined z-10">close</button>
+        <div id="qr-reader" class="w-full"></div>
+        <p class="text-center text-sm font-semibold text-gray-600 mt-3">Đưa mã QR trên văn bằng vào khung hình</p>
+    </div>
+</div>
+
+<!-- Thư viện quét QR -->
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<!-- Logic xử lý -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const btnScan = document.getElementById('btn-scan-qr');
+    const btnClose = document.getElementById('btn-close-qr');
+    const qrContainer = document.getElementById('qr-reader-container');
+    const searchInput = document.getElementById('search-input');
+    const searchForm = document.getElementById('search-form');
+    
+    let html5QrcodeScanner = null;
+
+    // Bấm nút MỞ quét QR
+    btnScan.addEventListener('click', () => {
+        qrContainer.classList.remove('hidden');
+        if (!html5QrcodeScanner) {
+            html5QrcodeScanner = new Html5QrcodeScanner(
+                "qr-reader", { fps: 10, qrbox: {width: 250, height: 250} }, false);
+            html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+        }
+    });
+
+    // Bấm nút TẮT quét QR
+    btnClose.addEventListener('click', () => {
+        qrContainer.classList.add('hidden');
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.clear();
+            html5QrcodeScanner = null;
+        }
+    });
+
+    // Khi quét thành công
+    function onScanSuccess(decodedText, decodedResult) {
+        // Lọc lấy mã (phòng trường hợp QR chứa cả đường link dài)
+        let code = decodedText.split('=').pop().split('/').pop();
+        
+        // Điền vào ô input và tự động submit form
+        searchInput.value = code;
+        qrContainer.classList.add('hidden');
+        html5QrcodeScanner.clear();
+        html5QrcodeScanner = null;
+        
+        searchForm.submit();
+    }
+
+    function onScanFailure(error) {
+        // Bỏ qua các cảnh báo khi chưa tìm thấy QR trong khung
+    }
+});
+</script>
 {% endblock %}
