@@ -1,0 +1,108 @@
+{% extends "admin/base_site.html" %}
+{% block content %}
+<style>
+    #content { background-color: #f9fafb; padding: 20px; }
+    .header-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 20px; border-left: 5px solid #2563eb; display: flex; justify-content: space-between; align-items: center; }
+    .header-info h2 { margin: 0 0 10px 0; color: #1f2937; }
+    .header-info p { margin: 0; font-size: 16px; color: #4b5563; }
+    
+    /* Ô Tìm kiếm */
+    .search-box input { padding: 10px 15px; border: 1px solid #d1d5db; border-radius: 6px; width: 300px; font-size: 14px; }
+    .search-box input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.2); }
+
+    .student-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .student-table th, .student-table td { padding: 15px; border-bottom: 1px solid #e5e7eb; text-align: left; }
+    .student-table th { background: #f3f4f6; font-weight: bold; color: #374151; }
+    .student-table tr:hover { background-color: #f9fafb; }
+    
+    /* Cấm xuống dòng cho Trạng thái */
+    .status-badge { background: #e0f2fe; color: #0369a1; padding: 5px 10px; border-radius: 99px; font-size: 13px; font-weight: bold; white-space: nowrap; }
+    
+    /* CSS cho nút Copy Hash */
+    .hash-copy { cursor: pointer; font-family: monospace; background: #f3f4f6; padding: 4px 8px; border-radius: 4px; border: 1px solid #e5e7eb; display: inline-block; transition: all 0.2s; min-width: 130px; text-align: center; }
+    .hash-copy:hover { background: #e5e7eb; }
+</style>
+
+<div class="header-box">
+    <div class="header-info">
+        <h2>Danh sách Sinh viên tốt nghiệp</h2>
+        <p>Thuộc đợt: <strong>{{ batch.name }}</strong></p>
+        <p style="margin-top: 5px;">Tổng số: <strong style="color: red; font-size: 18px;">{{ total }}</strong> sinh viên</p>
+    </div>
+    <div class="search-box">
+        <!-- Input tìm kiếm chạy bằng JS -->
+        <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="🔍 Tìm MSSV, Tên, hoặc Loại Bằng...">
+    </div>
+</div>
+
+<table class="student-table" id="myTable">
+    <thead>
+        <tr>
+            <th width="5%">STT</th>
+            <th width="15%">Mã Sinh Viên</th>
+            <th width="20%">Họ và Tên</th>
+            <th width="20%">Ngành học</th>
+            <th width="15%">Loại Bằng</th>
+            <th width="15%">Mã Hash (Merkle Leaf)</th>
+            <th width="10%">Trạng thái</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for s in students %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td><strong style="color: #2563eb;">{{ s.code }}</strong></td>
+            <td>{{ s.name }}</td>
+            <td>{{ s.major }}</td>
+            <td><strong>{{ s.degree_type }}</strong></td>
+            <td>
+                {% if s.full_hash != "Sẽ tạo khi duyệt" and s.full_hash != "Chưa tạo mã" %}
+                    <span class="hash-copy" id="hash-{{ forloop.counter }}" title="Nhấn để copy: {{ s.full_hash }}" onclick="copyHash('{{ s.full_hash }}', 'hash-{{ forloop.counter }}', '{{ s.hash }}')">
+                        {{ s.hash }}
+                    </span>
+                {% else %}
+                    <span style="color: #9ca3af; font-style: italic;">{{ s.full_hash }}</span>
+                {% endif %}
+            </td>
+            <td><span class="status-badge">{{ s.status }}</span></td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7" style="text-align: center; color: red; padding: 30px;">
+                Chưa có dữ liệu sinh viên nào được import vào đợt này! 
+                <br> Vui lòng kiểm tra lại module Import Excel.
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<script>
+    // Hàm Lọc dữ liệu ngay trên trang
+    function filterTable() {
+        let input = document.getElementById("searchInput");
+        let filter = input.value.toUpperCase();
+        let table = document.getElementById("myTable");
+        let tr = table.getElementsByTagName("tr");
+
+        for (let i = 1; i < tr.length; i++) { // Bỏ qua hàng 0 là tiêu đề
+            // Gom tất cả text trong hàng lại để tìm kiếm
+            let rowText = tr[i].textContent || tr[i].innerText;
+            if (rowText.toUpperCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+        }
+    }
+
+    // Hàm Copy Hash cho từng sinh viên
+    function copyHash(fullHash, elementId, shortHash) {
+        navigator.clipboard.writeText(fullHash).then(function() {
+            let el = document.getElementById(elementId);
+            el.innerHTML = '✅ Đã copy!';
+            setTimeout(function() { el.innerHTML = shortHash; }, 1500);
+        });
+    }
+</script>
+{% endblock %}
