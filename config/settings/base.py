@@ -261,6 +261,20 @@ UNFOLD = {
                     },
                 ],
             },
+            {
+                "title": "Báo cáo & Thống kê",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Dashboard tổng quan",
+                        "icon": "analytics", 
+                        "link": "/report/", 
+                        
+                        # CHỈ CHO PHÉP ADMIN HOẶC CÁN BỘ PHÁT HÀNH (ISSUER) THẤY NÚT NÀY
+                        "permission": lambda request: request.user.is_superuser or check_menu_role(request, ['issuer']),
+                    },
+                ],
+            },
         ],
     },
 }

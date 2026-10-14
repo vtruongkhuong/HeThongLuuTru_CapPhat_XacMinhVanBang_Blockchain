@@ -3,7 +3,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from apps.verification import views as verification_views
-from apps.core.views import dashboard_view
+from apps.core.views import dashboard_view, report_view
 
 urlpatterns = [
     # Điều hướng gốc & tương thích ngược cho các template gọi trực tiếp tên URL
@@ -17,6 +17,7 @@ urlpatterns = [
     # Trạm điều phối và Admin
     path('dashboard/', dashboard_view, name='dashboard'),
     path('admin/', admin.site.urls),
+    path('report/', report_view, name='report'),
 
     # Các module hệ thống
     path('accounts/', include('apps.accounts.urls')),
