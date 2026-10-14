@@ -1,15 +1,28 @@
 from .base import *  # noqa
+import os
+import sys
 import dj_database_url
+
 DEBUG = True
 ALLOWED_HOSTS = ['*']
 
+# Tự động đọc biến DATABASE_URL từ file .env
 DATABASES = {
     'default': dj_database_url.config(
-        # Dán cái chuỗi Connection String bạn vừa copy bên Neon vào đây:
-        default='postgresql://neondb_owner:npg_jT67dSXxZIih@ep-lingering-frost-b30wp3po-pooler.c-4.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
+        default=os.getenv('DATABASE_URL'),
         conn_max_age=600,
         conn_health_checks=True,
     )
 }
+
+# Khi chạy lệnh 'python manage.py test', tự động chuyển sang SQLite trên RAM
+# giúp chạy test tức thì và không bị kẹt kết nối (ObjectInUse) trên Neon Cloud
+if 'test' in sys.argv:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': ':memory:',
+        }
+    }
 
 INTERNAL_IPS = ['127.0.0.1']

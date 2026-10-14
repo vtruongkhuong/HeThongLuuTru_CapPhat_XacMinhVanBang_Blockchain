@@ -117,8 +117,8 @@ CHAIN_ID = int(os.getenv('CHAIN_ID', '1337'))
 ISSUER_PRIVATE_KEY = os.getenv('ISSUER_PRIVATE_KEY', '')
 CONTRACT_ADDRESS = os.getenv('CONTRACT_ADDRESS', '')
 
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_AUTHENTICATION_METHOD = 'username_email' 
+ACCOUNT_LOGIN_METHODS = {'username', 'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {

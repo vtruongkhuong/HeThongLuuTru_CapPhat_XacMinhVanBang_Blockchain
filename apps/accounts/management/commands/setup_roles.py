@@ -2,20 +2,21 @@ from django.core.management.base import BaseCommand
 from apps.accounts.models import Role
 
 class Command(BaseCommand):
-    help = 'Khởi tạo các vai trò (Role) cơ bản cho hệ thống phân quyền 6 tác nhân'
+    help = 'Khởi tạo và đồng bộ các vai trò (Role) theo chuẩn thiết kế H3 (Chốt D4)'
 
     def handle(self, *args, **kwargs):
-        # Danh sách các role cần khởi tạo dựa trên thiết kế của bạn
+        # 1. Danh sách 5 role CHUẨN theo thiết kế
+        # Lưu ý: Code vẫn giữ là 'admin' để không làm lỗi các file cấu hình views.py và base_5.py trước đó
         roles_data = [
             {
                 'code': 'officer_a',
-                'name': 'Cán bộ nhập liệu',
-                'description': 'Import danh sách sinh viên, kết xuất PDF và gửi yêu cầu'
+                'name': 'Cán bộ nhập liệu (Maker)',
+                'description': 'Import danh sách sinh viên, kết xuất PDF và trình duyệt đợt'
             },
             {
                 'code': 'officer_b',
-                'name': 'Cán bộ phê duyệt',
-                'description': 'Đối chiếu dữ liệu gốc và phê duyệt/từ chối các đợt tốt nghiệp'
+                'name': 'Cán bộ phê duyệt (Checker)',
+                'description': 'Đối chiếu dữ liệu gốc và phê duyệt/từ chối đợt tốt nghiệp (Four-eyes)'
             },
             {
                 'code': 'issuer',
@@ -23,22 +24,22 @@ class Command(BaseCommand):
                 'description': 'Sử dụng ví Web3 ký số giao dịch và phát hành văn bằng lên Blockchain'
             },
             {
-                'code': 'academic_staff',
-                'name': 'Cán bộ đào tạo (Tổng hợp)',
-                'description': 'Quản lý danh mục khoa, ngành, và các nghiệp vụ đào tạo chung'
+                'code': 'admin', 
+                'name': 'Quản trị viên (Super Admin)',
+                'description': 'Super Admin - Quản lý tài khoản, phân quyền và cấu hình hệ thống'
             },
             {
-                'code': 'admin',
-                'name': 'Quản trị viên hệ thống',
-                'description': 'Super Admin - Quản lý tài khoản, cấu hình danh mục và hệ thống'
+                'code': 'student',
+                'name': 'Sinh viên',
+                'description': 'Đăng nhập cổng Student Portal để tra cứu văn bằng cá nhân'
             }
         ]
 
-        self.stdout.write(self.style.WARNING('Bắt đầu kiểm tra và tạo Role...'))
+        self.stdout.write(self.style.WARNING('Bắt đầu đồng bộ danh sách Role...'))
 
+        # 2. Tạo mới hoặc Cập nhật role chuẩn
         for data in roles_data:
-            # get_or_create giúp kiểm tra: nếu code đã tồn tại thì bỏ qua, chưa có thì tạo mới
-            role, created = Role.objects.get_or_create(
+            role, created = Role.objects.update_or_create(
                 code=data['code'],
                 defaults={
                     'name': data['name'],
@@ -49,6 +50,13 @@ class Command(BaseCommand):
             if created:
                 self.stdout.write(self.style.SUCCESS(f'[+] Đã tạo mới: {role.name} ({role.code})'))
             else:
-                self.stdout.write(self.style.NOTICE(f'[*] Đã tồn tại: {role.name} ({role.code})'))
+                self.stdout.write(self.style.NOTICE(f'[*] Đã cập nhật: {role.name} ({role.code})'))
 
-        self.stdout.write(self.style.SUCCESS('Hoàn tất khởi tạo dữ liệu Vai trò (Role)!'))
+        # 3. Dọn dẹp rác: Xóa các role cũ không còn nằm trong thiết kế
+        obsolete_roles = ['academic_staff', 'reviewer', 'approver']
+        deleted_count, _ = Role.objects.filter(code__in=obsolete_roles).delete()
+        
+        if deleted_count > 0:
+            self.stdout.write(self.style.ERROR(f'[-] Đã xóa {deleted_count} role cũ/thừa khỏi hệ thống.'))
+
+        self.stdout.write(self.style.SUCCESS('Hoàn tất khởi tạo và dọn dẹp Role theo chuẩn H3!'))
