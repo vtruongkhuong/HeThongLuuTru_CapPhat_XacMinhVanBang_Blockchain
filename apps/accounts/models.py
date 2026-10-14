@@ -35,6 +35,14 @@ class User(AbstractUser):
         related_name='users',
         blank=True,
     )
+    
+    wallet_address = models.CharField(
+        max_length=42, 
+        null=True, 
+        blank=True, 
+        verbose_name="Địa chỉ ví MetaMask",
+        help_text="Nhập địa chỉ ví (0x...) cho Cán bộ phát hành / thu hồi để ký giao dịch"
+    )
 
     class Meta:
         db_table = 'accounts_user'
