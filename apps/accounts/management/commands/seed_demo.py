@@ -91,6 +91,11 @@ class Command(BaseCommand):
             code='7340101',
             defaults={'name': 'Quản trị kinh doanh', 'faculty': fac_eco, 'degree_type': deg_cn, 'is_active': True}
         )
+        # Tự động chuyển sinh viên từ mã ngành chữ cũ (KTPM) sang mã số chuẩn (7480103) và xóa bản ghi trùng
+        old_ktpm = Major.objects.filter(code='KTPM').first()
+        if old_ktpm:
+            Student.objects.filter(major=old_ktpm).update(major=maj_se)
+            old_ktpm.delete()
 
         majors_cycle = [(fac_it, maj_se), (fac_it, maj_cs), (fac_eco, maj_ba)]
 
