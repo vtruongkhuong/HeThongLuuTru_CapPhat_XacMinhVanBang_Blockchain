@@ -136,7 +136,7 @@ def public_verify_view(request):
     )
     # Kiểm tra linh hoạt các trường định danh trên model Degree
     degree_field_names = [f.name for f in Degree._meta.get_fields()]
-    for field_name in ['credential_public_id', 'serial_number', 'degree_code', 'degree_hash', 'tx_hash', 'pdf_hash']:
+    for field_name in ['credential_public_id', 'serial_number', 'degree_code', 'degree_hash','canonical_hash', 'tx_hash', 'pdf_hash']:
         if field_name in degree_field_names:
             lookup_q |= Q(**{f"{field_name}__iexact": search_query})
             if pdf_hash:

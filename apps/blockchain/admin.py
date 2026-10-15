@@ -2,6 +2,8 @@ from django.contrib import admin, messages
 from django.shortcuts import render, redirect
 from django.urls import path
 from django.conf import settings
+from django.utils import timezone
+from apps.degrees.models import Degree
 from apps.core.admin import BaseRoleAdmin
 from .models import IssuanceBatch, BlockchainTransaction
 import web3
@@ -69,17 +71,25 @@ class IssuanceBatchAdmin(BaseRoleAdmin):
         if request.method == 'POST':
             tx_hash = request.POST.get('tx_hash')
             batch_id = request.POST.get('batch_id')
+            now = timezone.now()
             
-            # Cập nhật trạng thái đợt
+            # 1. Cập nhật trạng thái đợt phát hành sang CONFIRMED
             batch = IssuanceBatch.objects.get(id=batch_id)
-            batch.status = 'PROCESSING' # Chuyển sang đang xử lý chờ mạng lưới xác nhận
+            batch.status = 'CONFIRMED'
+            batch.confirmed_at = now
             batch.save()
             
-            # Lưu biên lai giao dịch
+            # 2. Lưu biên lai giao dịch
             BlockchainTransaction.objects.create(
                 issuance_batch=batch,
                 tx_hash=tx_hash,
-                status='PENDING' # Task chạy ngầm sẽ kiểm tra trạng thái này sau
+                status='confirmed'
+            )
+            
+            # 3. Cập nhật toàn bộ Degree thuộc đợt này sang ISSUED và gán ngày giờ phát hành
+            Degree.objects.filter(batch=batch.graduation_batch).update(
+                status='ISSUED',
+                generated_at=now
             )
             
             self.message_user(request, f"Đã đẩy lên mạng Sepolia thành công! Tx Hash: {tx_hash}", level=messages.SUCCESS)
