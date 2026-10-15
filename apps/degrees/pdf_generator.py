@@ -1,4 +1,5 @@
-from io import BytesIO
+import io
+import tempfile
 from pathlib import Path
 
 from django.conf import settings
@@ -9,6 +10,7 @@ from xhtml2pdf import pisa
 STATIC_DIR = Path(settings.BASE_DIR) / "static"
 LOGO_PATH = STATIC_DIR / "img" / "logo_ctut.png"
 BG_PATH = STATIC_DIR / "img" / "degree_bg.png"   # file tự sinh ra
+
 
 # A4 ngang, ~200 dpi
 W, H = 2339, 1654
@@ -80,7 +82,7 @@ def ensure_background():
 
 
 def link_callback(uri, rel):
-    """Đổi /static/... trong template thành file thật trên ổ đĩa."""
+    """Đổi /static/... và qrcode:... trong template thành file thật trên ổ đĩa."""
     if uri.startswith(settings.STATIC_URL):
         path = STATIC_DIR / uri[len(settings.STATIC_URL):]
         if path.is_file():
@@ -91,13 +93,19 @@ def link_callback(uri, rel):
 def get_degree_pdf(degree):
     ensure_background()
 
+    verify_url = None
+    if getattr(degree, "canonical_hash", None):
+        site_url = getattr(settings, "SITE_URL", "http://127.0.0.1:8000").rstrip("/")
+        verify_url = f"{site_url}/verify/tracuu/?q={degree.canonical_hash}"
+
     template = get_template("degrees/pdf/degree_template.html")
     html = template.render({
         "degree": degree,
         "student": degree.student,
+        "verify_url": verify_url,
     })
 
-    result = BytesIO()
+    result = io.BytesIO()
     pdf = pisa.CreatePDF(html, dest=result, encoding="UTF-8",
                          link_callback=link_callback)
     return None if pdf.err else result.getvalue()

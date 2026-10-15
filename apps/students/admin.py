@@ -7,8 +7,39 @@ from django.contrib import messages
 from django.db import transaction
 from django.apps import apps
 import pandas as pd
+from datetime import datetime
 
 from .models import Student, ImportBatch, ImportBatchItem
+
+def _read_gpa(row):
+    """Đọc cột GPA. Rỗng -> None. Sai định dạng -> báo lỗi dòng."""
+    for key in ('gpa', 'gpa_score', 'điểm gpa'):
+        raw = row.get(key)
+        if raw is not None and str(raw).strip().lower() not in ('', 'nan', 'none'):
+            try:
+                gpa = float(str(raw).strip().replace(',', '.'))
+            except ValueError:
+                raise ValueError(f"GPA không hợp lệ: '{raw}'")
+            if not 0 <= gpa <= 4:
+                raise ValueError(f"GPA phải từ 0 đến 4: '{raw}'")
+            return gpa
+    return None
+
+def _read_dob(row):
+    """Đọc cột Ngày sinh. Rỗng -> None."""
+    for key in ('ngày sinh', 'date_of_birth', 'ngay sinh'):
+        raw = row.get(key)
+        if raw is None or str(raw).strip().lower() in ('', 'nan', 'nat', 'none'):
+            continue
+        if hasattr(raw, 'date'):           # pandas Timestamp / datetime
+            return raw.date()
+        for fmt in ('%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y'):
+            try:
+                return datetime.strptime(str(raw).strip()[:10], fmt).date()
+            except ValueError:
+                continue
+        raise ValueError(f"Không đọc được ngày sinh: '{raw}'")
+    return None
 
 class BaseRoleAdmin(ModelAdmin):
     """
@@ -197,27 +228,45 @@ class StudentAdmin(BaseRoleAdmin):
                             if not major_obj:
                                 raise ValueError(f"Không tìm thấy mã ngành: {ma_nganh}")
 
-                            # Thêm email vào block defaults để lưu xuống DB
+                            # Đọc GPA và ngày sinh từ file
+                            gpa_val = _read_gpa(row)
+                            dob_val = _read_dob(row)
+
+                            defaults = {
+                                'full_name': ho_ten,
+                                'email': email_sv,
+                                'major': major_obj,
+                                'faculty': major_obj.faculty,
+                            }
+                            # Chỉ ghi đè khi file có dữ liệu, tránh xóa GPA/ngày sinh đã có
+                            if gpa_val is not None:
+                                defaults['gpa_score'] = gpa_val
+                            if dob_val is not None:
+                                defaults['date_of_birth'] = dob_val
+
                             student, created = Student.objects.update_or_create(
                                 student_code=mssv,
-                                defaults={
-                                    'full_name': ho_ten,
-                                    'email': email_sv,
-                                    'major': major_obj,
-                                    'faculty': major_obj.faculty
-                                }
+                                defaults=defaults
                             )
-                            
+
                             action_type = 'INSERT' if created else 'UPDATE'
-                            if created: inserted_count += 1
-                            else: updated_count += 1
+                            if created:
+                                inserted_count += 1
+                            else:
+                                updated_count += 1
 
                             ImportBatchItem.objects.create(
                                 import_batch=import_batch,
                                 row_number=index + 2,
                                 student_code=mssv,
                                 action=action_type,
-                                new_value={'full_name': ho_ten, 'email': email_sv, 'major': ma_nganh}
+                                new_value={
+                                    'full_name': ho_ten,
+                                    'email': email_sv,
+                                    'major': ma_nganh,
+                                    'gpa': gpa_val,
+                                    'date_of_birth': str(dob_val) if dob_val else None,
+                                }
                             )
 
                         except Exception as row_err:
@@ -227,7 +276,7 @@ class StudentAdmin(BaseRoleAdmin):
                                 row_number=index + 2,
                                 student_code=mssv,
                                 action='ERROR',
-                                error_message=str(row_err)[:250] 
+                                error_message=str(row_err)[:250]
                             )
 
                 import_batch.inserted = inserted_count

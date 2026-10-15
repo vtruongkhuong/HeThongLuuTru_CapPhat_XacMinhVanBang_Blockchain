@@ -25,10 +25,10 @@
             </div>
         </div>
 
-        <form id="search-form" action="{% url 'verification:public_verify' %}" method="POST" class="space-y-8">
+        <form id="search-form" action="{% url 'verification:public_verify' %}" method="POST" enctype="multipart/form-data" class="space-y-8">
             {% csrf_token %}
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
                 <!-- Cột Họ tên -->
                 <div class="space-y-2">
                     <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Họ Tên</label>
@@ -41,11 +41,15 @@
                     <input type="text" name="dob" placeholder="VD: 01/01/1991" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:bg-white focus:border-ntt-light focus:ring-1 focus:ring-ntt-light outline-none transition-all placeholder-gray-400">
                 </div>
 
-                <!-- Cột Số hiệu/CCCD (Bắt buộc) -->
+                <!-- Cột Số hiệu/CCCD/Hash -->
                 <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Số hiệu văn bằng / CCCD <span class="text-red-500">(*)</span></label>
-                    <input type="text" id="search-input" name="search_query" required placeholder="Mã tra cứu bắt buộc..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-semibold text-ntt-dark focus:bg-white focus:border-ntt-light focus:ring-1 focus:ring-ntt-light outline-none transition-all placeholder-gray-400">
+                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Số hiệu / CCCD / Mã hash</label>
+                    <input type="text" id="search-input" name="search_query" placeholder="Nhập mã tra cứu..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-semibold text-ntt-dark focus:bg-white focus:border-ntt-light focus:ring-1 focus:ring-ntt-light outline-none transition-all placeholder-gray-400">
                 </div>
+            </div>
+            <div class="space-y-2">
+                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Hoặc tải file PDF văn bằng (hệ thống tự quét mã QR trong file)</label>
+                <input type="file" id="pdf-input" name="pdf_file" accept=".pdf,application/pdf" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-ntt-dark file:text-white file:font-bold file:cursor-pointer">
             </div>
 
             <!-- Các nút bấm -->
@@ -76,7 +80,7 @@
             <ul class="space-y-3 text-sm text-gray-600 font-medium">
                 <li class="flex items-start gap-2">
                     <span class="material-symbols-outlined text-green-500 text-[18px] mt-0.5 shrink-0">check_circle</span>
-                    <p><strong>Điều kiện tra cứu:</strong> Điền thông tin <strong>Số hiệu (*)</strong> hoặc <strong>CCCD (*)</strong> vào ô bắt buộc và xác thực captcha để thực hiện tra cứu. (Họ tên và ngày sinh là tùy chọn bổ sung).</p>
+                    <p><strong>Điều kiện tra cứu:</strong> Nhập <strong>Số hiệu</strong>, <strong>CCCD</strong> hoặc <strong>Mã hash</strong>, hoặc tải file PDF văn bằng để hệ thống tự quét mã QR. (Họ tên và ngày sinh là tùy chọn bổ sung).</p>
                 </li>
                 <li class="flex items-start gap-2">
                     <span class="material-symbols-outlined text-ntt-light text-[18px] mt-0.5 shrink-0">qr_code_2</span>
@@ -109,6 +113,14 @@ document.addEventListener("DOMContentLoaded", function() {
     const searchForm = document.getElementById('search-form');
     
     let html5QrcodeScanner = null;
+    
+    searchForm.addEventListener('submit', (e) => {
+        const hasFile = document.getElementById('pdf-input').files.length > 0;
+        if (!searchInput.value.trim() && !hasFile) {
+            e.preventDefault();
+            alert('Vui lòng nhập mã tra cứu hoặc chọn file PDF văn bằng.');
+        }
+    });
 
     // Bấm nút MỞ quét QR
     btnScan.addEventListener('click', () => {

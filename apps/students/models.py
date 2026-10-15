@@ -51,6 +51,7 @@ class Student(BaseModel):
     major = models.ForeignKey(Major, on_delete=models.PROTECT, related_name='students')
 
     enrollment_year = models.PositiveIntegerField(help_text="Năm nhập học, vd: 2020", null=True, blank=True)
+    gpa_score = models.FloatField(null=True, blank=True, help_text="Điểm GPA tích lũy")
     avatar = models.ImageField(
         upload_to='avatars/students/', 
         null=True, 

@@ -9,7 +9,7 @@ import csv
 import io
 from dataclasses import dataclass, field
 from datetime import datetime
-
+from .utils import get_classification_from_gpa
 import openpyxl
 from django.db import transaction
 
@@ -28,7 +28,6 @@ REQUIRED_COLUMNS = [
 class RowError:
     row: int
     error: str
-
 
 @dataclass
 class ImportResult:

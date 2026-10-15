@@ -41,3 +41,13 @@ class Degree(models.Model):
 
     def __str__(self):
         return f"{self.credential_public_id} - {self.student.full_name}"
+    
+        
+    @property
+    def graduation_year(self):
+        d = self.issue_date or self.approved_at
+        return d.year if d else ""
+
+    @property
+    def serial_number(self):
+        return f"CTUT-{self.graduation_year or 'XXXX'}-{self.pk:06d}"

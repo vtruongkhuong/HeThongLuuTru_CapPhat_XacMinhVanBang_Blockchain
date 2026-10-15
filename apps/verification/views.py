@@ -1,5 +1,11 @@
 import hashlib
 import re
+from urllib.parse import urlparse, parse_qs
+
+import cv2
+import fitz
+import numpy as np
+
 from django.shortcuts import render
 from django.contrib import messages
 from django.db.models import Q
@@ -79,17 +85,81 @@ def _verify_merkle_and_contract(degree):
     return is_verified, is_revoked_on_chain, proof_info
 
 
+HASH_RE = re.compile(r'\b[0-9a-fA-F]{64}\b')
+
+
+def _decode_qr_from_image(detectors, img):
+    """Thử giải mã QR trên ảnh với nhiều cách tiền xử lý."""
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # Thêm viền trắng quanh ảnh: QR cần vùng yên tĩnh (quiet zone)
+    padded = cv2.copyMakeBorder(gray, 80, 80, 80, 80, cv2.BORDER_CONSTANT, value=255)
+    _, otsu = cv2.threshold(padded, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    big = cv2.resize(padded, None, fx=2, fy=2, interpolation=cv2.INTER_CUBIC)
+    variants = [padded, otsu, big, gray]
+
+    for det in detectors:
+        for v in variants:
+            try:
+                data, _, _ = det.detectAndDecode(v)
+            except Exception:
+                continue
+            if data:
+                return data
+    return None
+
+
+def _pixmap_to_bgr(pix):
+    img = np.frombuffer(pix.samples, dtype=np.uint8).reshape(pix.height, pix.width, pix.n)
+    if pix.n == 1:
+        return cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+    if pix.n == 4:
+        return cv2.cvtColor(img, cv2.COLOR_RGBA2BGR)
+    return cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+
+
+def _read_pdf(file_bytes):
+    """Trả về (chuỗi QR hoặc None, mã hash 64 ký tự trong chữ hoặc None)."""
+    try:
+        doc = fitz.open(stream=file_bytes, filetype="pdf")
+    except Exception:
+        return None, None
+
+    detectors = [cv2.QRCodeDetector()]
+    if hasattr(cv2, "QRCodeDetectorAruco"):          # OpenCV >= 4.8, đọc QR tốt hơn
+        detectors.insert(0, cv2.QRCodeDetectorAruco())
+
+    qr_text, text_hash = None, None
+    try:
+        for page in doc:
+            if not text_hash:
+                m = HASH_RE.search(page.get_text())
+                if m:
+                    text_hash = m.group(0).lower()
+            if not qr_text:
+                for dpi in (200, 300, 400):
+                    img = _pixmap_to_bgr(page.get_pixmap(dpi=dpi))
+                    qr_text = _decode_qr_from_image(detectors, img)
+                    if qr_text:
+                        break
+    finally:
+        doc.close()
+    return qr_text, text_hash
+
+
 def _extract_query_from_pdf(uploaded_file):
-    """[D1] Trích xuất mã tra cứu hoặc băm file PDF tải lên"""
+    """[D1] Đọc QR (hoặc mã hash in trong file) để tra cứu; kèm SHA-256 của file."""
     file_bytes = uploaded_file.read()
     uploaded_file.seek(0)
     pdf_sha256 = hashlib.sha256(file_bytes).hexdigest()
 
-    # Thử tìm mã văn bằng / MSSV có trong nội dung nhị phân/text của PDF
-    text_content = file_bytes.decode('latin-1', errors='ignore')
-    match = re.search(r'(CTUT-[A-Z0-9\-]+|\b\d{8,12}\b)', text_content)
-    extracted_code = match.group(0) if match else pdf_sha256
-    return extracted_code, pdf_sha256
+    qr_text, text_hash = _read_pdf(file_bytes)
+
+    if qr_text:
+        q = parse_qs(urlparse(qr_text).query).get('q')
+        return (q[0] if q else qr_text.strip()), pdf_sha256
+    if text_hash:
+        return text_hash, pdf_sha256
+    return pdf_sha256, pdf_sha256
 
 
 def public_verify_view(request):

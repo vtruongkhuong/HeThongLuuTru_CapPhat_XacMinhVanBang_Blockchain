@@ -5,7 +5,7 @@ from django.utils.html import format_html
 from django.shortcuts import render
 from django.contrib import admin, messages
 from django.utils import timezone
-
+from apps.students.utils import get_classification_from_gpa
 from apps.blockchain.models import IssuanceBatch, DegreeMerkleProof
 from apps.workflow.services import ensure_different_actors
 from apps.core.admin import BaseRoleAdmin 
@@ -217,6 +217,8 @@ class GraduationBatchAdmin(BaseRoleAdmin):
                         student=student,
                         batch=batch,
                         degree_type=degree_type,
+                        classification=get_classification_from_gpa(student.gpa_score),
+                        issue_date=timezone.now().date(),
                         canonical_hash=c_hash,
                         status='ISSUANCE_PENDING',
                         pdf_path='',
