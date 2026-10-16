@@ -13,7 +13,7 @@ def dashboard_view(request):
     user = request.user
 
     if not user.is_staff and not user.is_superuser:
-        return redirect('accounts:profile')
+        return redirect('landing')
 
     if user.is_staff and not user.is_superuser:
         role_codes = user.roles.values_list('code', flat=True)
