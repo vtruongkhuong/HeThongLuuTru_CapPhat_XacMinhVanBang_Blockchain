@@ -158,6 +158,12 @@ def get_degree_pdf(degree):
         "verify_url": verify_url,
     })
     result = io.BytesIO()
+    try:
+        from xhtml2pdf.config.resources import ResourceAccessPolicy
+        policy = ResourceAccessPolicy(allow_local_outside_base=True, base_dir=settings.BASE_DIR)
+    except Exception:
+        policy = None
+
     pdf = pisa.CreatePDF(html, dest=result, encoding="UTF-8",
-                         link_callback=link_callback)
+                         link_callback=link_callback, resource_policy=policy)
     return None if pdf.err else result.getvalue()

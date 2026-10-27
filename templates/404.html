@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}404 - Không tìm thấy trang{% endblock %}
+
+{% block content %}
+<div class="min-h-[60vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full bg-white rounded-[24px] shadow-soft border border-gray-100 p-8 text-center space-y-6">
+        <div class="w-20 h-20 bg-blue-50 text-ntt-dark rounded-full flex items-center justify-center mx-auto shadow-inner">
+            <span class="material-symbols-outlined text-5xl">travel_explore</span>
+        </div>
+        <div class="space-y-2">
+            <h1 class="text-4xl font-extrabold text-ntt-dark tracking-tight">404</h1>
+            <h2 class="text-lg font-bold text-gray-800 uppercase">Không tìm thấy trang yêu cầu</h2>
+            <p class="text-sm text-gray-500">
+                Đường dẫn bạn vừa truy cập không tồn tại, đã bị xóa hoặc đã được chuyển sang địa chỉ mới trên hệ thống.
+            </p>
+        </div>
+        <div class="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
+            <a href="/" class="bg-ntt-dark hover:bg-ntt-light text-white px-6 py-2.5 rounded-xl font-bold text-xs uppercase transition-all shadow-sm flex items-center justify-center gap-1.5">
+                <span class="material-symbols-outlined text-base">home</span> Về trang chủ
+            </a>
+            <a href="{% url 'verification:landing' %}" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2.5 rounded-xl font-bold text-xs uppercase transition-all flex items-center justify-center gap-1.5">
+                <span class="material-symbols-outlined text-base">search</span> Tra cứu văn bằng
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

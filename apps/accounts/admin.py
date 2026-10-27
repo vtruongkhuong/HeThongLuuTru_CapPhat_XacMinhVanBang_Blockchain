@@ -1,3 +1,4 @@
+import os
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib import admin, messages
 from django.shortcuts import render
@@ -32,7 +33,6 @@ class UserAdmin(DjangoUserAdmin, ModelAdmin):
     search_fields = ('username', 'email', 'employee_code', 'wallet_address')
     inlines = [UserRoleInline]
 
-    # Danh sách các thao tác phân quyền Blockchain trực tiếp qua MetaMask (Không cần vào Remix)
     actions = [
         'add_admin_on_blockchain',
         'remove_admin_on_blockchain',
@@ -52,29 +52,37 @@ class UserAdmin(DjangoUserAdmin, ModelAdmin):
     def display_status(self, obj):
         return "Khóa" if obj.is_locked or not obj.is_active else "Hoạt động"
 
-    # --- HELPER DÙNG CHUNG CHO MỌI THAO TÁC PHÂN QUYỀN BLOCKCHAIN ---
-    def _render_blockchain_action(self, request, queryset, function_name, action_label):
+    def _get_contract_owner(self, contract):
+        """Lấy địa chỉ ví Owner của Smart Contract để hiển thị trên giao diện MetaMask"""
+        try:
+            return contract.functions.owner().call()
+        except Exception:
+            return ""
+
+    def _render_blockchain_action(self, request, queryset, function_name, action_label, lock_status=None):
+        """Hàm dùng chung xử lý sinh calldata và mở giao diện MetaMask cho mọi hành động phân quyền"""
         if queryset.count() != 1:
-            self.message_user(request, "Vui lòng chỉ chọn đúng 1 tài khoản mỗi lần thao tác phân quyền.", level=messages.ERROR)
+            self.message_user(request, "Vui lòng chỉ chọn đúng 1 cán bộ để thao tác.", level=messages.ERROR)
             return
 
-        user_to_authorize = queryset.first()
-        wallet = user_to_authorize.wallet_address
+        target_user = queryset.first()
+        wallet = target_user.wallet_address
 
         if not wallet or not wallet.startswith('0x') or len(wallet) != 42:
-            self.message_user(
-                request,
-                f"Tài khoản '{user_to_authorize.username}' chưa có địa chỉ ví MetaMask hợp lệ (dạng 0x... 42 ký tự)!",
-                level=messages.ERROR
-            )
+            self.message_user(request, f"Cán bộ '{target_user.username}' chưa có địa chỉ ví MetaMask hợp lệ (dạng 0x... 42 ký tự)!", level=messages.ERROR)
             return
+
+        # Cập nhật trạng thái khóa tài khoản trên DB nếu có yêu cầu
+        if lock_status is not None:
+            target_user.is_locked = lock_status
+            target_user.save(update_fields=['is_locked'])
 
         try:
             client = BlockchainClient()
             contract = client.contract
             fn = getattr(contract.functions, function_name, None)
             if not fn:
-                self.message_user(request, f"Hàm {function_name} chưa tồn tại trên Smart Contract ABI!", level=messages.ERROR)
+                self.message_user(request, f"Hàm '{function_name}' chưa có trên Smart Contract ABI!", level=messages.ERROR)
                 return
 
             checksum_wallet = client.w3.to_checksum_address(wallet)
@@ -83,55 +91,56 @@ class UserAdmin(DjangoUserAdmin, ModelAdmin):
             context = {
                 'action_name': action_label,
                 'target_wallet': checksum_wallet,
-                'target_user': user_to_authorize.username,
+                'target_user': target_user.username,
                 'contract_address': client.contract_address,
+                'contract_owner': self._get_contract_owner(contract),
                 'tx_data': tx_data,
             }
             return render(request, 'admin/accounts/authorize_metamask.html', context)
 
         except Exception as e:
-            self.message_user(request, f"Lỗi khởi tạo giao dịch Web3: {str(e)}", level=messages.ERROR)
+            self.message_user(request, f"Lỗi Web3: {str(e)}", level=messages.ERROR)
 
     # 1. Cấp quyền Quản trị viên (Admin)
-    @admin.action(description="👑 1. Cấp quyền QUẢN TRỊ VIÊN (ADMIN) trên Blockchain")
+    @admin.action(description="👑 1. [Blockchain] Cấp quyền QUẢN TRỊ VIÊN (addAdmin)")
     def add_admin_on_blockchain(self, request, queryset):
         return self._render_blockchain_action(
-            request, queryset, 'addAdmin', 'CẤP QUYỀN QUẢN TRỊ VIÊN (ADMIN)'
+            request, queryset, 'addAdmin', 'CẤP QUYỀN QUẢN TRỊ VIÊN (addAdmin)'
         )
 
     # 2. Thu hồi quyền Quản trị viên (Admin)
-    @admin.action(description="🚫 2. Thu hồi quyền QUẢN TRỊ VIÊN (ADMIN) trên Blockchain")
+    @admin.action(description="🚫 2. [Blockchain] Thu hồi quyền QUẢN TRỊ VIÊN (removeAdmin)")
     def remove_admin_on_blockchain(self, request, queryset):
         return self._render_blockchain_action(
-            request, queryset, 'removeAdmin', 'THU HỒI QUYỀN QUẢN TRỊ VIÊN (ADMIN)'
+            request, queryset, 'removeAdmin', 'THU HỒI QUYỀN QUẢN TRỊ VIÊN (removeAdmin)'
         )
 
-    # 3. Cấp quyền Cán bộ (Issuer)
-    @admin.action(description="⚡ 3. Cấp quyền CÁN BỘ PHÁT HÀNH & THU HỒI (Issuer)")
+    # 3. Cấp quyền cán bộ phát hành (Issuer)
+    @admin.action(description="⚡ 3. [Blockchain] Cấp quyền cán bộ phát hành (addIssuer)")
     def authorize_issuer_on_blockchain(self, request, queryset):
         return self._render_blockchain_action(
-            request, queryset, 'addIssuer', 'CẤP QUYỀN CÁN BỘ PHÁT HÀNH & THU HỒI'
+            request, queryset, 'addIssuer', 'CẤP QUYỀN PHÁT HÀNH (addIssuer)'
         )
 
-    # 4. Tạm khóa quyền Cán bộ
-    @admin.action(description="⏸️ 4. Tạm khóa quyền Cán bộ (Pause Issuer)")
+    # 4. Tạm khóa quyền cán bộ phát hành (Pause Issuer)
+    @admin.action(description="⏸️ 4. [Blockchain] TẠM KHÓA quyền cán bộ phát hành (pauseIssuer)")
     def pause_issuer_on_blockchain(self, request, queryset):
         return self._render_blockchain_action(
-            request, queryset, 'pauseIssuer', 'TẠM KHÓA QUYỀN CÁN BỘ (PAUSE)'
+            request, queryset, 'pauseIssuer', 'TẠM KHÓA CÁN BỘ PHÁT HÀNH (pauseIssuer)', lock_status=True
         )
 
-    # 5. Mở khóa quyền Cán bộ
-    @admin.action(description="▶️ 5. Mở khóa quyền Cán bộ (Unpause Issuer)")
+    # 5. Mở khóa quyền cán bộ phát hành (Unpause Issuer)
+    @admin.action(description="▶️ 5. [Blockchain] MỞ KHÓA quyền cán bộ phát hành (unpauseIssuer)")
     def unpause_issuer_on_blockchain(self, request, queryset):
         return self._render_blockchain_action(
-            request, queryset, 'unpauseIssuer', 'MỞ KHÓA QUYỀN CÁN BỘ (UNPAUSE)'
+            request, queryset, 'unpauseIssuer', 'MỞ KHÓA CÁN BỘ PHÁT HÀNH (unpauseIssuer)', lock_status=False
         )
 
-    # 6. Thu hồi vĩnh viễn quyền Cán bộ
-    @admin.action(description="❌ 6. Thu hồi vĩnh viễn quyền Cán bộ (Remove Issuer)")
+    # 6. Hủy bỏ quyền cán bộ phát hành (Remove Issuer)
+    @admin.action(description="❌ 6. [Blockchain] HỦY BỎ quyền cán bộ phát hành (removeIssuer)")
     def remove_issuer_on_blockchain(self, request, queryset):
         return self._render_blockchain_action(
-            request, queryset, 'removeIssuer', 'THU HỒI VĨNH VIỄN QUYỀN CÁN BỘ'
+            request, queryset, 'removeIssuer', 'GỠ QUYỀN CÁN BỘ PHÁT HÀNH (removeIssuer)'
         )
 
 

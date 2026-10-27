@@ -25,66 +25,58 @@
             </div>
         </div>
 
-        <form id="search-form" action="{% url 'verification:public_verify' %}" method="POST" enctype="multipart/form-data" class="space-y-8">
+        <form id="search-form" action="{% url 'verification:public_verify' %}" method="POST" enctype="multipart/form-data" class="space-y-6">
             {% csrf_token %}
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
-                <!-- Cột Họ tên -->
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Họ Tên</label>
-                    <input type="text" name="full_name" placeholder="Nhập họ tên" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:bg-white focus:border-ntt-light focus:ring-1 focus:ring-ntt-light outline-none transition-all placeholder-gray-400">
-                </div>
-                
-                <!-- Cột Ngày sinh -->
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Ngày sinh</label>
-                    <input type="text" name="dob" placeholder="VD: 01/01/1991" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm focus:bg-white focus:border-ntt-light focus:ring-1 focus:ring-ntt-light outline-none transition-all placeholder-gray-400">
-                </div>
-
-                <!-- Cột Số hiệu/CCCD/Hash -->
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Số hiệu / CCCD / Mã hash</label>
-                    <input type="text" id="search-input" name="search_query" placeholder="Nhập mã tra cứu..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-semibold text-ntt-dark focus:bg-white focus:border-ntt-light focus:ring-1 focus:ring-ntt-light outline-none transition-all placeholder-gray-400">
-                </div>
-            </div>
+            <!-- Ô nhập mã tra cứu (Tra cứu bằng mã thay vì họ tên) -->
             <div class="space-y-2">
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block">Hoặc tải file PDF văn bằng (hệ thống tự quét mã QR trong file)</label>
+                <label class="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px] text-ntt-light">qr_code_2</span>
+                    Mã tra cứu văn bằng
+                </label>
+                <div class="relative">
+                    <input type="text" id="search-input" name="search_query"
+                        placeholder="Nhập Mã số sinh viên (MSSV), Số hiệu bằng, Mã UUID, CCCD hoặc Mã băm..." 
+                        class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-semibold text-ntt-dark focus:bg-white focus:border-ntt-light focus:ring-2 focus:ring-ntt-light/20 outline-none transition-all placeholder-gray-400">
+                </div>
+                <p class="text-xs text-gray-500 font-medium">
+                    Hệ thống xác thực qua <strong>Mã số sinh viên (MSSV)</strong>, <strong>Số hiệu bằng</strong>, <strong>Mã định danh UUID</strong> hoặc <strong>CCCD</strong> để đảm bảo định danh duy nhất và bảo mật thông tin cá nhân.
+                </p>
+            </div>
+
+            <!-- Tải file PDF văn bằng -->
+            <div class="space-y-2">
+                <label class="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px] text-ntt-light">upload_file</span>
+                    Hoặc tải file PDF văn bằng (hệ thống tự quét mã QR trong file)
+                </label>
                 <input type="file" id="pdf-input" name="pdf_file" accept=".pdf,application/pdf" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-ntt-dark file:text-white file:font-bold file:cursor-pointer">
             </div>
 
-            <!-- Các nút bấm -->
-            <div class="flex flex-col md:flex-row items-center justify-between gap-6 pt-4">
-                <!-- Captcha giả lập -->
-                <div class="flex items-center gap-3 bg-gray-50 border border-gray-200 px-4 py-3 rounded-xl w-full md:w-auto">
-                    <input type="checkbox" class="w-5 h-5 text-ntt-light border-gray-300 rounded focus:ring-ntt-light cursor-pointer">
-                    <span class="text-sm text-gray-600 font-medium">Tôi không phải là người máy</span>
-                    <span class="material-symbols-outlined text-gray-400 ml-4">sync</span>
-                </div>
-                
-                <div class="flex gap-4 w-full md:w-auto">
-                    <button type="submit" class="flex-1 md:flex-none bg-ntt-light hover:bg-ntt-dark text-white px-8 py-3.5 rounded-xl font-bold uppercase text-sm flex items-center justify-center gap-2 transition-colors shadow-md hover:shadow-lg">
-                        <span class="material-symbols-outlined text-[20px]">search</span> Tra cứu
-                    </button>
-                    <button type="button" id="btn-scan-qr" class="flex-1 md:flex-none bg-white hover:bg-gray-50 text-ntt-dark border-2 border-gray-200 px-6 py-3.5 rounded-xl font-bold uppercase text-sm flex items-center justify-center gap-2 transition-colors">
-                        <span class="material-symbols-outlined text-[20px]">qr_code_scanner</span> Tra cứu bằng QR
-                    </button>
-                </div>
+            <!-- Các nút bấm (Đã bỏ xác nhận Không phải người máy) -->
+            <div class="flex flex-col sm:flex-row items-center justify-end gap-4 pt-2">
+                <button type="submit" class="w-full sm:w-auto bg-ntt-light hover:bg-ntt-dark text-white px-8 py-3.5 rounded-xl font-bold uppercase text-sm flex items-center justify-center gap-2 transition-colors shadow-md hover:shadow-lg">
+                    <span class="material-symbols-outlined text-[20px]">search</span> Tra cứu
+                </button>
+                <button type="button" id="btn-scan-qr" class="w-full sm:w-auto bg-white hover:bg-gray-50 text-ntt-dark border-2 border-gray-200 px-6 py-3.5 rounded-xl font-bold uppercase text-sm flex items-center justify-center gap-2 transition-colors">
+                    <span class="material-symbols-outlined text-[20px]">qr_code_scanner</span> Tra cứu bằng QR
+                </button>
             </div>
         </form>
 
         <!-- Hướng dẫn -->
-        <div class="mt-10 bg-blue-50/50 border border-blue-100 rounded-2xl p-6 space-y-4">
+        <div class="mt-8 bg-blue-50/50 border border-blue-100 rounded-2xl p-6 space-y-4">
             <h3 class="text-sm font-bold text-ntt-dark flex items-center gap-2">
                 <span class="material-symbols-outlined text-ntt-light">info</span> Hướng dẫn tra cứu:
             </h3>
             <ul class="space-y-3 text-sm text-gray-600 font-medium">
                 <li class="flex items-start gap-2">
                     <span class="material-symbols-outlined text-green-500 text-[18px] mt-0.5 shrink-0">check_circle</span>
-                    <p><strong>Điều kiện tra cứu:</strong> Nhập <strong>Số hiệu</strong>, <strong>CCCD</strong> hoặc <strong>Mã hash</strong>, hoặc tải file PDF văn bằng để hệ thống tự quét mã QR. (Họ tên và ngày sinh là tùy chọn bổ sung).</p>
+                    <p><strong>Điều kiện tra cứu:</strong> Nhập <strong>Mã số sinh viên (MSSV)</strong>, <strong>Số hiệu văn bằng</strong>, <strong>Mã UUID</strong>, <strong>CCCD</strong> hoặc <strong>Mã hash</strong>; hoặc tải file PDF văn bằng để hệ thống tự động trích xuất mã QR.</p>
                 </li>
                 <li class="flex items-start gap-2">
                     <span class="material-symbols-outlined text-ntt-light text-[18px] mt-0.5 shrink-0">qr_code_2</span>
-                    <p><strong>Tra cứu bằng QR:</strong> Có thể chọn nút "Tra cứu bằng QR" để bật Camera quét mã in trên phôi bằng, hoặc hệ thống sẽ tự động quét file tải lên từ thiết bị.</p>
+                    <p><strong>Tra cứu bằng QR:</strong> Bấm nút "Tra cứu bằng QR" để bật Camera quét trực tiếp mã QR trên phôi bằng vật lý.</p>
                 </li>
             </ul>
         </div>

@@ -130,7 +130,10 @@ def reject(revocation_request, rejected_by, http_request=None):
 
 @transaction.atomic
 def execute(revocation_request, executed_by, tx_hash=None, supersedes=None, http_request=None):
-    """Bước 3 (Issuer): Thực thi thu hồi trên Blockchain và chuyển Degree sang REVOKED"""
+    """
+    [N7] Bước 3 (Issuer): Thực thi thu hồi trên Blockchain.
+    Tạo BlockchainTransaction và gọi task sync_transaction của Khương để chờ xác nhận trên Sepolia.
+    """
     if revocation_request.status == 'EXECUTED':
         raise ValidationError("Yêu cầu thu hồi này đã được thực thi trước đó.")
 
@@ -143,14 +146,13 @@ def execute(revocation_request, executed_by, tx_hash=None, supersedes=None, http
     if degree.status != 'ISSUED':
         raise ValidationError("Chỉ có thể thu hồi văn bằng đang ở trạng thái ISSUED.")
 
-    # Kiểm tra nghiêm ngặt 3 bước phải do 3 người hoàn toàn khác nhau thực hiện
+    # Quy tắc 4-mắt / 3-bước: 3 người khác nhau
     ensure_different_actors(
         revocation_request.requested_by,
         revocation_request.approved_by,
         executed_by
     )
 
-    # Nếu test giao dịch giả chưa truyền tx_hash, tự sinh mã tx_hash giả lập
     if not tx_hash:
         tx_hash = "0x" + secrets.token_hex(32)
 
@@ -164,46 +166,39 @@ def execute(revocation_request, executed_by, tx_hash=None, supersedes=None, http
     revocation_request.status = 'EXECUTED'
     revocation_request.save()
 
-    # 2. Chuyển trạng thái Degree sang REVOKED và lưu thông tin supersedes (nếu có)
-    old_degree_status = degree.status
+    # 2. Tạo bản ghi BlockchainTransaction liên kết
+    from apps.blockchain.models import BlockchainTransaction
+    tx_record, _ = BlockchainTransaction.objects.get_or_create(
+        tx_hash=tx_hash,
+        defaults={
+            'operation_type': 'REVOKE',
+            'degree': degree,
+            'submitted_by': executed_by,
+            'status': 'pending',
+        }
+    )
+    if tx_record.degree != degree or tx_record.operation_type != 'REVOKE':
+        tx_record.degree = degree
+        tx_record.operation_type = 'REVOKE'
+        tx_record.save(update_fields=['degree', 'operation_type'])
+
+    # 3. Chuyển trạng thái Degree sang REVOKED
     degree.status = 'REVOKED'
-    if hasattr(degree, 'revoked_at'):
-        degree.revoked_at = timezone.now()
-    degree.save()
+    degree.save(update_fields=['status'])
 
-    # Nếu có văn bằng cấp lại (supersedes), gắn liên kết trên model Degree (nếu model Degree có trường supersedes)
-    replacement_degree = revocation_request.supersedes
-    if replacement_degree and hasattr(replacement_degree, 'supersedes'):
-        replacement_degree.supersedes = degree
-        replacement_degree.save()
-
-    # 3. Lưu lịch sử giao dịch vào BlockchainTransaction (nếu bảng hỗ trợ)
+    # 4. Kích hoạt task đồng bộ giao dịch Celery (sync_transaction của Khương)
     try:
-        from apps.blockchain.models import BlockchainTransaction
-        issuance_batch = getattr(degree, 'issuance_batch', None)
-        BlockchainTransaction.objects.create(
-            issuance_batch=issuance_batch,
-            operation_type='REVOKE',
-            tx_hash=tx_hash,
-            status='confirmed'
-        )
+        from apps.blockchain.tasks import sync_transaction
+        sync_transaction.delay(tx_hash)
     except Exception:
         pass
 
     _safe_audit_log(
         actor=executed_by,
         action='REVOCATION_EXECUTED',
-        entity_type='Degree',
-        entity_id=degree.pk,
-        old={'status': old_degree_status},
-        new={'status': 'REVOKED', 'tx_hash': tx_hash, 'revocation_request_id': revocation_request.pk},
+        entity_type='RevocationRequest',
+        entity_id=revocation_request.pk,
+        new={'status': 'EXECUTED', 'tx_hash': tx_hash},
         http_request=http_request
     )
     return revocation_request
-
-
-# Đặt thêm alias để mọi file test gọi tên nào cũng chạy đúng
-request_revocation = request
-approve_revocation = approve
-reject_revocation = reject
-execute_revocation = execute
