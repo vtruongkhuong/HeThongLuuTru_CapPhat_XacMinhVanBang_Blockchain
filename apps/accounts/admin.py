@@ -23,7 +23,7 @@ class UserRoleInline(TabularInline):
 
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin, ModelAdmin):
-    """Quản lý người dùng, dùng form + style của Unfold."""
+    """Quản lý người dùng và quyền Issuer trên Blockchain."""
 
     form = UserChangeForm
     add_form = UserCreationForm
@@ -34,8 +34,12 @@ class UserAdmin(DjangoUserAdmin, ModelAdmin):
     search_fields = ('username', 'email', 'employee_code')
     inlines = [UserRoleInline]
 
-    # Chỉ giữ lại 1 action gộp duy nhất
-    actions = ['authorize_issuer_on_blockchain']
+    actions = [
+        'authorize_issuer_on_blockchain',
+        'pause_issuer_on_blockchain',
+        'unpause_issuer_on_blockchain',
+        'remove_issuer_on_blockchain',
+    ]
     
     fieldsets = DjangoUserAdmin.fieldsets + (
         ('Thông tin nghiệp vụ', {
@@ -47,41 +51,127 @@ class UserAdmin(DjangoUserAdmin, ModelAdmin):
     def display_status(self, obj):
         return "Khóa" if obj.is_locked or not obj.is_active else "Hoạt động"
 
+    def _get_contract(self):
+        w3 = web3.Web3()
+        contract_address = getattr(settings, 'CONTRACT_ADDRESS', '0xEDA267AE063b32A8b23B97e67a5dD355891cbd1D')
+        abi_path = os.path.join(settings.BASE_DIR, 'apps', 'blockchain', 'contracts_abi', 'DegreeVerification.json')
+        with open(abi_path, 'r', encoding='utf-8') as f:
+            abi = json.load(f)
+        return w3.eth.contract(address=w3.to_checksum_address(contract_address), abi=abi), contract_address
 
-    @admin.action(description="Cấp quyền PHÁT HÀNH VÀ THU HỒI lên Blockchain")
+    @admin.action(description="[Blockchain] Cấp quyền cán bộ phát hành (addIssuer)")
     def authorize_issuer_on_blockchain(self, request, queryset):
         if queryset.count() != 1:
-            self.message_user(request, "Vui lòng chọn 1 cán bộ để cấp quyền.", level=messages.ERROR)
+            self.message_user(request, "Vui lòng chọn đúng 1 cán bộ để cấp quyền.", level=messages.ERROR)
             return
             
         user_to_authorize = queryset.first()
         wallet = user_to_authorize.wallet_address
-        
         if not wallet or not wallet.startswith('0x') or len(wallet) != 42:
             self.message_user(request, "Cán bộ này chưa có địa chỉ ví hợp lệ!", level=messages.ERROR)
             return
 
         try:
-            w3 = web3.Web3()
-            contract_address = settings.CONTRACT_ADDRESS
-            abi_path = os.path.join(settings.BASE_DIR, 'apps', 'blockchain', 'contracts_abi', 'DegreeVerification.json')
-            
-            with open(abi_path, 'r') as f:
-                abi = json.load(f)
-            contract = w3.eth.contract(address=contract_address, abi=abi)
-            
-            # Gọi hàm addIssuer trên Smart Contract (quyền này vừa phát hành vừa thu hồi được)
+            contract, contract_address = self._get_contract()
             tx_data = contract.functions.addIssuer(wallet)._encode_transaction_data()
-            
             context = {
-                'action_name': 'CẤP QUYỀN PHÁT HÀNH VÀ THU HỒI',
+                'action_name': 'CẤP QUYỀN PHÁT HÀNH (addIssuer)',
                 'target_wallet': wallet,
                 'target_user': user_to_authorize.username,
                 'contract_address': contract_address,
+                'contract_owner': self._get_contract_owner(contract),
                 'tx_data': tx_data,
             }
             return render(request, 'admin/accounts/authorize_metamask.html', context)
+        except Exception as e:
+            self.message_user(request, f"Lỗi Web3: {str(e)}", level=messages.ERROR)
 
+    @admin.action(description="[Blockchain] TẠM KHÓA quyền cán bộ phát hành (pauseIssuer)")
+    def pause_issuer_on_blockchain(self, request, queryset):
+        """[N7] Chủ trường tạm khóa một cán bộ thì cán bộ đó không ký phát hành được nữa"""
+        if queryset.count() != 1:
+            self.message_user(request, "Vui lòng chọn đúng 1 cán bộ để tạm khóa.", level=messages.ERROR)
+            return
+
+        target_user = queryset.first()
+        wallet = target_user.wallet_address
+        if not wallet or not wallet.startswith('0x') or len(wallet) != 42:
+            self.message_user(request, "Cán bộ này chưa có địa chỉ ví hợp lệ!", level=messages.ERROR)
+            return
+
+        # Cập nhật cờ is_locked trên cơ sở dữ liệu
+        target_user.is_locked = True
+        target_user.save(update_fields=['is_locked'])
+
+        try:
+            contract, contract_address = self._get_contract()
+            tx_data = contract.functions.pauseIssuer(wallet)._encode_transaction_data()
+            context = {
+                'action_name': 'TẠM KHÓA CÁN BỘ PHÁT HÀNH (pauseIssuer)',
+                'target_wallet': wallet,
+                'target_user': target_user.username,
+                'contract_address': contract_address,
+                'contract_owner': self._get_contract_owner(contract),
+                'tx_data': tx_data,
+            }
+            return render(request, 'admin/accounts/authorize_metamask.html', context)
+        except Exception as e:
+            self.message_user(request, f"Lỗi Web3: {str(e)}", level=messages.ERROR)
+
+    @admin.action(description="[Blockchain] MỞ KHÓA quyền cán bộ phát hành (unpauseIssuer)")
+    def unpause_issuer_on_blockchain(self, request, queryset):
+        if queryset.count() != 1:
+            self.message_user(request, "Vui lòng chọn đúng 1 cán bộ để mở khóa.", level=messages.ERROR)
+            return
+
+        target_user = queryset.first()
+        wallet = target_user.wallet_address
+        if not wallet or not wallet.startswith('0x') or len(wallet) != 42:
+            self.message_user(request, "Cán bộ này chưa có địa chỉ ví hợp lệ!", level=messages.ERROR)
+            return
+
+        target_user.is_locked = False
+        target_user.save(update_fields=['is_locked'])
+
+        try:
+            contract, contract_address = self._get_contract()
+            tx_data = contract.functions.unpauseIssuer(wallet)._encode_transaction_data()
+            context = {
+                'action_name': 'MỞ KHÓA CÁN BỘ PHÁT HÀNH (unpauseIssuer)',
+                'target_wallet': wallet,
+                'target_user': target_user.username,
+                'contract_address': contract_address,
+                'contract_owner': self._get_contract_owner(contract),
+                'tx_data': tx_data,
+            }
+            return render(request, 'admin/accounts/authorize_metamask.html', context)
+        except Exception as e:
+            self.message_user(request, f"Lỗi Web3: {str(e)}", level=messages.ERROR)
+
+    @admin.action(description="[Blockchain] HỦY BỎ quyền cán bộ phát hành (removeIssuer)")
+    def remove_issuer_on_blockchain(self, request, queryset):
+        if queryset.count() != 1:
+            self.message_user(request, "Vui lòng chọn đúng 1 cán bộ để gỡ quyền.", level=messages.ERROR)
+            return
+
+        target_user = queryset.first()
+        wallet = target_user.wallet_address
+        if not wallet or not wallet.startswith('0x') or len(wallet) != 42:
+            self.message_user(request, "Cán bộ này chưa có địa chỉ ví hợp lệ!", level=messages.ERROR)
+            return
+
+        try:
+            contract, contract_address = self._get_contract()
+            tx_data = contract.functions.removeIssuer(wallet)._encode_transaction_data()
+            context = {
+                'action_name': 'GỠ QUYỀN CÁN BỘ PHÁT HÀNH (removeIssuer)',
+                'target_wallet': wallet,
+                'target_user': target_user.username,
+                'contract_address': contract_address,
+                'contract_owner': self._get_contract_owner(contract),
+                'tx_data': tx_data,
+            }
+            return render(request, 'admin/accounts/authorize_metamask.html', context)
         except Exception as e:
             self.message_user(request, f"Lỗi Web3: {str(e)}", level=messages.ERROR)
 

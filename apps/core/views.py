@@ -54,3 +54,13 @@ def report_view(request):
         'chart_data': chart_data
     }
     return render(request, 'dashboard.html', context)
+
+
+def custom_404_view(request, exception=None):
+    """[N7] Trang báo lỗi 404 tùy biến chuẩn nhận diện thương hiệu"""
+    return render(request, '404.html', status=404)
+
+
+def custom_500_view(request):
+    """[N7] Trang báo lỗi 500 tùy biến chuẩn nhận diện thương hiệu"""
+    return render(request, '500.html', status=500)

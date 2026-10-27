@@ -141,6 +141,15 @@
                 <button type="button" class="iss-copy" data-copy="v-contract">Sao chép</button>
             </div>
         </div>
+        {% if contract_owner %}
+        <div class="iss-row">
+            <div class="iss-label">Ví Chủ trường (Owner)</div>
+            <div>
+                <code class="iss-mono" id="v-owner">{{ contract_owner }}</code>
+                <button type="button" class="iss-copy" data-copy="v-owner">Sao chép</button>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Hai bước thao tác -->
@@ -178,6 +187,7 @@
 <script>
     let currentAccount = null;
     const contractAddress = "{{ contract_address }}";
+    const contractOwner = "{{ contract_owner|default:"" }}".toLowerCase();
     const txData = "{{ tx_data|escapejs }}";
 
     const $ = (id) => document.getElementById(id);
@@ -247,6 +257,15 @@
             return;
         }
 
+        // RÀO CHẶN BẢO MẬT: Kiểm tra xem ví kết nối có phải là Owner của Contract không
+        if (contractOwner && account.toLowerCase() !== contractOwner) {
+            setBusy(btn, false, 'Kết nối ví');
+            showNote('err', 'CẢNH BÁO: Ví bạn vừa kết nối (' + shortAddr(account) + ') KHÔNG PHẢI là Chủ sở hữu (Owner) của Smart Contract. Hãy mở MetaMask và chuyển sang đúng tài khoản ví Owner (' + shortAddr(contractOwner) + ') để có quyền thực hiện.');
+            $('step-sign').className = 'iss-step is-locked';
+            $('btn-sign').disabled = true;
+            return;
+        }
+
         currentAccount = account;
         $('wallet-status').innerHTML = 'Đã kết nối ví <span class="iss-acct" title="' + account + '">' + shortAddr(account) + '</span>';
         $('step-connect').className = 'iss-step is-done';
@@ -309,5 +328,12 @@
             showNote('info', 'Chưa xác nhận được kết quả giao dịch. Hãy kiểm tra mã ' + txHash + ' trên Etherscan (Sepolia).');
         }
     });
+    if (window.ethereum) {
+        window.ethereum.on('accountsChanged', (accounts) => {
+            if (accounts.length > 0 && currentAccount && accounts[0].toLowerCase() !== currentAccount.toLowerCase()) {
+                location.reload();
+            }
+        });
+    }
 </script>
 {% endblock %}

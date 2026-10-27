@@ -58,28 +58,39 @@
         </div>
     </div>
 
-    <!-- Thanh Lọc Danh Mục (Tabs) -->
+    <!-- Thanh Lọc Danh Mục 2 Khu Vực Riêng Biệt (N5) -->
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-2 overflow-x-auto">
         <div class="flex gap-2 min-w-max" id="category-tabs">
-            <button onclick="filterCategory('all', this)" class="tab-btn active px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all bg-ntt-dark text-white shadow-sm">
+            <button onclick="filterCategory('all', this)" class="tab-btn active px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all bg-ntt-dark text-white shadow-sm">
                 <span class="material-symbols-outlined text-[18px]">apps</span>
                 Tất cả ({{ counts.all }})
             </button>
-            <button onclick="filterCategory('engineer', this)" class="tab-btn px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all text-gray-600 hover:bg-gray-100">
-                <span class="material-symbols-outlined text-[18px] text-blue-600">engineering</span>
-                Bằng Kỹ sư ({{ counts.engineer }})
+            <!-- Khu vực 1: Bằng tốt nghiệp ĐH -->
+            <button onclick="filterCategory('university', this)" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all text-gray-700 bg-blue-50/80 hover:bg-blue-100 border border-blue-200">
+                <span class="material-symbols-outlined text-[18px] text-blue-700">school</span>
+                📂 Khu vực 1: Văn bằng ĐH ({{ counts.university }})
             </button>
-            <button onclick="filterCategory('bachelor', this)" class="tab-btn px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all text-gray-600 hover:bg-gray-100">
-                <span class="material-symbols-outlined text-[18px] text-red-600">school</span>
-                Bằng Cử nhân ({{ counts.bachelor }})
+            <!-- Khu vực 2: Chứng chỉ Tin học & Công nghệ -->
+            <button onclick="filterCategory('certifications', this)" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all text-gray-700 bg-emerald-50/80 hover:bg-emerald-100 border border-emerald-200">
+                <span class="material-symbols-outlined text-[18px] text-emerald-700">workspace_premium</span>
+                📂 Khu vực 2: Chứng chỉ Tin học & CNTT ({{ counts.certifications }})
             </button>
-            <button onclick="filterCategory('office_it', this)" class="tab-btn px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all text-gray-600 hover:bg-gray-100">
-                <span class="material-symbols-outlined text-[18px] text-emerald-600">desktop_windows</span>
-                Tin học văn phòng ({{ counts.office_it }})
+            <span class="w-[1px] h-8 bg-gray-200 my-auto mx-1"></span>
+            <button onclick="filterCategory('engineer', this)" class="tab-btn px-3 py-2.5 rounded-xl font-medium text-xs flex items-center gap-1.5 transition-all text-gray-600 hover:bg-gray-100">
+                <span class="material-symbols-outlined text-[16px] text-blue-600">engineering</span>
+                Kỹ sư
             </button>
-            <button onclick="filterCategory('it_cert', this)" class="tab-btn px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all text-gray-600 hover:bg-gray-100">
-                <span class="material-symbols-outlined text-[18px] text-purple-600">memory</span>
-                Chứng chỉ CNTT ({{ counts.it_cert }})
+            <button onclick="filterCategory('bachelor', this)" class="tab-btn px-3 py-2.5 rounded-xl font-medium text-xs flex items-center gap-1.5 transition-all text-gray-600 hover:bg-gray-100">
+                <span class="material-symbols-outlined text-[16px] text-red-600">school</span>
+                Cử nhân
+            </button>
+            <button onclick="filterCategory('office_it', this)" class="tab-btn px-3 py-2.5 rounded-xl font-medium text-xs flex items-center gap-1.5 transition-all text-gray-600 hover:bg-gray-100">
+                <span class="material-symbols-outlined text-[16px] text-emerald-600">desktop_windows</span>
+                TH Văn phòng
+            </button>
+            <button onclick="filterCategory('it_cert', this)" class="tab-btn px-3 py-2.5 rounded-xl font-medium text-xs flex items-center gap-1.5 transition-all text-gray-600 hover:bg-gray-100">
+                <span class="material-symbols-outlined text-[16px] text-purple-600">memory</span>
+                CNTT
             </button>
         </div>
     </div>
@@ -245,16 +256,36 @@
 
                             <div class="w-full space-y-2">
                                 {% if deg.status != 'REVOKED' %}
+                                    <!-- Nút Xem trước PDF -->
+                                    <a href="{% url 'student_portal:preview_pdf' degree_id=deg.id %}" 
+                                       target="_blank"
+                                       class="w-full bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 py-2.5 rounded-xl font-bold uppercase text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                                        <span class="material-symbols-outlined text-[18px]">visibility</span>
+                                        Xem trước PDF
+                                    </a>
+                                    <!-- Nút Tải PDF -->
                                     <a href="{% url 'student_portal:download_pdf_by_id' degree_id=deg.id %}" 
-                                       class="w-full bg-ntt-dark hover:bg-ntt-light text-white py-3 rounded-xl font-bold uppercase text-xs transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow">
+                                       class="w-full bg-ntt-dark hover:bg-ntt-light text-white py-2.5 rounded-xl font-bold uppercase text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm hover:shadow">
                                         <span class="material-symbols-outlined text-[18px]">download</span>
                                         Tải bản PDF
+                                    </a>
+                                    <!-- Nút Tải Gói JSON Xác Minh Độc Lập (N5) -->
+                                    <a href="{% url 'student_portal:download_verification_package' degree_id=deg.id %}" 
+                                       class="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 py-2.5 rounded-xl font-bold uppercase text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                                        <span class="material-symbols-outlined text-[18px]">verified</span>
+                                        Tải gói JSON xác minh
                                     </a>
                                 {% else %}
                                     <button disabled class="w-full bg-gray-200 text-gray-400 py-3 rounded-xl font-bold uppercase text-xs flex items-center justify-center gap-1 cursor-not-allowed">
                                         <span class="material-symbols-outlined text-[16px]">block</span>
                                         Văn bằng đã thu hồi
                                     </button>
+                                {% endif %}
+
+                                {% if item.etherscan_url %}
+                                    <a href="{{ item.etherscan_url }}" target="_blank" class="text-[11px] text-gray-500 hover:text-blue-600 inline-flex items-center gap-1 mt-1 font-mono">
+                                        <span class="material-symbols-outlined text-[14px]">link</span> Xem trên Sepolia Etherscan
+                                    </a>
                                 {% endif %}
                             </div>
                         </div>
@@ -303,7 +334,13 @@ function filterCategory(category, button) {
 
     cards.forEach(card => {
         const cardCat = card.getAttribute('data-category');
-        if (category === 'all' || cardCat === category) {
+        let match = false;
+        if (category === 'all') match = true;
+        else if (category === 'university') match = (cardCat === 'engineer' || cardCat === 'bachelor');
+        else if (category === 'certifications') match = (cardCat === 'office_it' || cardCat === 'it_cert');
+        else match = (cardCat === category);
+
+        if (match) {
             card.style.display = 'block';
             visibleCount++;
         } else {

@@ -3,7 +3,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from apps.verification import views as verification_views
-from apps.core.views import dashboard_view, report_view
+from apps.core.views import dashboard_view, report_view, custom_404_view, custom_500_view
 
 urlpatterns = [
     # Điều hướng gốc & tương thích ngược cho các template gọi trực tiếp tên URL
@@ -34,3 +34,12 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    # Tuyến đường xem trước trang lỗi khi đang bật DEBUG=True (N7)
+    urlpatterns += [
+        path('test-404/', custom_404_view, name='test_404'),
+        path('test-500/', custom_500_view, name='test_500'),
+    ]
+
+# Custom HTTP error handlers (N7)
+handler404 = 'apps.core.views.custom_404_view'
+handler500 = 'apps.core.views.custom_500_view'

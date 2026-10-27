@@ -113,12 +113,17 @@ CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/1')
 
 # Blockchain – Non-custodial: KHÔNG lưu private key của Issuer trên server
-WEB3_PROVIDER_URL = os.getenv('WEB3_PROVIDER_URL', 'https://rpc.sepolia.org')
+WEB3_PROVIDER_URL = os.getenv('WEB3_PROVIDER_URL', 'https://eth-sepolia.g.alchemy.com/v2/alch_ZWdSTTjsLh7SPMKrNskaj')
 CHAIN_ID = int(os.getenv('CHAIN_ID', '11155111'))
-CONTRACT_ADDRESS = os.getenv('CONTRACT_ADDRESS', '')
+CONTRACT_ADDRESS = os.getenv('CONTRACT_ADDRESS', '0xEDA267AE063b32A8b23B97e67a5dD355891cbd1D')
 
+# Allauth & Google OAuth
 ACCOUNT_LOGIN_METHODS = {'username', 'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+SOCIALACCOUNT_ADAPTER = 'apps.accounts.adapters.CustomSocialAccountAdapter'
+ACCOUNT_ADAPTER = 'apps.accounts.adapters.CustomAccountAdapter'
+SOCIALACCOUNT_AUTO_SIGNUP = True
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
@@ -132,6 +137,14 @@ SOCIALACCOUNT_PROVIDERS = {
         'OAUTH_PKCE_ENABLED': True,
     }
 }
+_google_id = os.getenv('GOOGLE_CLIENT_ID', '').strip()
+_google_secret = os.getenv('GOOGLE_CLIENT_SECRET', '').strip()
+if _google_id and _google_secret:
+    SOCIALACCOUNT_PROVIDERS['google']['APP'] = {
+        'client_id': _google_id,
+        'secret': _google_secret,
+        'key': ''
+    }
 
 
 # ==============================================================================
@@ -257,6 +270,12 @@ UNFOLD = {
                         "icon": "history",
                         "link": reverse_lazy("admin:audit_auditlog_changelist"),
                         # Tạm thời chỉ cho phép Admin tối cao xem log hệ thống
+                        "permission": lambda request: request.user.is_superuser, 
+                    },
+                    {
+                        "title": "Nhật ký tra cứu văn bằng",
+                        "icon": "fact_check",
+                        "link": reverse_lazy("admin:verification_verificationlog_changelist"),
                         "permission": lambda request: request.user.is_superuser, 
                     },
                 ],
