@@ -82,29 +82,81 @@ def ensure_background():
 
 
 def link_callback(uri, rel):
-    """Đổi /static/... và qrcode:... trong template thành file thật trên ổ đĩa."""
+    """
+    Chuyển đổi các đường dẫn static, fonts, images từ URL thành đường dẫn 
+    tuyệt đối trên ổ đĩa để xhtml2pdf đọc được file.
+    """
+    # Xử lý nếu uri bắt đầu bằng static url
     if uri.startswith(settings.STATIC_URL):
-        path = STATIC_DIR / uri[len(settings.STATIC_URL):]
+        path = STATIC_DIR / uri[len(settings.STATIC_URL):].lstrip("/")
         if path.is_file():
             return str(path)
+            
+    # Hỗ trợ quét trực tiếp các thư mục con phổ biến (fonts, images, img)
+    for sub in ["fonts", "images", "img"]:
+        if sub in uri:
+            # Lấy phần tên file phía sau thư mục
+            parts = uri.split(sub)
+            if len(parts) > 1:
+                filename = parts[-1].lstrip("/")
+                path = STATIC_DIR / sub / filename
+                if path.is_file():
+                    return str(path)
+                    
+    # Dự phòng tìm trực tiếp theo BASE_DIR nếu là đường dẫn tương đối
+    path = Path(settings.BASE_DIR) / uri.lstrip("/")
+    if path.is_file():
+        return str(path)
+        
+        # Nếu không tìm thấy, trả về uri gốc để không làm sập chương trình
     return uri
 
 
+def get_template_for_degree(degree):
+    """
+    Tự động chọn đúng mẫu template theo loại văn bằng / chứng chỉ:
+      - CN   -> bachelor_degree.html (Bằng Cử nhân)
+      - KS   -> engineer_degree.html (Bằng Kỹ sư)
+      - THVP -> office_it_cert.html (Chứng chỉ Tin học văn phòng)
+      - CNTT -> it_specialist_cert.html (Chứng chỉ Công nghệ thông tin)
+    """
+    dt = getattr(degree, 'degree_type', None)
+    
+    # 1. Nếu có cấu hình template_name cụ thể trong DB
+    if dt and dt.template_name:
+        candidate = dt.template_name if "/" in dt.template_name else f"degrees/pdf/{dt.template_name}"
+        try:
+            return get_template(candidate)
+        except Exception:
+            pass
+    # 2. Ánh xạ tự động theo mã loại văn bằng (code)
+    code = (dt.code if dt and dt.code else "").upper()
+    code_map = {
+        'CN': 'degrees/pdf/bachelor_degree.html',
+        'KS': 'degrees/pdf/engineer_degree.html',
+        'THVP': 'degrees/pdf/office_it_cert.html',
+        'CNTT': 'degrees/pdf/it_specialist_cert.html',
+    }
+    
+    template_path = code_map.get(code, 'degrees/pdf/bachelor_degree.html')
+    return get_template(template_path)
+
 def get_degree_pdf(degree):
     ensure_background()
-
     verify_url = None
     if getattr(degree, "canonical_hash", None):
         site_url = getattr(settings, "SITE_URL", "http://127.0.0.1:8000").rstrip("/")
-        verify_url = f"{site_url}/verify/tracuu/?q={degree.canonical_hash}"
-
-    template = get_template("degrees/pdf/degree_template.html")
+        # Tra cứu theo mã public id hoặc canonical hash
+        pub_id = getattr(degree, "credential_public_id", None) or degree.canonical_hash
+        verify_url = f"{site_url}/tracuu/?q={pub_id}"
+    # Chọn đúng mẫu template theo loại văn bằng/chứng chỉ
+    template = get_template_for_degree(degree)
+    
     html = template.render({
         "degree": degree,
         "student": degree.student,
         "verify_url": verify_url,
     })
-
     result = io.BytesIO()
     pdf = pisa.CreatePDF(html, dest=result, encoding="UTF-8",
                          link_callback=link_callback)

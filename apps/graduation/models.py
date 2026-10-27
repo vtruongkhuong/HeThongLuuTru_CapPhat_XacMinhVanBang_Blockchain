@@ -11,6 +11,14 @@ class GraduationBatch(models.Model):
     )
 
     name = models.CharField(max_length=150, verbose_name="Tên đợt tốt nghiệp")
+    degree_type = models.ForeignKey(
+        'academic.DegreeType',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Loại văn bằng/chứng chỉ",
+        help_text="Để trống nếu xét theo ngành sinh viên (Cử nhân/Kỹ sư). Chọn cụ thể nếu đây là đợt cấp chứng chỉ chung (THVP, CNTT)."
+    )
     decision_no = models.CharField(max_length=50, null=True, blank=True, verbose_name="Số quyết định")
     decision_date = models.DateField(null=True, blank=True, verbose_name="Ngày quyết định")
     
@@ -41,14 +49,15 @@ class GraduationBatch(models.Model):
     # 3. Thời gian và Ghi chú (Lý do từ chối)
     approved_at = models.DateTimeField(null=True, blank=True, verbose_name="Thời gian duyệt")
     rejection_reason = models.TextField(null=True, blank=True, verbose_name="Lý do từ chối")
+    
+    # Thông tin Blockchain
+    merkle_root = models.CharField(max_length=64, null=True, blank=True, verbose_name="Mã Merkle Root")
+    tx_hash = models.CharField(max_length=100, null=True, blank=True, verbose_name="Mã giao dịch Blockchain")
 
     def __str__(self):
         return self.name
 
     class Meta:
-        verbose_name = "Đợt tốt nghiệp"
-        verbose_name_plural = "Các đợt tốt nghiệp"
+        verbose_name = "Đợt tốt nghiệp / cấp chứng chỉ"
+        verbose_name_plural = "Các đợt tốt nghiệp & cấp chứng chỉ"
         
-    # Thông tin Blockchain
-    merkle_root = models.CharField(max_length=64, null=True, blank=True, verbose_name="Mã Merkle Root")
-    tx_hash = models.CharField(max_length=100, null=True, blank=True, verbose_name="Mã giao dịch Blockchain")

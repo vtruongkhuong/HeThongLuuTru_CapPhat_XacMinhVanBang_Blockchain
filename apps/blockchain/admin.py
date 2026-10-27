@@ -1,11 +1,12 @@
 from django.contrib import admin, messages
 from django.shortcuts import render, redirect
 from django.urls import path
-from django.conf import settings
-from django.utils import timezone
 from apps.degrees.models import Degree
 from apps.core.admin import BaseRoleAdmin
+from apps.workflow.services import transition
 from .models import IssuanceBatch, BlockchainTransaction
+from .client import BlockchainClient
+from .tasks import sync_transaction
 import web3
 import json
 import os
@@ -26,28 +27,35 @@ class IssuanceBatchAdmin(BaseRoleAdmin):
             return
         
         batch = queryset.first()
-        if batch.status != 'PENDING':
-            self.message_user(request, "Đợt này đã phát hành rồi hoặc không hợp lệ!", level=messages.ERROR)
+        if batch.status == 'CONFIRMED':
+            self.message_user(request, "Đợt này đã phát hành và xác nhận trên Blockchain rồi!", level=messages.ERROR)
             return
             
         try:
-            # 1. Khởi tạo Web3 và nạp Contract
-            w3 = web3.Web3()
-            contract_address = settings.CONTRACT_ADDRESS
-            abi_path = os.path.join(settings.BASE_DIR, 'apps', 'blockchain', 'contracts_abi', 'DegreeVerification.json')
+            client = BlockchainClient()
+            contract_address = client.contract_address
+            # Chống phát hành trùng: kiểm tra trên chain xem batchId đã có root chưa
+            batch_id_hex = client.batch_id_of(batch.graduation_batch.name)
+            existing_batch = client.get_batch(batch_id_hex)
+            if existing_batch and existing_batch['root'] not in ('', '0' * 64):
+                self.message_user(
+                    request,
+                    f"Cảnh báo: Đợt '{batch.graduation_batch.name}' đã được lưu trên Blockchain (batchId: {batch_id_hex[:10]}...)!",
+                    level=messages.WARNING
+                )
+                return
+            # Đếm số lượng văn bằng thực tế trong đợt
+            count = Degree.objects.filter(batch=batch.graduation_batch).count()
+            if count == 0:
+                self.message_user(request, "Đợt tốt nghiệp này chưa có văn bằng nào được tạo!", level=messages.ERROR)
+                return
             
-            with open(abi_path, 'r') as f:
-                abi = json.load(f)
-            contract = w3.eth.contract(address=contract_address, abi=abi)
-            
-            # 2. Sinh dữ liệu giao dịch chưa ký (chỉ mã hóa dữ liệu, KHÔNG CẦN PRIVATE KEY)
-            # Hàm trên Smart Contract là: storeMerkleRoot(string _batchName, string _merkleRoot)
-            tx_data = contract.functions.storeMerkleRoot(
-                batch.graduation_batch.name, 
-                batch.merkle_root
-            )._encode_transaction_data()
-
-            # 3. Ném dữ liệu ra HTML để Frontend xử lý
+             # Sinh dữ liệu giao dịch storeBatch(batchName, merkleRoot, count)
+            tx_data = client.build_issue_tx_data(
+                batch.graduation_batch.name,
+                batch.merkle_root,
+                count
+            )
             context = {
                 'batch': batch,
                 'contract_address': contract_address,
@@ -56,7 +64,7 @@ class IssuanceBatchAdmin(BaseRoleAdmin):
             return render(request, 'admin/blockchain/issuancebatch/issue_metamask.html', context)
             
         except Exception as e:
-            self.message_user(request, f"Lỗi hệ thống Web3: {str(e)}", level=messages.ERROR)
+            self.message_user(request, f"Lỗi khởi tạo giao dịch Web3: {str(e)}", level=messages.ERROR)
 
     # --- KHAI BÁO THÊM URL ẨN ĐỂ NHẬN TX_HASH ---
     def get_urls(self):
@@ -66,31 +74,44 @@ class IssuanceBatchAdmin(BaseRoleAdmin):
         ]
         return custom_urls + urls
 
-    # --- HÀM XỬ LÝ NHẬN TX HASH TỪ GIAO DIỆN TRẢ VỀ ---
+
+    # --- HÀM XỬ LÝ NHẬN TX HASH TỪ METAMASK GỬI VỀ ---
     def save_tx_hash(self, request):
         if request.method == 'POST':
             tx_hash = request.POST.get('tx_hash')
             batch_id = request.POST.get('batch_id')
-            now = timezone.now()
             
-            # 1. Cập nhật trạng thái đợt phát hành sang CONFIRMED
-            batch = IssuanceBatch.objects.get(id=batch_id)
-            batch.status = 'CONFIRMED'
-            batch.confirmed_at = now
-            batch.save()
-            
-            # 2. Lưu biên lai giao dịch
-            BlockchainTransaction.objects.create(
-                issuance_batch=batch,
+            try:
+                batch = IssuanceBatch.objects.get(id=batch_id)
+            except IssuanceBatch.DoesNotExist:
+                self.message_user(request, "Không tìm thấy đợt phát hành tương ứng!", level=messages.ERROR)
+                return redirect('admin:blockchain_issuancebatch_changelist')
+            # 1. Tạo bản ghi giao dịch BlockchainTransaction với trạng thái 'pending'
+            BlockchainTransaction.objects.update_or_create(
                 tx_hash=tx_hash,
-                status='confirmed'
+                defaults={
+                    'issuance_batch': batch,
+                    'operation_type': 'ISSUE',
+                    'status': 'pending'
+                }
             )
-            
-            # 3. Cập nhật toàn bộ Degree thuộc đợt này sang ISSUED và gán ngày giờ phát hành
-            Degree.objects.filter(batch=batch.graduation_batch).update(
-                status='ISSUED',
-                generated_at=now
+            # Cập nhật tx_hash vào GraduationBatch để tiện tra cứu
+            batch.graduation_batch.tx_hash = tx_hash
+            batch.graduation_batch.save(update_fields=['tx_hash'])
+            # 2. TỐI ƯU: Cập nhật hàng loạt trạng thái Degree sang ISSUANCE_PENDING chỉ trong 1 câu lệnh SQL duy nhất
+            Degree.objects.filter(
+                batch=batch.graduation_batch,
+                status__in=('APPROVED', 'DRAFT', 'GENERATED')
+            ).update(status='ISSUANCE_PENDING')
+            # 3. Kích hoạt Celery task đồng bộ giao dịch
+            try:
+                sync_transaction.delay(tx_hash)
+            except Exception:
+                pass
+            self.message_user(
+                request,
+                f"Đã gửi giao dịch phát hành ({tx_hash[:10]}...{tx_hash[-8:]})! "
+                f"Hệ thống đang theo dõi xác nhận trên mạng Sepolia.",
+                level=messages.SUCCESS
             )
-            
-            self.message_user(request, f"Đã đẩy lên mạng Sepolia thành công! Tx Hash: {tx_hash}", level=messages.SUCCESS)
             return redirect('admin:blockchain_issuancebatch_changelist')

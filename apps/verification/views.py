@@ -220,7 +220,9 @@ def public_verify_view(request):
         degree=degree,
         ip_address=get_client_ip(request),
         user_agent=request.META.get('HTTP_USER_AGENT', '')[:500],
-        is_successful=bool(degree and degree.status == 'ISSUED')
+        is_successful=bool(degree and degree.status == 'ISSUED'),
+        result_status='VALID' if (degree and degree.status == 'ISSUED') else 'INVALID',
+        verification_type='PUBLIC_SEARCH'
     )
 
     # 4. ĐỐI CHIẾU BLOCKCHAIN & TRẢ VỀ ĐÚNG 3 TRẠNG THÁI (HỢP LỆ / ĐÃ THU HỒI / KHÔNG TÌM THẤY)
@@ -285,7 +287,9 @@ def verify_temp_cert_view(request):
         degree=degree,
         ip_address=get_client_ip(request),
         user_agent=request.META.get('HTTP_USER_AGENT', '')[:500],
-        is_successful=bool(student)
+        is_successful=bool(student),
+        result_status='VALID' if bool(student) else 'INVALID',
+        verification_type='TEMP_CERT'
     )
 
     if student:

@@ -86,6 +86,7 @@ ASGI_APPLICATION = 'config.asgi.application'
 AUTH_USER_MODEL = 'accounts.User'
 
 AUTHENTICATION_BACKENDS = [
+    'apps.accounts.backends.EmailOrUsernameModelBackend',
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
@@ -111,10 +112,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/1')
 
-# Blockchain
-WEB3_PROVIDER_URL = os.getenv('WEB3_PROVIDER_URL', 'http://127.0.0.1:8545')
-CHAIN_ID = int(os.getenv('CHAIN_ID', '1337'))
-ISSUER_PRIVATE_KEY = os.getenv('ISSUER_PRIVATE_KEY', '')
+# Blockchain – Non-custodial: KHÔNG lưu private key của Issuer trên server
+WEB3_PROVIDER_URL = os.getenv('WEB3_PROVIDER_URL', 'https://rpc.sepolia.org')
+CHAIN_ID = int(os.getenv('CHAIN_ID', '11155111'))
 CONTRACT_ADDRESS = os.getenv('CONTRACT_ADDRESS', '')
 
 ACCOUNT_LOGIN_METHODS = {'username', 'email'}

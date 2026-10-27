@@ -10,10 +10,10 @@ from apps.blockchain.models import IssuanceBatch, DegreeMerkleProof
 from apps.workflow.services import ensure_different_actors
 from apps.core.admin import BaseRoleAdmin 
 
-from apps.blockchain.services import generate_canonical_hash, build_merkle_root
+from apps.blockchain.services import get_merkle_proof, build_merkle_root
+from apps.degrees.canonicalizer import canonical_hash, HASH_VERSION
 from apps.degrees.models import Degree
 from apps.students.models import Student, ImportBatchItem
-from apps.academic.models import DegreeType
 from .models import GraduationBatch
 
 @admin.register(GraduationBatch)
@@ -26,7 +26,7 @@ class GraduationBatchAdmin(BaseRoleAdmin):
     search_fields = ['name']
     actions = ['submit_for_approval', 'approve_batch', 'reject_batch']
 
-    # Khai báo nút này để hiển thị trong trang CHỈNH SỬA CHI TIẾT (Trang bên trong)
+    # Khai báo nút này để hiển thị trong trang CHỈNH SỬA CHI TIẾT
     readonly_fields = ['view_students_btn']
 
     def view_students_btn(self, obj):
@@ -41,7 +41,7 @@ class GraduationBatchAdmin(BaseRoleAdmin):
 
     # --- THAY ĐỔI 2: THÊM 2 HÀM XỬ LÝ GIAO DIỆN BẢNG BÊN NGOÀI ---
     
-    # Hàm 2.1: Tạo nút bấm nhỏ gọn nằm kế tên đợt ở bảng danh sách ngoài
+    # Hàm 2.1: Tạo nút xem danh sách nhỏ gọn
     def view_students_link(self, obj):
         if obj.pk:
             url = f"/admin/graduation/graduationbatch/{obj.pk}/students/"
@@ -73,7 +73,7 @@ class GraduationBatchAdmin(BaseRoleAdmin):
     short_merkle_root.short_description = "Mã Merkle Root"
 
 
-    # --- 3. URL VÀ HÀM XỬ LÝ TRANG DANH SÁCH SINH VIÊN (Giữ nguyên) ---
+    # --- 3. URL VÀ HÀM XỬ LÝ TRANG DANH SÁCH SINH VIÊN ---
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
@@ -113,17 +113,15 @@ class GraduationBatchAdmin(BaseRoleAdmin):
             
             # SẮP XẾP LUÔN CHO BẢN NHÁP
             students = Student.objects.filter(student_code__in=unique_student_codes).select_related('major__degree_type').order_by('major__degree_type__name', 'student_code')
-            
-            default_degree_type = DegreeType.objects.first()
 
             for s in students:
-                dt = (s.major.degree_type if (hasattr(s, 'major') and s.major) else None) or default_degree_type
+                dt = batch.degree_type or (s.major.degree_type if (hasattr(s, 'major') and s.major) else None)
                 
                 students_data.append({
                     'code': s.student_code,
                     'name': s.full_name,
                     'major': str(s.major) if (hasattr(s, 'major') and s.major) else "N/A",
-                    'degree_type': str(dt) if dt else "N/A",
+                    'degree_type': str(dt) if dt else "Chưa gán",
                     'hash': "-",
                     'full_hash': "Sẽ tạo khi duyệt",
                     'status': 'Bản nháp (Chờ duyệt)'
@@ -139,7 +137,7 @@ class GraduationBatchAdmin(BaseRoleAdmin):
         return render(request, 'admin/graduation/graduationbatch/students_list.html', context)
 
 
-    # --- 4. CÁC ACTIONS QUY TRÌNH KÝ DUYỆT (Giữ nguyên) ---
+    # --- 4. CÁC ACTIONS QUY TRÌNH KÝ DUYỆT ---
     @admin.action(description="1. Trình duyệt danh sách (Dành cho Maker)")
     def submit_for_approval(self, request, queryset):
         user_roles = request.user.roles.values_list('code', flat=True) if hasattr(request.user, 'roles') else []
@@ -169,11 +167,6 @@ class GraduationBatchAdmin(BaseRoleAdmin):
             self.message_user(request, "Lỗi phân quyền: Chỉ Cán bộ phê duyệt (Checker - officer_b) mới được thao tác nút này!", level=messages.ERROR)
             return
 
-        default_degree_type = DegreeType.objects.first()
-        if not default_degree_type:
-            self.message_user(request, "Hệ thống chưa có 'Loại văn bằng'. Vui lòng tạo ít nhất 1 loại trong Danh mục đào tạo trước khi duyệt!", level=messages.ERROR)
-            return
-
         for batch in queryset:
             if batch.status != 'PENDING':
                 self.message_user(request, f"Đợt '{batch.name}' chưa được trình duyệt!", level=messages.ERROR)
@@ -181,10 +174,6 @@ class GraduationBatchAdmin(BaseRoleAdmin):
                 
             try:
                 ensure_different_actors(batch.maker, request.user)
-                
-                batch.status = 'APPROVED'
-                batch.checker = request.user
-                batch.approved_at = timezone.now()
                 
                 successful_student_codes = ImportBatchItem.objects.filter(
                     import_batch__batch=batch,
@@ -197,33 +186,64 @@ class GraduationBatchAdmin(BaseRoleAdmin):
                 if not students.exists():
                     self.message_user(request, f"Đợt '{batch.name}' chưa có dữ liệu sinh viên hợp lệ nào được import!", level=messages.ERROR)
                     continue
-
+                
+                students_missing_type = []
+                for s in students:
+                    dt = batch.degree_type or (s.major.degree_type if s.major else None)
+                    if not dt:
+                        students_missing_type.append(f"{s.student_code} ({s.full_name})")
+                if students_missing_type:
+                    missing_str = ", ".join(students_missing_type[:5])
+                    more = f" và {len(students_missing_type) - 5} sinh viên khác" if len(students_missing_type) > 5 else ""
+                    self.message_user(
+                        request,
+                        f"Không thể phê duyệt! Các sinh viên sau chưa có Loại văn bằng theo ngành: {missing_str}{more}. "
+                        f"Vui lòng cấu hình Loại văn bằng cho Đợt này hoặc trong Danh mục Ngành.",
+                        level=messages.ERROR
+                    )
+                    continue
+                
+                batch.status = 'APPROVED'
+                batch.checker = request.user
+                batch.approved_at = timezone.now()
                 leaves = []
                 degrees_to_create = []
+                issue_date = timezone.now().date()
 
                 for student in students:
-                    degree_type = (student.major.degree_type if student.major else None) or default_degree_type
-                    degree_data = {
+                    degree_type = batch.degree_type or student.major.degree_type
+                    pub_id = uuid.uuid4()
+                    classification = get_classification_from_gpa(student.gpa_score) or ""
+                    
+                    leaf_data = {
+                        "hash_version": HASH_VERSION,
+                        "credential_public_id": str(pub_id),
                         "student_code": student.student_code,
                         "full_name": student.full_name,
-                        "major": student.major.code if student.major else "",
+                        "major_code": student.major.code if student.major else "",
+                        "degree_type_code": degree_type.code,
                         "batch_name": batch.name,
-                        "timestamp": str(uuid.uuid4())
+                        "classification": classification,
+                        "issue_date": str(issue_date),
                     }
-                    c_hash = generate_canonical_hash(degree_data)
+                    c_hash = canonical_hash(leaf_data)
                     leaves.append(c_hash)
                     
+                    # K9: approve_batch chỉ đặt Degree sang APPROVED
                     degrees_to_create.append(Degree(
                         student=student,
                         batch=batch,
                         degree_type=degree_type,
-                        classification=get_classification_from_gpa(student.gpa_score),
-                        issue_date=timezone.now().date(),
+                        credential_public_id=pub_id,
+                        classification=classification,
+                        issue_date=issue_date,
                         canonical_hash=c_hash,
-                        status='ISSUANCE_PENDING',
+                        status='APPROVED',
                         pdf_path='',
                         template_version='1.0',
                         credential_version='1.0',
+                        reviewed_by=batch.maker,
+                        reviewed_at=batch.approved_at,
                         approved_by=request.user,
                         approved_at=timezone.now()
                     ))
@@ -241,12 +261,13 @@ class GraduationBatchAdmin(BaseRoleAdmin):
 
                 proofs_to_create = []
                 for index, (degree, leaf_hash) in enumerate(zip(created_degrees, leaves)):
+                    real_proof = get_merkle_proof(leaves, index)
                     proofs_to_create.append(DegreeMerkleProof(
                         degree=degree,
                         issuance_batch=issuance_batch,
                         leaf_hash=leaf_hash,
                         leaf_index=index, 
-                        proof_path=json.dumps([])
+                        proof_path=real_proof
                     ))
                 DegreeMerkleProof.objects.bulk_create(proofs_to_create)
 
@@ -262,7 +283,7 @@ class GraduationBatchAdmin(BaseRoleAdmin):
         is_checker = request.user.is_superuser or 'officer_b' in user_roles
         
         if not is_checker:
-            self.message_user(request, "Lỗi phân quyền: Chỉ Cán bộ phê duyệt mới được từ chối đợt!", level=messages.ERROR)
+            self.message_user(request, "Chỉ Cán bộ phê duyệt mới được từ chối đợt!", level=messages.ERROR)
             return
 
         for batch in queryset:

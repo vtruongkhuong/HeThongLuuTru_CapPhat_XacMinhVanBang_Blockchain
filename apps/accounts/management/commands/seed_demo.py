@@ -13,7 +13,7 @@ User = get_user_model()
 
 
 class Command(BaseCommand):
-    help = 'Khởi tạo dữ liệu demo chuẩn H4: Khoa, Ngành, Loại văn bằng, 20 Sinh viên và 5 Role Users'
+    help = 'Khởi tạo dữ liệu demo: Khoa, Ngành, 4 Loại văn bằng/chứng chỉ, 20 Sinh viên và 5 Role Users'
 
     @transaction.atomic
     def handle(self, *args, **kwargs):
@@ -49,14 +49,14 @@ class Command(BaseCommand):
             created_users[u_data['role']] = user
             self.stdout.write(self.style.SUCCESS(f'   [+] {user.username} / Demo@12345 ({u_data["role"]})'))
 
-        # --- 3. TẠO LOẠI VĂN BẰNG, KHOA, NGÀNH ---
-        self.stdout.write(self.style.WARNING('3. Khởi tạo Khoa, Ngành và Loại văn bằng...'))
+        # --- 3. TẠO 4 LOẠI VĂN BẰNG / CHỨNG CHỈ ---
+        self.stdout.write(self.style.WARNING('3. Khởi tạo 4 Loại văn bằng & chứng chỉ chuẩn...'))
         deg_ks, _ = DegreeType.objects.update_or_create(
             code='KS',
             defaults={
                 'name': 'Bằng Kỹ sư',
                 'level': 'Đại học',
-                'template_name': 'degree_template.html',
+                'template_name': 'engineer_degree.html',
                 'is_active': True
             }
         )
@@ -65,11 +65,31 @@ class Command(BaseCommand):
             defaults={
                 'name': 'Bằng Cử nhân',
                 'level': 'Đại học',
-                'template_name': 'degree_template.html',
+                'template_name': 'bachelor_degree.html',
                 'is_active': True
             }
         )
+        deg_thvp, _ = DegreeType.objects.update_or_create(
+            code='THVP',
+            defaults={
+                'name': 'Chứng chỉ Tin học văn phòng',
+                'level': 'Chứng chỉ',
+                'template_name': 'office_it_cert.html',
+                'is_active': True
+            }
+        )
+        deg_cntt, _ = DegreeType.objects.update_or_create(
+            code='CNTT',
+            defaults={
+                'name': 'Chứng chỉ Công nghệ thông tin',
+                'level': 'Chứng chỉ',
+                'template_name': 'it_specialist_cert.html',
+                'is_active': True
+            }
+        )
+        self.stdout.write(self.style.SUCCESS('   [+] 4 Loại bằng/chứng chỉ: KS, CN, THVP, CNTT'))
 
+        # --- 4. TẠO KHOA, NGÀNH ---
         fac_it, _ = Faculty.objects.update_or_create(
             code='CNTT',
             defaults={'name': 'Khoa Công nghệ thông tin', 'is_active': True}
@@ -91,7 +111,7 @@ class Command(BaseCommand):
             code='7340101',
             defaults={'name': 'Quản trị kinh doanh', 'faculty': fac_eco, 'degree_type': deg_cn, 'is_active': True}
         )
-        # Tự động chuyển sinh viên từ mã ngành chữ cũ (KTPM) sang mã số chuẩn (7480103) và xóa bản ghi trùng
+
         old_ktpm = Major.objects.filter(code='KTPM').first()
         if old_ktpm:
             Student.objects.filter(major=old_ktpm).update(major=maj_se)
@@ -99,47 +119,22 @@ class Command(BaseCommand):
 
         majors_cycle = [(fac_it, maj_se), (fac_it, maj_cs), (fac_eco, maj_ba)]
 
-        # --- 4. TẠO 20 SINH VIÊN DEMO ---
-        self.stdout.write(self.style.WARNING('4. Khởi tạo 20 hồ sơ sinh viên...'))
-        sample_names = [
-            "Nguyễn Văn An", "Trần Thị Bình", "Lê Hoàng Cường", "Phạm Minh Dũng", "Hoàng Thị Em",
-            "Vũ Đình Phương", "Đặng Thu Giang", "Bùi Quốc Hải", "Đỗ Ngọc Hùng", "Hồ Thị Khánh",
-            "Ngô Tuấn Kiệt", "Dương Mỹ Linh", "Lý Hoàng Long", "Phan Thanh Mai", "Trịnh Quốc Nam",
-            "Đinh Thảo Nguyên", "Lâm Gia Phong", "Mai Anh Quân", "Tạ Minh Tâm", "Châu Ngọc Trang"
-        ]
-
-        students_list = []
-        for i in range(1, 21):
-            sv_code = f"SV2026{i:03d}"
-            fac, maj = majors_cycle[(i - 1) % len(majors_cycle)]
-            student, _ = Student.objects.update_or_create(
-                student_code=sv_code,
-                defaults={
-                    'full_name': sample_names[i - 1],
-                    'date_of_birth': date(2004, (i % 12) + 1, (i % 28) + 1),
-                    'gender': 'M' if i % 2 != 0 else 'F',
-                    'national_id': f"09220400{i:04d}",
-                    'email': f"sv{i:03d}@student.edu.vn",
-                    'phone_number': f"0909123{i:03d}",
-                    'faculty': fac,
-                    'major': maj,
-                    'enrollment_year': 2022,
-                    'status': 'approved',
-                    'user': created_users['student'] if i == 1 else None,
-                }
-            )
-            students_list.append(student)
-
-        # --- 5. TẠO ĐỢT TỐT NGHIỆP & LỊCH SỬ IMPORT ---
-        self.stdout.write(self.style.WARNING('5. Khởi tạo Đợt tốt nghiệp và ImportBatch mẫu...'))
-        grad_batch, _ = GraduationBatch.objects.update_or_create(
-            name='Đợt tốt nghiệp Demo Tháng 10/2026',
-            defaults={'status': 'DRAFT'}
+        # --- 5. TẠO ĐỢT TỐT NGHIỆP DRAFT ---
+        self.stdout.write(self.style.WARNING('4. Khởi tạo Đợt tốt nghiệp & 20 Sinh viên demo...'))
+        batch, _ = GraduationBatch.objects.update_or_create(
+            name='Đợt 1 - Tốt nghiệp Năm 2026',
+            defaults={
+                'decision_no': '2026/QĐ-ĐHKTCN',
+                'decision_date': date(2026, 6, 30),
+                'status': 'DRAFT',
+                'maker': created_users.get('officer_a')
+            }
         )
 
-        imp_batch, created_imp = ImportBatch.objects.update_or_create(
-            batch=grad_batch,
-            file_name='danh_sach_20_sinh_vien_demo.xlsx',
+        # --- 6. TẠO IMPORT BATCH ---
+        import_batch, _ = ImportBatch.objects.update_or_create(
+            batch=batch,
+            file_name='Danh_sach_sinh_vien_tot_nghiep_2026.xlsx',
             defaults={
                 'imported_by': created_users['officer_a'],
                 'mode': 'ATOMIC',
@@ -150,17 +145,60 @@ class Command(BaseCommand):
             }
         )
 
-        if created_imp:
-            items = [
-                ImportBatchItem(
-                    import_batch=imp_batch,
-                    row_number=idx + 1,
-                    student_code=st.student_code,
-                    action='INSERT',
-                    new_value={'full_name': st.full_name, 'major': st.major.code}
-                )
-                for idx, st in enumerate(students_list)
-            ]
-            ImportBatchItem.objects.bulk_create(items)
+        # --- 7. TẠO 20 SINH VIÊN DEMO ---
+        sample_names = [
+            ("Nguyễn Văn An", "M"), ("Trần Thị Bích", "F"), ("Lê Hoàng Cường", "M"), ("Phạm Minh Đức", "M"),
+            ("Hoàng Thị Em", "F"), ("Đỗ Quốc Gia", "M"), ("Vũ Thu Hà", "F"), ("Bùi Trọng Khang", "M"),
+            ("Đặng Ngọc Lan", "F"), ("Mai Văn Minh", "M"), ("Ngô Thị Nga", "F"), ("Dương Quang Oanh", "F"),
+            ("Lý Thành Phát", "M"), ("Hồ Như Quỳnh", "F"), ("Võ Tấn Sang", "M"), ("Trịnh Văn Thắng", "M"),
+            ("Phan Thị Uyên", "F"), ("Đinh Công Vinh", "M"), ("Cao Xuân Yến", "F"), ("Lương Gia Bảo", "M")
+        ]
 
-        self.stdout.write(self.style.SUCCESS('\n✅ HOÀN TẤT SEED DỮ LIỆU DEMO (H4)!'))
+        for i, (name, gender) in enumerate(sample_names, start=1):
+            s_code = f"B22{i:05d}"
+            fac, maj = majors_cycle[(i - 1) % len(majors_cycle)]
+
+            user_for_sv = created_users['student'] if i == 1 else None
+            if user_for_sv:
+                # Gỡ user khỏi bất kỳ sinh viên nào khác đang giữ user này để không vi phạm OneToOne unique constraint
+                Student.objects.filter(user=user_for_sv).exclude(student_code=s_code).update(user=None)
+
+            sv_email = f"sv{i:03d}@student.edu.vn"
+            # Nếu email này đang bị trùng bởi sinh viên có mã khác trong DB, dọn dẹp để tránh đụng unique email
+            Student.objects.filter(email=sv_email).exclude(student_code=s_code).delete()
+
+            student, _ = Student.objects.update_or_create(
+                student_code=s_code,
+                defaults={
+                    'full_name': name,
+                    'gender': gender,
+                    'date_of_birth': date(2004, (i % 12) + 1, (i * 2 % 28) + 1),
+                    'national_id': f"092204{i:06d}",
+                    'email': sv_email,
+                    'phone_number': f"091234{i:04d}",
+                    'faculty': fac,
+                    'major': maj,
+                    'enrollment_year': 2022,
+                    'gpa_score': round(2.8 + (i * 0.06), 2),
+                    'status': 'draft',
+                    'user': user_for_sv
+                }
+            )
+
+            ImportBatchItem.objects.update_or_create(
+                import_batch=import_batch,
+                student_code=s_code,
+                defaults={
+                    'row_number': i + 1,
+                    'action': 'INSERT',
+                    'new_value': {
+                        'full_name': name,
+                        'student_code': s_code,
+                        'major_code': maj.code,
+                        'gpa_score': student.gpa_score
+                    }
+                }
+            )
+
+        self.stdout.write(self.style.SUCCESS('   [+] Đã tạo thành công 20 Sinh viên và gắn vào ImportBatch'))
+        self.stdout.write(self.style.SUCCESS('\n=== SEED DEMO HOÀN TẤT THÀNH CÔNG ==='))

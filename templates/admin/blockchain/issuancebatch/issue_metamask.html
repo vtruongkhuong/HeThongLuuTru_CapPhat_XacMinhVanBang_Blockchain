@@ -275,7 +275,21 @@
         showNote('info', 'Mã giao dịch: ' + txHash);
 
         $('input-tx-hash').value = txHash;
-        $('tx-form').submit();
+        
+        // Gửi ngầm tx_hash về server bằng fetch để chuyển trang ngay lập tức
+        const formData = new FormData($('tx-form'));
+        fetch($('tx-form').action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        }).catch(err => console.error(err));
+
+        // Chuyển hướng ngay lập tức về trang danh sách đợt phát hành mà không cần chờ đợi
+        setTimeout(() => {
+            window.location.href = "{% url 'admin:blockchain_issuancebatch_changelist' %}";
+        }, 800);
     });
 </script>
 {% endblock %}
