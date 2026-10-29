@@ -4,23 +4,23 @@ from django.conf import settings
 
 class Degree(models.Model):
     STATUS_CHOICES = [
-        ('DRAFT', 'Draft'),
-        ('GENERATED', 'Generated'),
-        ('REVIEWED', 'Reviewed'),
-        ('APPROVED', 'Approved'),
-        ('ISSUANCE_PENDING', 'Issuance Pending'),
-        ('ISSUED', 'Issued'),
-        ('REVOKED', 'Revoked'),
+        ('DRAFT', 'Bản nháp'),
+        ('GENERATED', 'Đã tạo phôi PDF'),
+        ('REVIEWED', 'Đã thẩm định'),
+        ('APPROVED', 'Đã phê duyệt'),
+        ('ISSUANCE_PENDING', 'Chờ phát hành On-Chain'),
+        ('ISSUED', 'Đã phát hành On-Chain'),
+        ('REVOKED', 'Đã thu hồi'),
     ]
 
-    student = models.ForeignKey('students.Student', on_delete=models.CASCADE, related_name='degrees')
-    batch = models.ForeignKey('graduation.GraduationBatch', on_delete=models.CASCADE, related_name='degrees')
-    degree_type = models.ForeignKey('academic.DegreeType', on_delete=models.PROTECT)
+    student = models.ForeignKey('students.Student', on_delete=models.CASCADE, related_name='degrees', verbose_name="Sinh viên")
+    batch = models.ForeignKey('graduation.GraduationBatch', on_delete=models.CASCADE, related_name='degrees', verbose_name="Đợt tốt nghiệp")
+    degree_type = models.ForeignKey('academic.DegreeType', on_delete=models.PROTECT, verbose_name="Loại văn bằng")
     
     # Chuẩn hóa ULID/UUID 36 ký tự theo ERD mới
     credential_public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
-    classification = models.CharField(max_length=50, null=True, blank=True)
-    issue_date = models.DateField(null=True, blank=True)
+    classification = models.CharField(max_length=50, null=True, blank=True, verbose_name="Xếp loại tốt nghiệp")
+    issue_date = models.DateField(null=True, blank=True, verbose_name="Ngày cấp bằng")
     pdf_path = models.CharField(max_length=255)
 
     pdf_sha256 = models.CharField(max_length=64, null=True, blank=True)
@@ -30,8 +30,8 @@ class Degree(models.Model):
     generated_at = models.DateTimeField(null=True, blank=True)
     
     # Hash chuẩn hóa để ghi lên chain
-    canonical_hash = models.CharField(max_length=64, unique=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='DRAFT')
+    canonical_hash = models.CharField(max_length=64, unique=True, verbose_name="Mã băm chuẩn hóa (Hash)")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='DRAFT', verbose_name="Trạng thái")
     
     # Tracking Four-eyes principle
     reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_degrees')
@@ -54,3 +54,7 @@ class Degree(models.Model):
     @property
     def serial_number(self):
         return f"CTUT-{self.graduation_year or 'XXXX'}-{self.pk:06d}"
+    
+    class Meta:
+        verbose_name = "Văn bằng số"
+        verbose_name_plural = "Sổ cái Văn bằng số"

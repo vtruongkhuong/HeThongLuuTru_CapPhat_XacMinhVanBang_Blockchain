@@ -262,3 +262,15 @@ class RoleAdmin(ModelAdmin):
 class PermissionAdmin(ModelAdmin):
     list_display = ('code', 'name')
     search_fields = ('code', 'name')
+
+
+# --- ẨN CÁC BẢNG KỸ THUẬT CỦA THƯ VIỆN GOOGLE / ALLAUTH KHỎI ADMIN ---
+from allauth.account.models import EmailAddress
+from allauth.socialaccount.models import SocialAccount, SocialApp, SocialToken
+from django.contrib.sites.models import Site
+
+for model_to_hide in [EmailAddress, SocialAccount, SocialApp, SocialToken, Site]:
+    try:
+        admin.site.unregister(model_to_hide)
+    except Exception:
+        pass

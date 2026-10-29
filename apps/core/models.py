@@ -10,8 +10,8 @@ from django.db import models
 class TimeStampedModel(models.Model):
     """Abstract model: mọi bảng nghiệp vụ nên kế thừa để có timestamp chuẩn."""
 
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Thời gian tạo")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Cập nhật lần cuối")
 
     class Meta:
         abstract = True

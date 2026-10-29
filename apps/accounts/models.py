@@ -46,6 +46,8 @@ class User(AbstractUser):
 
     class Meta:
         db_table = 'accounts_user'
+        verbose_name = "Người dùng"
+        verbose_name_plural = "Danh sách Người dùng"
 
     def __str__(self):
         return self.get_full_name() or self.username
@@ -75,6 +77,8 @@ class Role(TimeStampedModel):
     class Meta:
         db_table = 'accounts_role'
         ordering = ['name']
+        verbose_name = "Vai trò"
+        verbose_name_plural = "Danh mục Vai trò"
 
     def __str__(self):
         return self.name
@@ -90,13 +94,17 @@ class Permission(TimeStampedModel):
     code = models.SlugField(max_length=100, unique=True)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-
+    
     class Meta:
         db_table = 'accounts_permission'
         ordering = ['code']
-
+        verbose_name = "Quyền hạn"
+        verbose_name_plural = "Danh mục Quyền hạn"
+        
     def __str__(self):
         return self.code
+    
+    
 
 
 class UserRole(TimeStampedModel):

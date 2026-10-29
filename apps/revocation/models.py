@@ -5,10 +5,15 @@ from django.conf import settings
 class ReasonCode(models.Model):
     code = models.CharField(max_length=50, primary_key=True)
     description = models.CharField(max_length=255)
-
+    
+    class Meta:
+        verbose_name = "Lý do thu hồi"
+        verbose_name_plural = "Danh mục Lý do thu hồi"
+        
     def __str__(self):
         return f"{self.code} - {self.description}"
-
+    
+    
 
 class RevocationRequest(models.Model):
     STATUS_CHOICES = [
@@ -72,6 +77,12 @@ class RevocationRequest(models.Model):
     executed_at = models.DateTimeField(null=True, blank=True)
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING', verbose_name='Trạng thái')
-
+    
+    class Meta:
+        verbose_name = "Yêu cầu thu hồi"
+        verbose_name_plural = "Danh sách Yêu cầu thu hồi"
+        
     def __str__(self):
         return f"Thu hồi #{self.pk} - {self.degree} ({self.status})"
+    
+    

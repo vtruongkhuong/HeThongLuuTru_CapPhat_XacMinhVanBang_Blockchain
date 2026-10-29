@@ -29,47 +29,64 @@ class Student(BaseModel):
         max_length=20, 
         choices=STATUS_CHOICES, 
         default='draft',
+        verbose_name="Trạng thái",
         help_text="Trạng thái phê duyệt cấp bằng"
     )
 
     # Liên kết với tài khoản đăng nhập (để sinh viên login vào Student Portal)
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='student_profile')
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='student_profile',
+        verbose_name="Tài khoản liên kết"
+    )
     
-    student_code = models.CharField(max_length=20, unique=True, db_index=True)
-    full_name = models.CharField(max_length=255)
-    date_of_birth = models.DateField(null=True, blank=True)
-    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True)
+    student_code = models.CharField(max_length=20, unique=True, db_index=True, verbose_name="Mã số sinh viên")
+    full_name = models.CharField(max_length=255, verbose_name="Họ và tên")
+    date_of_birth = models.DateField(null=True, blank=True, verbose_name="Ngày sinh")
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True, verbose_name="Giới tính")
     
     national_id = models.CharField(
         max_length=20, blank=True,
+        verbose_name="Số CCCD/CMND",
         help_text="Số CCCD/CMND, dùng để đối chiếu khi cấp văn bằng."
     )
-    email = models.EmailField(unique=True, error_messages={
-        'unique': "Email này đã được sử dụng cho một sinh viên khác."
-    })
-    phone_number = models.CharField(max_length=20, blank=True)
+    email = models.EmailField(
+        unique=True, 
+        verbose_name="Email sinh viên",
+        error_messages={
+            'unique': "Email này đã được sử dụng cho một sinh viên khác."
+        }
+    )
+    phone_number = models.CharField(max_length=20, blank=True, verbose_name="Số điện thoại")
 
-    faculty = models.ForeignKey(Faculty, on_delete=models.PROTECT, related_name='students')
-    major = models.ForeignKey(Major, on_delete=models.PROTECT, related_name='students')
+    faculty = models.ForeignKey(Faculty, on_delete=models.PROTECT, related_name='students', verbose_name="Khoa")
+    major = models.ForeignKey(Major, on_delete=models.PROTECT, related_name='students', verbose_name="Ngành đào tạo")
 
-    enrollment_year = models.PositiveIntegerField(help_text="Năm nhập học, vd: 2020", null=True, blank=True)
-    gpa_score = models.FloatField(null=True, blank=True, help_text="Điểm GPA tích lũy")
+    enrollment_year = models.PositiveIntegerField(help_text="Năm nhập học, vd: 2020", null=True, blank=True, verbose_name="Năm nhập học")
+    gpa_score = models.FloatField(null=True, blank=True, verbose_name="Điểm GPA", help_text="Điểm GPA tích lũy")
     avatar = models.ImageField(
         upload_to='avatars/students/', 
         null=True, 
         blank=True,
+        verbose_name="Ảnh đại diện",
         help_text="Ảnh đại diện hiển thị trên Dashboard"
     )
     current_address = models.CharField(
         max_length=255, 
         blank=True,
+        verbose_name="Địa chỉ hiện tại",
         help_text="Địa chỉ liên hệ hiện tại của sinh viên"
     )
     personal_link = models.URLField(
         max_length=255, 
         blank=True,
+        verbose_name="Liên kết hồ sơ",
         help_text="Liên kết hồ sơ cá nhân (LinkedIn, Portfolio... để nhà tuyển dụng xem)"
     )
+
     class Meta:
         db_table = 'students_student'
         ordering = ['student_code']
@@ -77,6 +94,8 @@ class Student(BaseModel):
             models.Index(fields=['student_code']),
             models.Index(fields=['national_id']),
         ]
+        verbose_name = "Hồ sơ sinh viên"
+        verbose_name_plural = "Danh sách Sinh viên"
 
     def __str__(self):
         return f"{self.student_code} - {self.full_name}"
@@ -92,26 +111,28 @@ class ImportBatch(BaseModel):
         ('rolled_back', 'Đã hoàn tác'),
     ]
     MODE_CHOICES = [
-        ('ATOMIC', 'Atomic'),
-        ('PARTIAL', 'Partial'),
+        ('ATOMIC', 'Toàn bộ hoặc không (Atomic)'),
+        ('PARTIAL', 'Từng phần (Partial)'),
     ]
-    batch = models.ForeignKey('graduation.GraduationBatch', on_delete=models.CASCADE, related_name='imports')
-    file_name = models.CharField(max_length=255)
+    batch = models.ForeignKey('graduation.GraduationBatch', on_delete=models.CASCADE, related_name='imports', verbose_name="Đợt tốt nghiệp")
+    file_name = models.CharField(max_length=255, verbose_name="Tên file Excel")
 
-    file_hash = models.CharField(max_length=64, blank=True, null=True, help_text="SHA-256 hash của file để chặn import trùng.")
+    file_hash = models.CharField(max_length=64, blank=True, null=True, verbose_name="Mã SHA-256 file", help_text="SHA-256 hash của file để chặn import trùng.")
 
-    imported_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
-    mode = models.CharField(max_length=20, choices=MODE_CHOICES)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='completed')
+    imported_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, verbose_name="Người nạp")
+    mode = models.CharField(max_length=20, choices=MODE_CHOICES, verbose_name="Chế độ nạp")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='completed', verbose_name="Trạng thái")
     
-    inserted = models.IntegerField(default=0)
-    updated = models.IntegerField(default=0)
-    skipped = models.IntegerField(default=0)
-    errors = models.IntegerField(default=0)
+    inserted = models.IntegerField(default=0, verbose_name="Số dòng thêm mới")
+    updated = models.IntegerField(default=0, verbose_name="Số dòng cập nhật")
+    skipped = models.IntegerField(default=0, verbose_name="Số dòng bỏ qua")
+    errors = models.IntegerField(default=0, verbose_name="Số dòng lỗi")
 
     class Meta:
         db_table = 'students_import_batch'
         ordering = ['-created_at']
+        verbose_name = "Đợt nạp Excel"
+        verbose_name_plural = "Lịch sử nạp Excel"
 
     def __str__(self):
         return f"Import {self.file_name} - {self.batch.name}"
@@ -120,24 +141,26 @@ class ImportBatch(BaseModel):
 class ImportBatchItem(BaseModel):
     """Chi tiết từng dòng được import, lưu giá trị cũ (old_value) để phục hồi."""
     ACTION_CHOICES = [
-        ('INSERT', 'Insert'),
-        ('UPDATE', 'Update'),
-        ('SKIP', 'Skip'),
-        ('ERROR', 'Error'),
+        ('INSERT', 'Thêm mới'),
+        ('UPDATE', 'Cập nhật'),
+        ('SKIP', 'Bỏ qua'),
+        ('ERROR', 'Bị lỗi'),
     ]
-    import_batch = models.ForeignKey(ImportBatch, on_delete=models.CASCADE, related_name='items')
-    row_number = models.IntegerField()
-    student_code = models.CharField(max_length=20)
-    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    import_batch = models.ForeignKey(ImportBatch, on_delete=models.CASCADE, related_name='items', verbose_name="Đợt nạp")
+    row_number = models.IntegerField(verbose_name="Dòng số")
+    student_code = models.CharField(max_length=20, verbose_name="Mã sinh viên")
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES, verbose_name="Hành động")
     
     # Lưu dưới dạng JSON để linh hoạt
-    old_value = models.JSONField(null=True, blank=True)
-    new_value = models.JSONField(null=True, blank=True)
-    error_message = models.CharField(max_length=255, null=True, blank=True)
+    old_value = models.JSONField(null=True, blank=True, verbose_name="Dữ liệu cũ")
+    new_value = models.JSONField(null=True, blank=True, verbose_name="Dữ liệu mới")
+    error_message = models.CharField(max_length=255, null=True, blank=True, verbose_name="Chi tiết lỗi")
 
     class Meta:
         db_table = 'students_import_batch_item'
         ordering = ['row_number']
+        verbose_name = "Chi tiết dòng nạp"
+        verbose_name_plural = "Chi tiết các dòng nạp"
 
     def __str__(self):
-        return f"Row {self.row_number}: {self.student_code} - {self.action}"
+        return f"Row {self.row_number}: {self.student_code} - {self.get_action_display()}"

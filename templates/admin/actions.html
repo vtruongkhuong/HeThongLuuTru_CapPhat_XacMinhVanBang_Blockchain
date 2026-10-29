@@ -24,7 +24,7 @@
 
                     <span class="clear hidden ml-2">
                         <a href="#" class="text-xs font-bold text-red-500 hover:underline">
-                            {% translate "Clear selection" %}
+                            {% translate "Bỏ chọn tất cả" %}
                         </a>
                     </span>
                 {% endif %}
@@ -56,7 +56,7 @@
                         x-transition:leave-start="opacity-100 scale-100 translate-x-0"
                         x-transition:leave-end="opacity-0 scale-90 translate-x-1"
                         class="apple-action-btn cursor-pointer font-bold flex items-center justify-center px-4 py-2 rounded-xl text-xs text-white whitespace-nowrap shadow-sm hover:bg-blue-700 transition-all active:scale-95" 
-                        title="{% translate "Run the selected action" %}" name="index" value="{{ action_index|default:0 }}">
+                        title="{% translate "Thực hiện thao tác đã chọn" %}" name="index" value="{{ action_index|default:0 }}">
                         <span class="material-symbols-outlined text-[16px] mr-1">play_arrow</span>
                         {% trans "Run" %}
                     </button>
