@@ -14,8 +14,8 @@ class AuditLogAdmin(ModelAdmin):
     # Khung tìm kiếm
     search_fields = ('actor__username', 'actor__email', 'entity_id', 'action', 'request_id')
     
-    # Khóa toàn bộ các trường thành Chỉ-đọc
-    readonly_fields = ('actor', 'action', 'entity_type', 'entity_id', 'old_value', 'new_value', 'ip_address', 'request_id', 'timestamp')
+    # Khóa toàn bộ các trường thành Chỉ-đọc (Bổ sung user_agent)
+    readonly_fields = ('actor', 'action', 'entity_type', 'entity_id', 'old_value', 'new_value', 'ip_address', 'request_id', 'user_agent', 'timestamp')
 
     # Chặn quyền Thêm, Sửa, Xóa để bảo toàn tính minh bạch của Log
     def has_add_permission(self, request):
@@ -27,8 +27,9 @@ class AuditLogAdmin(ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
     
+    # Khóa chặt quyền xem module - CHỈ SUPERUSER MỚI ĐƯỢC XEM LOG
     def has_module_permission(self, request):
-        return True
+        return request.user.is_superuser
 
     def has_view_permission(self, request, obj=None):
-        return True
+        return request.user.is_superuser

@@ -3,6 +3,7 @@ from pathlib import Path
 from web3 import Web3
 from django.conf import settings
 
+
 DEFAULT_CONTRACT_ADDRESS = "0x85040d20A7e847BF6B0a56e91BBB1720a8F6a927"
 DEFAULT_PROVIDER_URL = "https://ethereum-sepolia-rpc.publicnode.com"
 

@@ -1,3 +1,7 @@
+from django.utils.safestring import mark_safe
+from django.utils.html import format_html
+from django.urls import reverse
+from apps.audit.services import log_action
 from django.contrib import admin
 from unfold.admin import ModelAdmin
 from unfold.decorators import action, display
@@ -10,6 +14,8 @@ import pandas as pd
 from datetime import datetime
 
 from .models import Student, ImportBatch, ImportBatchItem
+
+from .importers import process_excel_import as run_excel_import
 
 def _read_gpa(row):
     """Đọc cột GPA. Rỗng -> None. Sai định dạng -> báo lỗi dòng."""
@@ -73,10 +79,116 @@ class BaseRoleAdmin(ModelAdmin):
 @admin.register(ImportBatch)
 class ImportBatchAdmin(BaseRoleAdmin):
     allowed_roles = ['officer_a', 'academic_staff']
-    list_display = ('id', 'file_name', 'batch', 'imported_by', 'mode', 'inserted', 'updated', 'errors', 'created_at')
+    list_display = ('id', 'file_name', 'batch', 'status_badge', 'imported_by', 'inserted', 'updated', 'errors', 'created_at', 'rollback_button')
     list_filter = ('mode',)
     list_filter_submit = True
     readonly_fields = ('inserted', 'updated', 'skipped', 'errors')
+
+    actions = ['rollback_import_batch']
+
+    @admin.action(description="🔄 Rollback (Hoàn tác) dữ liệu import này")
+    def rollback_import_batch(self, request, queryset):
+        # Kiểm tra quyền
+        user_roles = request.user.roles.values_list('code', flat=True) if request.user.is_authenticated else []
+        if 'officer_a' not in user_roles and not request.user.is_superuser:
+            messages.error(request, "Bạn không có quyền thực hiện Rollback.")
+            return
+
+        success_count = 0
+        error_count = 0
+
+        for batch in queryset:
+            # Kiểm tra trạng thái của GraduationBatch (Chỉ rollback nếu đợt duyệt đang DRAFT)
+            if batch.batch.status.upper() != 'DRAFT':
+                messages.warning(request, f"Không thể Rollback Import {batch.id} vì Đợt tốt nghiệp {batch.batch.name} không còn ở trạng thái Nháp (Draft).")
+                error_count += 1
+                continue
+
+            try:
+                with transaction.atomic():
+                    # 1. Lấy tất cả các items thuộc batch này
+                    items = batch.items.all().order_by('-row_number') # Rollback từ dưới lên để an toàn
+
+                    for item in items:
+                        if item.action == 'INSERT':
+                            # Nếu import là INSERT, rollback nghĩa là XÓA sinh viên đó
+                            Student.objects.filter(student_code=item.student_code).delete()
+                        elif item.action == 'UPDATE' and item.old_value:
+                            # Nếu import là UPDATE, rollback nghĩa là Khôi phục lại old_value
+                            student = Student.objects.filter(student_code=item.student_code).first()
+                            if student:
+                                old_data = item.old_value
+                                if old_data.get('full_name'): student.full_name = old_data['full_name']
+                                if old_data.get('email'): student.email = old_data['email']
+                                if old_data.get('gpa_score'): student.gpa_score = old_data['gpa_score']
+                                if old_data.get('date_of_birth'): student.date_of_birth = old_data['date_of_birth']
+                                # Phục hồi khoá ngoại Major (nếu cần)
+                                if old_data.get('major'):
+                                    Major = apps.get_model('academic', 'Major')
+                                    major = Major.objects.filter(code=old_data['major']).first()
+                                    if major:
+                                        student.major = major
+                                        student.faculty = major.faculty
+                                student.save()
+                    
+                    # 2. Cập nhật trạng thái đợt import sang rolled_back
+                    batch.status = 'rolled_back'
+                    batch.save(update_fields=['status'])
+                    
+                    try:
+                        log_action(
+                            actor=request.user,
+                            action='ROLLBACK',
+                            entity_type='ImportBatch',
+                            entity_id=str(batch.id),
+                            old={'status': 'completed'},
+                            new={'status': 'rolled_back'},
+                            request=request
+                        )
+                    except Exception:
+                        pass
+                    success_count += 1
+            except Exception as e:
+                messages.error(request, f"Lỗi khi rollback batch {batch.id}: {str(e)}")
+                error_count += 1
+
+        if success_count > 0:
+            messages.success(request, f"Đã hoàn tác (Rollback) thành công {success_count} đợt import.")
+        if error_count > 0:
+            messages.warning(request, f"Có {error_count} đợt import không thể hoàn tác.")
+
+    def status_badge(self, obj):
+        if obj.status == 'rolled_back':
+            return mark_safe('<span style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600;">Đã hoàn tác</span>')
+        return mark_safe('<span style="background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600;">Hoàn thành</span>')
+    status_badge.short_description = "Trạng thái"
+
+    def rollback_button(self, obj):
+        if obj.status == 'rolled_back':
+            return mark_safe('<span style="color: #9ca3af; font-size: 12px; font-style: italic;">Đã Rollback</span>')
+        if obj.batch and obj.batch.status.upper() != 'DRAFT':
+            return mark_safe('<span style="color: #9ca3af; font-size: 11px;" title="Đợt đã duyệt, không thể hoàn tác">Khóa</span>')
+        url = reverse('admin:students_importbatch_single_rollback', args=[obj.id])
+        return format_html(
+            '<a href="{}" onclick="return confirm(&quot;Xác nhận hoàn tác (Rollback) đợt nạp này?&quot;);" style="background: #ef4444; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-decoration: none; display: inline-block;">🔄 Rollback</a>',
+            url
+        )
+    rollback_button.short_description = "Hoàn tác"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('<int:batch_id>/single-rollback/', self.admin_site.admin_view(self.process_single_rollback), name='students_importbatch_single_rollback'),
+        ]
+        return custom_urls + urls
+
+    def process_single_rollback(self, request, batch_id):
+        batch = self.get_object(request, batch_id)
+        if not batch:
+            messages.error(request, "Không tìm thấy đợt import.")
+            return redirect('admin:students_importbatch_changelist')
+        self.rollback_import_batch(request, [batch])
+        return redirect('admin:students_importbatch_changelist')
 
 
 @admin.register(ImportBatchItem)
@@ -184,7 +296,6 @@ class StudentAdmin(BaseRoleAdmin):
 
     def process_excel_import(self, request):
         GraduationBatch = apps.get_model('graduation', 'GraduationBatch')
-        Major = apps.get_model('academic', 'Major') 
         
         if request.method == 'POST':
             excel_file = request.FILES.get('excel_file')
@@ -195,100 +306,14 @@ class StudentAdmin(BaseRoleAdmin):
                 return redirect('admin:students_import_excel')
 
             try:
-                batch_obj = GraduationBatch.objects.get(pk=batch_id)
-                df = pd.read_excel(excel_file)
-                df.columns = df.columns.str.strip().str.lower()
+                # GỌI LOGIC TỪ IMPORTERS.PY THAY VÌ VIẾT Ở ĐÂY
+                batch_result = run_excel_import(excel_file, batch_id, request.user)
                 
-                import_batch = ImportBatch.objects.create(
-                    batch=batch_obj,
-                    file_name=excel_file.name,
-                    imported_by=request.user,
-                    mode='PARTIAL'
-                )
-
-                inserted_count = updated_count = error_count = 0
-
-                with transaction.atomic():
-                    for index, row in df.iterrows():
-                        mssv = str(row.get('mã sv', '')).strip()
-                        ho_ten = str(row.get('họ tên', '')).strip()
-                        ma_nganh = str(row.get('mã ngành', '')).strip()
-                        # Lấy thêm cột email từ Excel
-                        email_sv = str(row.get('email', '')).strip()
-                        
-                        if not mssv or mssv == 'nan':
-                            continue 
-
-                        try:
-                            # Kiểm tra rỗng Email
-                            if not email_sv or email_sv == 'nan':
-                                raise ValueError("Thiếu dữ liệu: Cột Email là bắt buộc.")
-
-                            major_obj = Major.objects.filter(code=ma_nganh).first()
-                            if not major_obj:
-                                raise ValueError(f"Không tìm thấy mã ngành: {ma_nganh}")
-
-                            # Đọc GPA và ngày sinh từ file
-                            gpa_val = _read_gpa(row)
-                            dob_val = _read_dob(row)
-
-                            defaults = {
-                                'full_name': ho_ten,
-                                'email': email_sv,
-                                'major': major_obj,
-                                'faculty': major_obj.faculty,
-                            }
-                            # Chỉ ghi đè khi file có dữ liệu, tránh xóa GPA/ngày sinh đã có
-                            if gpa_val is not None:
-                                defaults['gpa_score'] = gpa_val
-                            if dob_val is not None:
-                                defaults['date_of_birth'] = dob_val
-
-                            student, created = Student.objects.update_or_create(
-                                student_code=mssv,
-                                defaults=defaults
-                            )
-
-                            action_type = 'INSERT' if created else 'UPDATE'
-                            if created:
-                                inserted_count += 1
-                            else:
-                                updated_count += 1
-
-                            ImportBatchItem.objects.create(
-                                import_batch=import_batch,
-                                row_number=index + 2,
-                                student_code=mssv,
-                                action=action_type,
-                                new_value={
-                                    'full_name': ho_ten,
-                                    'email': email_sv,
-                                    'major': ma_nganh,
-                                    'gpa': gpa_val,
-                                    'date_of_birth': str(dob_val) if dob_val else None,
-                                }
-                            )
-
-                        except Exception as row_err:
-                            error_count += 1
-                            ImportBatchItem.objects.create(
-                                import_batch=import_batch,
-                                row_number=index + 2,
-                                student_code=mssv,
-                                action='ERROR',
-                                error_message=str(row_err)[:250]
-                            )
-
-                import_batch.inserted = inserted_count
-                import_batch.updated = updated_count
-                import_batch.errors = error_count
-                import_batch.save()
-
-                messages.success(request, f"Import hoàn tất: {inserted_count} mới, {updated_count} cập nhật, {error_count} lỗi.")
+                messages.success(request, f"Import hoàn tất: {batch_result.inserted} mới, {batch_result.updated} cập nhật, {batch_result.skipped} bỏ qua, {batch_result.errors} lỗi.")
                 return redirect('admin:students_importbatch_changelist')
 
             except Exception as e:
-                messages.error(request, f"Lỗi đọc file: {str(e)[:250]}")
+                messages.error(request, f"Lỗi xử lý file: {str(e)}")
                 return redirect('admin:students_student_changelist')
 
         context = dict(

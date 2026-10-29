@@ -257,10 +257,30 @@
             return;
         }
 
-        // RÀO CHẶN BẢO MẬT: Kiểm tra xem ví kết nối có phải là Owner của Contract không
-        if (contractOwner && account.toLowerCase() !== contractOwner) {
+        // RÀO CHẶN BẢO MẬT: Kiểm tra xem ví kết nối có quyền Quản trị (Owner hoặc Admin) không
+        let hasAdminPermission = false;
+        if (contractOwner && account.toLowerCase() === contractOwner) {
+            hasAdminPermission = true;
+        } else {
+            try {
+                // Kiểm tra quyền Admin thông qua hàm isAdmin(address) trên Smart Contract
+                const cleanAccount = account.toLowerCase().replace('0x', '').padStart(64, '0');
+                const callData = '0x24d7806c' + cleanAccount;
+                const res = await window.ethereum.request({
+                    method: 'eth_call',
+                    params: [{ to: contractAddress, data: callData }, 'latest']
+                });
+                if (res && res !== '0x' && parseInt(res, 16) === 1) {
+                    hasAdminPermission = true;
+                }
+            } catch (err) {
+                console.warn('Không thể kiểm tra isAdmin:', err);
+            }
+        }
+
+        if (!hasAdminPermission) {
             setBusy(btn, false, 'Kết nối ví');
-            showNote('err', 'CẢNH BÁO: Ví bạn vừa kết nối (' + shortAddr(account) + ') KHÔNG PHẢI là Chủ sở hữu (Owner) của Smart Contract. Hãy mở MetaMask và chuyển sang đúng tài khoản ví Owner (' + shortAddr(contractOwner) + ') để có quyền thực hiện.');
+            showNote('err', 'CẢNH BÁO: Ví bạn vừa kết nối (' + shortAddr(account) + ') KHÔNG CÓ quyền Quản trị (Admin / Owner) trên Smart Contract. Hãy mở MetaMask và chuyển sang đúng tài khoản ví Quản trị viên để thực hiện.');
             $('step-sign').className = 'iss-step is-locked';
             $('btn-sign').disabled = true;
             return;

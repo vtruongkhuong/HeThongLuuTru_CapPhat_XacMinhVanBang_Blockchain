@@ -8,6 +8,8 @@ from django.conf import settings
 from apps.core.models import BaseModel
 from apps.academic.models import Faculty, Major
 
+import hashlib
+
 
 class Student(BaseModel):
     """Hồ sơ sinh viên. student_code là mã tra cứu duy nhất (mã số sinh viên)."""
@@ -82,14 +84,25 @@ class Student(BaseModel):
 
 class ImportBatch(BaseModel):
     """Lịch sử import theo đợt, hỗ trợ rollback theo yêu cầu của GV."""
+    STATUS_CHOICES = [
+        ('pending', 'Chờ xử lý'),
+        ('processing', 'Đang xử lý'),
+        ('completed', 'Hoàn thành'),
+        ('failed', 'Thất bại'),
+        ('rolled_back', 'Đã hoàn tác'),
+    ]
     MODE_CHOICES = [
         ('ATOMIC', 'Atomic'),
         ('PARTIAL', 'Partial'),
     ]
     batch = models.ForeignKey('graduation.GraduationBatch', on_delete=models.CASCADE, related_name='imports')
     file_name = models.CharField(max_length=255)
+
+    file_hash = models.CharField(max_length=64, blank=True, null=True, help_text="SHA-256 hash của file để chặn import trùng.")
+
     imported_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
     mode = models.CharField(max_length=20, choices=MODE_CHOICES)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='completed')
     
     inserted = models.IntegerField(default=0)
     updated = models.IntegerField(default=0)

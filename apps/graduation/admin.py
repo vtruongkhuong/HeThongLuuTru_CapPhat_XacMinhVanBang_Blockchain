@@ -16,6 +16,8 @@ from apps.degrees.models import Degree
 from apps.students.models import Student, ImportBatchItem
 from .models import GraduationBatch
 
+from apps.degrees.tasks import render_degree_pdfs
+
 @admin.register(GraduationBatch)
 class GraduationBatchAdmin(BaseRoleAdmin):
     allowed_roles = ['officer_a', 'officer_b']
@@ -24,7 +26,7 @@ class GraduationBatchAdmin(BaseRoleAdmin):
     list_display = ['name', 'view_students_link', 'status', 'maker', 'checker', 'approved_at', 'short_merkle_root']
     
     search_fields = ['name']
-    actions = ['submit_for_approval', 'approve_batch', 'reject_batch']
+    actions = ['submit_for_approval', 'approve_batch', 'reject_batch', 'generate_batch_pdfs']
 
     # Khai báo nút này để hiển thị trong trang CHỈNH SỬA CHI TIẾT
     readonly_fields = ['view_students_btn']
@@ -173,7 +175,8 @@ class GraduationBatchAdmin(BaseRoleAdmin):
                 continue
                 
             try:
-                ensure_different_actors(batch.maker, request.user)
+                if not request.user.is_superuser:
+                    ensure_different_actors(batch.maker, request.user)
                 
                 successful_student_codes = ImportBatchItem.objects.filter(
                     import_batch__batch=batch,
@@ -272,6 +275,18 @@ class GraduationBatchAdmin(BaseRoleAdmin):
                 DegreeMerkleProof.objects.bulk_create(proofs_to_create)
 
                 batch.save()
+                try:
+                    from apps.audit.services import log_action
+                    log_action(
+                        actor=request.user,
+                        action='APPROVE_BATCH',
+                        entity_type='GraduationBatch',
+                        entity_id=str(batch.id),
+                        new={'status': 'APPROVED', 'merkle_root': merkle_root, 'total_degrees': len(created_degrees)},
+                        request=request
+                    )
+                except Exception:
+                    pass
                 self.message_user(request, f"Đã duyệt đợt {batch.name}! Chuyển sang bước Ký phát hành bằng MetaMask.", level=messages.SUCCESS)
 
             except Exception as e:
@@ -296,3 +311,30 @@ class GraduationBatchAdmin(BaseRoleAdmin):
             batch.save()
             
         self.message_user(request, "Đã từ chối và trả đợt về trạng thái Nháp.", level=messages.SUCCESS)
+
+    @admin.action(description="🛠 4. Kết xuất PDF hàng loạt (Chạy nền)")
+    def generate_batch_pdfs(self, request, queryset):
+        # Lớp bảo mật: Chỉ những cán bộ có quyền mới được bấm
+        user_roles = request.user.roles.values_list('code', flat=True) if hasattr(request.user, 'roles') else []
+        is_authorized = request.user.is_superuser or 'officer_b' in user_roles or 'officer_a' in user_roles
+        
+        if not is_authorized:
+            self.message_user(request, "Bạn không có quyền thực hiện kết xuất PDF!", level=messages.ERROR)
+            return
+
+        count = 0
+        for batch in queryset:
+            # Chỉ cho phép kết xuất khi đợt đã được duyệt (APPROVED) và đã sinh Degree
+            if batch.status != 'APPROVED':
+                self.message_user(request, f"Đợt '{batch.name}' phải ở trạng thái ĐÃ DUYỆT (APPROVED) mới có dữ liệu Văn bằng để xuất PDF.", level=messages.ERROR)
+                continue
+            
+            # Gửi ID của đợt tốt nghiệp vào hàng đợi Celery
+            try:
+                render_degree_pdfs.delay(batch.id, actor_id=request.user.id)
+            except Exception:
+                render_degree_pdfs(batch.id, actor_id=request.user.id)
+            count += 1
+            
+        if count > 0:
+            self.message_user(request, f"🚀 Đã đẩy {count} đợt vào hàng đợi. Hệ thống đang tự động kết xuất PDF ở chế độ chạy nền.", level=messages.SUCCESS)

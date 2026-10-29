@@ -22,6 +22,9 @@ class Degree(models.Model):
     classification = models.CharField(max_length=50, null=True, blank=True)
     issue_date = models.DateField(null=True, blank=True)
     pdf_path = models.CharField(max_length=255)
+
+    pdf_sha256 = models.CharField(max_length=64, null=True, blank=True)
+
     template_version = models.CharField(max_length=20)
     credential_version = models.CharField(max_length=20)
     generated_at = models.DateTimeField(null=True, blank=True)
