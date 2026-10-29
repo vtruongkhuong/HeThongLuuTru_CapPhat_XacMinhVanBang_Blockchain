@@ -3,8 +3,8 @@ from pathlib import Path
 from web3 import Web3
 from django.conf import settings
 
-DEFAULT_CONTRACT_ADDRESS = "0xEDA267AE063b32A8b23B97e67a5dD355891cbd1D"
-DEFAULT_PROVIDER_URL = "https://eth-sepolia.g.alchemy.com/v2/alch_ZWdSTTjsLh7SPMKrNskaj"
+DEFAULT_CONTRACT_ADDRESS = "0x8E53683464fE95222b854b9336ba1b8B6B913577"
+DEFAULT_PROVIDER_URL = "https://ethereum-sepolia-rpc.publicnode.com"
 
 
 class BlockchainClient:
@@ -13,7 +13,7 @@ class BlockchainClient:
         contract_addr = getattr(settings, 'CONTRACT_ADDRESS', '') or DEFAULT_CONTRACT_ADDRESS
 
         # 1. Kết nối tới mạng Sepolia
-        self.w3 = Web3(Web3.HTTPProvider(provider_url))
+        self.w3 = Web3(Web3.HTTPProvider(provider_url, request_kwargs={'timeout': 10}))
 
         # 2. Đọc file ABI an toàn bằng đường dẫn tuyệt đối
         abi_path = Path(settings.BASE_DIR) / 'apps' / 'blockchain' / 'contracts_abi' / 'DegreeVerification.json'
