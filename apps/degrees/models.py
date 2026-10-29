@@ -27,7 +27,7 @@ class Degree(models.Model):
 
     template_version = models.CharField(max_length=20)
     credential_version = models.CharField(max_length=20)
-    generated_at = models.DateTimeField(null=True, blank=True)
+    generated_at = models.DateTimeField(null=True, blank=True, verbose_name="Thời gian tạo phôi")
     
     # Hash chuẩn hóa để ghi lên chain
     canonical_hash = models.CharField(max_length=64, unique=True, verbose_name="Mã băm chuẩn hóa (Hash)")

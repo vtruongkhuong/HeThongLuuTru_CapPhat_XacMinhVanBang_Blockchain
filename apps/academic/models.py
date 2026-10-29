@@ -60,14 +60,14 @@ class DegreeType(TimeStampedModel):
     Dùng để chọn template PDF phù hợp khi generate degree.
     """
 
-    code = models.CharField(max_length=20, unique=True, help_text="Vd: CN, KS, THS")
-    name = models.CharField(max_length=255)
-    level = models.CharField(max_length=50, null=True, blank=True, help_text="Vd: Đại học, Sau đại học")
+    code = models.CharField(max_length=20, unique=True, verbose_name="Mã loại bằng", help_text="Vd: CN, KS, THS")
+    name = models.CharField(max_length=255, verbose_name="Tên loại bằng")
+    level = models.CharField(max_length=50, null=True, blank=True, verbose_name="Bậc đào tạo", help_text="Vd: Đại học, Sau đại học")
     template_name = models.CharField(
-        max_length=255, blank=True,
+        max_length=255, blank=True,verbose_name="Mẫu phôi PDF",
         help_text="Tên file template HTML dùng để render PDF (trong templates/degrees/pdf/)"
     )
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True, verbose_name="Đang hoạt động")
 
     class Meta:
         db_table = 'academic_degree_type'

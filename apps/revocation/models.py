@@ -3,8 +3,8 @@ from django.conf import settings
 
 
 class ReasonCode(models.Model):
-    code = models.CharField(max_length=50, primary_key=True)
-    description = models.CharField(max_length=255)
+    code = models.CharField(max_length=50, primary_key=True, verbose_name="Mã lý do")
+    description = models.CharField(max_length=255, verbose_name="Mô tả lý do thu hồi")
     
     class Meta:
         verbose_name = "Lý do thu hồi"
@@ -54,7 +54,7 @@ class RevocationRequest(models.Model):
         related_name='requested_revocations',
         verbose_name='Người yêu cầu (Officer A)'
     )
-    requested_at = models.DateTimeField(auto_now_add=True)
+    requested_at = models.DateTimeField(auto_now_add=True, verbose_name="Thời gian yêu cầu")
 
     approved_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -64,7 +64,7 @@ class RevocationRequest(models.Model):
         related_name='approved_revocations',
         verbose_name='Người duyệt (Officer B)'
     )
-    approved_at = models.DateTimeField(null=True, blank=True)
+    approved_at = models.DateTimeField(null=True, blank=True, verbose_name="Thời gian phê duyệt")
 
     executed_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -74,7 +74,7 @@ class RevocationRequest(models.Model):
         related_name='executed_revocations',
         verbose_name='Người thực thi (Issuer)'
     )
-    executed_at = models.DateTimeField(null=True, blank=True)
+    executed_at = models.DateTimeField(null=True, blank=True, verbose_name="Thời gian thực thi")
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING', verbose_name='Trạng thái')
     

@@ -328,6 +328,7 @@ UNFOLD = {
                         "title": _("Cổng Tra Cứu Công Khai"),
                         "icon": "travel_explore",
                         "link": "/",
+                        "active": lambda request: False,
                     },
                     {
                         "title": _("Cổng Sinh Viên (Portal)"),

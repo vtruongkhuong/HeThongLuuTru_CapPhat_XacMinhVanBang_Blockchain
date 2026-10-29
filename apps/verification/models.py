@@ -8,8 +8,23 @@ class VerificationLog(models.Model):
     user_agent = models.TextField(null=True, blank=True, verbose_name="Trình duyệt/Thiết bị")
     is_successful = models.BooleanField(default=False, verbose_name="Trạng thái tra cứu")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Thời gian tra cứu")
-    result_status = models.CharField(max_length=50, default='VALID', null=True, blank=True)
-    verification_type = models.CharField(max_length=50, default='PUBLIC_SEARCH', null=True, blank=True)
+    
+    RESULT_CHOICES = [
+        ('VALID', 'Hợp lệ'),
+        ('NOT_FOUND', 'Không tìm thấy'),
+        ('REVOKED', 'Đã thu hồi'),
+        ('TAMPERED', 'Bị giả mạo'),
+    ]
+    
+    result_status = models.CharField(max_length=50, default='VALID', null=True, blank=True, verbose_name="Kết quả tra cứu")
+    
+    TYPE_CHOICES = [
+        ('PUBLIC_SEARCH', 'Tra cứu trực tuyến'),
+        ('PDF', 'Quét file PDF'),
+        ('CODE', 'Tra cứu mã bằng'),
+    ]
+    
+    verification_type = models.CharField(max_length=50, default='PUBLIC_SEARCH', null=True, blank=True,  verbose_name="Hình thức xác minh")
     
 
     class Meta:

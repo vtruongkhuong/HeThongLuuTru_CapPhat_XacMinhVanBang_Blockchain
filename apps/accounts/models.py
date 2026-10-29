@@ -63,9 +63,9 @@ class Role(TimeStampedModel):
     - issuer: người ký/gửi giao dịch blockchain
     """
 
-    code = models.SlugField(max_length=50, unique=True)
-    name = models.CharField(max_length=255)
-    description = models.TextField(blank=True)
+    code = models.SlugField(max_length=50, unique=True, verbose_name="Mã vai trò")
+    name = models.CharField(max_length=255, verbose_name="Tên vai trò")
+    description = models.TextField(blank=True, verbose_name="Mô tả vai trò")
 
     permissions = models.ManyToManyField(
         'accounts.Permission',
@@ -91,9 +91,9 @@ class Permission(TimeStampedModel):
            'revocation.approve', 'blockchain.retry'
     """
 
-    code = models.SlugField(max_length=100, unique=True)
-    name = models.CharField(max_length=255)
-    description = models.TextField(blank=True)
+    code = models.SlugField(max_length=100, unique=True, verbose_name="Mã quyền hạn")
+    name = models.CharField(max_length=255, verbose_name="Tên quyền hạn")
+    description = models.TextField(blank=True, verbose_name="Mô tả quyền hạn")
     
     class Meta:
         db_table = 'accounts_permission'
