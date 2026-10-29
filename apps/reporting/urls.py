@@ -1,7 +1,9 @@
 from django.urls import path
+from . import views
 
 app_name = 'reporting'
 
 urlpatterns = [
-    # Các đường dẫn của app reporting sẽ viết vào đây
+    path('', views.dashboard_view, name='dashboard'),
+    path('export/csv/', views.export_degrees_csv, name='export_csv'),
 ]

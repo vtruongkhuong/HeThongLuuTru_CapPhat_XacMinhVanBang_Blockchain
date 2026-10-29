@@ -1,9 +1,16 @@
 from celery import shared_task
 from django.utils import timezone
 import logging
+
+from django.core.management import call_command
+import sys
+from io import StringIO
+
 logger = logging.getLogger(__name__)
 # Số block xác nhận tối thiểu trước khi coi giao dịch là CONFIRMED
 REQUIRED_CONFIRMATIONS = 3
+
+
 @shared_task(bind=True, max_retries=40, default_retry_delay=15)
 def sync_transaction(self, tx_hash: str):
     """
@@ -75,6 +82,7 @@ def sync_transaction(self, tx_hash: str):
             logger.warning(f"[sync_transaction] Lỗi tạm thời: {exc}, sẽ retry...")
             raise self.retry(exc=exc)
 
+
 # ─────────────────────────────────────────────────────────────
 #  HANDLERS NỘI BỘ
 # ─────────────────────────────────────────────────────────────
@@ -90,7 +98,6 @@ def _handle_issue_confirmed(tx_record, receipt, client):
     issuance_batch = tx_record.issuance_batch
     chain_batch_id = None
     
-    # ĐÃ SỬA: Đổi BatchStored() -> MerkleRootStored()
     try:
         logs = client.contract.events.MerkleRootStored().process_receipt(receipt)
         if logs:
@@ -120,6 +127,20 @@ def _handle_issue_confirmed(tx_record, receipt, client):
         f"[sync_transaction] IssuanceBatch #{issuance_batch.pk} CONFIRMED. "
         f"Đã chuyển {count} Degree sang ISSUED."
     )
+
+    try:
+        from apps.audit.services import log_action
+        log_action(
+            actor=None,
+            action='ISSUE_DEGREE',
+            entity_type='IssuanceBatch',
+            entity_id=str(issuance_batch.id),
+            new={'chain_batch_id': chain_batch_id, 'degree_count': count, 'status': 'ISSUED'}
+        )
+    except Exception:
+        pass
+
+
 def _handle_revoke_confirmed(tx_record):
     """
     Sau khi giao dịch REVOKE được xác nhận:
@@ -131,7 +152,19 @@ def _handle_revoke_confirmed(tx_record):
         logger.info(
             f"[sync_transaction] Degree #{tx_record.degree.pk} đã chuyển sang REVOKED."
         )
+        try:
+            from apps.audit.services import log_action
+            log_action(
+                actor=None,
+                action='REVOKE_DEGREE',
+                entity_type='Degree',
+                entity_id=str(tx_record.degree.id),
+                new={'status': 'REVOKED', 'tx_hash': tx_record.tx_hash}
+            )
+        except Exception:
+            pass
         
+
 def _handle_tx_failed(tx_record):
     """
     Xử lý khi giao dịch thất bại:
@@ -148,3 +181,22 @@ def _handle_tx_failed(tx_record):
             f"[sync_transaction] Giao dịch ISSUE thất bại. "
             f"Đã trả {count} Degree về APPROVED để retry."
         )
+
+
+@shared_task
+def run_reconcile_chain():
+    """
+    Task H7: Gọi lệnh đối soát tự động (reconcile_chain) chạy thông qua Celery Beat
+    Được cấu hình chạy định kỳ vào mỗi nửa đêm trong config/celery.py
+    """
+    out = StringIO()
+    sys.stdout = out
+    try:
+        # Gọi lệnh python manage.py reconcile_chain
+        call_command('reconcile_chain')
+        return out.getvalue()
+    except Exception as e:
+        logger.error(f"[Reconcile Chain] Lỗi khi chạy đối soát: {str(e)}")
+        return str(e)
+    finally:
+        sys.stdout = sys.__stdout__

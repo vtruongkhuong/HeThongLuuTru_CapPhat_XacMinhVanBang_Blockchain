@@ -3,6 +3,18 @@ from django.db import models
 from django.conf import settings
 
 class AuditLog(models.Model):
+    # CHUẨN HOÁ CÁC HÀNH ĐỘNG THEO YÊU CẦU H8
+    ACTION_CHOICES = [
+        ('LOGIN', 'Đăng nhập'),
+        ('IMPORT_EXCEL', 'Import Excel'),
+        ('ROLLBACK', 'Hoàn tác Import'),
+        ('RENDER_PDF', 'Kết xuất PDF'),
+        ('APPROVE_BATCH', 'Ký duyệt đợt'),
+        ('ISSUE_DEGREE', 'Ký phát hành'),
+        ('REVOKE_DEGREE', 'Thu hồi văn bằng'),
+        ('OTHER', 'Khác'),
+    ]
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     actor = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
@@ -11,8 +23,11 @@ class AuditLog(models.Model):
         related_name='audit_logs',
         help_text="Người thực hiện hành động"
     )
-    action = models.CharField(max_length=255, help_text="Hành động (VD: DUYET_CAP_BANG, THU_HOI)")
-    entity_type = models.CharField(max_length=255, help_text="Bảng bị tác động (VD: Student, Degree)")
+    
+    # SỬA LẠI: Thêm choices để giới hạn các hành động hợp lệ
+    action = models.CharField(max_length=255, choices=ACTION_CHOICES, help_text="Hành động")
+    
+    entity_type = models.CharField(max_length=255, help_text="Bảng bị tác động (VD: Student, Degree, GraduationBatch)")
     entity_id = models.CharField(max_length=255, help_text="ID của bản ghi bị tác động")
     
     old_value = models.JSONField(null=True, blank=True, help_text="Dữ liệu trước khi sửa")
@@ -20,6 +35,10 @@ class AuditLog(models.Model):
     
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     request_id = models.CharField(max_length=255, null=True, blank=True)
+    
+    # THÊM MỚI: Bổ sung user_agent để giám sát chi tiết hơn
+    user_agent = models.TextField(null=True, blank=True)
+    
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -29,4 +48,5 @@ class AuditLog(models.Model):
         verbose_name_plural = "Lịch sử hệ thống"
 
     def __str__(self):
-        return f"{self.actor} - {self.action} - {self.entity_type} ({self.timestamp})"
+        action_display = dict(self.ACTION_CHOICES).get(self.action, self.action)
+        return f"{self.actor} - {action_display} - {self.entity_type} ({self.timestamp})"

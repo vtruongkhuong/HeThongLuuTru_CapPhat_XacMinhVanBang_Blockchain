@@ -16,6 +16,10 @@
                 <i class="material-symbols-outlined text-[18px] text-gray-400">schedule</i>
                 {% now "H:i, d/m/Y" %}
             </div>
+            <a href="{% url 'reporting:export_csv' %}" class="text-sm flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl shadow-md transition-all font-medium">
+                <i class="material-symbols-outlined text-[18px]">download</i>
+                Xuất Báo Cáo
+            </a>
             <a href="{% url 'landing' %}" class="text-sm flex items-center gap-2 bg-ntt-dark hover:bg-ntt-light text-white px-5 py-2.5 rounded-xl shadow-md shadow-blue-900/20 transition-all font-medium">
                 <i class="material-symbols-outlined text-[18px]">public</i>
                 Cổng công khai
@@ -62,7 +66,6 @@
             </div>
         </div>
         
-        <!-- Thẻ Văn Bằng (Số liệu thật) -->
         <div class="bg-ntt-dark rounded-2xl p-6 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
             <div class="flex justify-between items-start mb-6 relative z-10">
                 <div class="bg-white/10 text-ntt-gold w-12 h-12 flex items-center justify-center rounded-xl backdrop-blur-sm">
@@ -79,7 +82,6 @@
 
     <!-- 3 THẺ CHỈ SỐ SỨC KHỎE HỆ THỐNG -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <!-- Xác minh -->
         <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
             <div class="bg-green-50 text-green-600 p-3 rounded-lg">
                 <i class="material-symbols-outlined">fact_check</i>
@@ -93,7 +95,6 @@
             </div>
         </div>
 
-        <!-- Lỗi Blockchain -->
         <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
             <div class="bg-red-50 text-red-600 p-3 rounded-lg">
                 <i class="material-symbols-outlined">link_off</i>
@@ -107,7 +108,6 @@
             </div>
         </div>
 
-        <!-- Lỗi Import -->
         <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
             <div class="bg-orange-50 text-orange-600 p-3 rounded-lg">
                 <i class="material-symbols-outlined">warning</i>
@@ -124,19 +124,16 @@
 
     <!-- KHU VỰC BIỂU ĐỒ & LỊCH SỬ -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        
-        <!-- Chart 1: Tiến độ nhập liệu -->
         <div class="col-span-1 lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-md p-6 flex flex-col min-h-[350px]">
             <div class="mb-4">
-                <h2 class="text-lg font-bold text-gray-900">Tăng trưởng hồ sơ</h2>
-                <p class="text-sm text-gray-500 font-medium">Khối lượng sinh viên nhập liệu theo tháng</p>
+                <h2 class="text-lg font-bold text-gray-900">Phân bố Loại Văn Bằng</h2>
+                <p class="text-sm text-gray-500 font-medium">Tổng số hồ sơ văn bằng khởi tạo theo hệ đào tạo / chứng chỉ</p>
             </div>
-            <div class="relative w-full flex-1">
+            <div class="relative w-full flex-1 min-h-[260px]">
                 <canvas id="importChart"></canvas>
             </div>
         </div>
 
-        <!-- Lịch sử Import Batch (Cập nhật logic status) -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-md flex flex-col max-h-[350px]">
             <div class="p-5 border-b border-gray-50 flex items-center justify-between">
                 <h2 class="text-lg font-bold text-gray-900">Import gần đây</h2>
@@ -186,111 +183,120 @@
 
     <!-- TẦNG 2: BIỂU ĐỒ DOUGHNUT TRẠNG THÁI -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        <!-- Chart 2: Tỷ lệ Khoa -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-md p-6 flex flex-col items-center">
             <div class="w-full mb-4 text-center">
-                <h2 class="text-lg font-bold text-gray-900">Quy mô sinh viên</h2>
-                <p class="text-sm text-gray-500 font-medium">Tỷ trọng phân bổ theo Khoa</p>
+                <h2 class="text-lg font-bold text-gray-900">Trạng thái Văn Bằng</h2>
+                <p class="text-sm text-gray-500 font-medium">Tỷ lệ các văn bằng Hợp lệ, Nháp, Thu hồi...</p>
             </div>
             <div class="relative w-full h-[280px] flex justify-center">
                 <canvas id="facultyChart"></canvas>
             </div>
         </div>
 
-        <!-- Chart 3: Trạng thái Văn Bằng -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-md p-6 flex flex-col items-center">
             <div class="w-full mb-4 text-center">
-                <h2 class="text-lg font-bold text-gray-900">Tiến trình Cấp phát</h2>
-                <p class="text-sm text-gray-500 font-medium">Trạng thái xử lý văn bằng toàn trường</p>
+                <h2 class="text-lg font-bold text-gray-900">Tỷ lệ Tra cứu / Xác minh</h2>
+                <p class="text-sm text-gray-500 font-medium">Kết quả đối soát trên cổng công khai</p>
             </div>
             <div class="relative w-full h-[280px] flex justify-center">
                 <canvas id="degreeChart"></canvas>
             </div>
         </div>
-        
     </div>
 </div>
-{% endblock %}
 
-{% block extra_head %}
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{{ chart_data|json_script:"chart-data-main" }}
+{{ charts|json_script:"chart-data-alt" }}
+
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Nhận dữ liệu không bọc nháy
-        const importLabels = {{ chart_data.imports.labels|safe }};
-        const importData = {{ chart_data.imports.data|safe }};
-        
-        const facultyLabels = {{ chart_data.faculty.labels|safe }};
-        const facultyData = {{ chart_data.faculty.data|safe }};
-        
-        const degreeLabels = {{ chart_data.degrees.labels|safe }};
-        const degreeData = {{ chart_data.degrees.data|safe }};
+        const parseJsonSafe = (id) => {
+            const el = document.getElementById(id);
+            if (!el || !el.textContent) return null;
+            try {
+                const parsed = JSON.parse(el.textContent);
+                return (parsed && typeof parsed === 'object') ? parsed : null;
+            } catch (e) {
+                return null;
+            }
+        };
 
-        // Cấu hình chung cho Doughnut
+        // Tự động nhận diện dữ liệu dù View truyền tên biến là chart_data hay charts
+        const chartData = parseJsonSafe('chart-data-main') || parseJsonSafe('chart-data-alt') || {};
+
         const commonOptions = {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { 
-                    position: 'bottom', 
-                    labels: { font: { family: 'Inter', size: 12 }, padding: 15, usePointStyle: true, boxWidth: 8 } 
-                }
+                legend: { position: 'bottom', labels: { font: { family: 'Inter', size: 12 }, padding: 15, usePointStyle: true, boxWidth: 8 } }
             },
-            cutout: '65%' // Làm vòng bánh béo hơn một chút
+            cutout: '65%'
         };
-
         const colors = ['#112953', '#2a63b2', '#c09b4d', '#475569', '#94a3b8', '#cbd5e1'];
 
-        // 1. Chart: Import
+        // 1. Chart: Phân bố Loại Bằng
         const importCtx = document.getElementById('importChart');
-        if (importCtx && importLabels.length > 0) {
+        const dtSource = chartData.degree_types || chartData.imports || { labels: [], data: [] };
+        if (importCtx) {
+            const hasData1 = dtSource.labels && dtSource.labels.length > 0;
             new Chart(importCtx.getContext('2d'), {
-                type: 'line',
+                type: 'bar',
                 data: {
-                    labels: importLabels,
+                    labels: hasData1 ? dtSource.labels : ['Chưa có dữ liệu'],
                     datasets: [{
-                        label: 'Hồ sơ',
-                        data: importData,
-                        borderColor: '#2a63b2',
-                        backgroundColor: 'rgba(42, 99, 178, 0.1)',
-                        borderWidth: 3,
-                        pointBackgroundColor: '#ffffff',
-                        pointBorderColor: '#112953',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        tension: 0.4,
-                        fill: true
+                        label: 'Số lượng văn bằng',
+                        data: hasData1 ? dtSource.data : [0],
+                        backgroundColor: hasData1 ? '#2a63b2' : '#e2e8f0',
+                        borderRadius: 6
                     }]
                 },
                 options: {
-                    responsive: true, maintainAspectRatio: false,
+                    responsive: true,
+                    maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
-                    scales: {
-                        y: { border: { display: false }, grid: { color: '#e2e8f0', drawTicks: false }, ticks: { font: { family: 'Inter' }, padding: 10 } },
-                        x: { border: { display: false }, grid: { display: false }, ticks: { font: { family: 'Inter' }, padding: 10 } }
-                    }
+                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
                 }
             });
         }
 
-        // 2. Chart: Khoa
+        // 2. Chart: Trạng thái Văn Bằng
         const facultyCtx = document.getElementById('facultyChart');
-        if (facultyCtx && facultyLabels.length > 0) {
+        const statusSource = chartData.degrees_status || chartData.degrees || { labels: [], data: [] };
+        if (facultyCtx) {
+            const hasData2 = statusSource.labels && statusSource.labels.length > 0;
             new Chart(facultyCtx.getContext('2d'), {
                 type: 'doughnut',
-                data: { labels: facultyLabels, datasets: [{ data: facultyData, backgroundColor: colors, borderWidth: 2, borderColor: '#ffffff', hoverOffset: 4 }] },
+                data: {
+                    labels: hasData2 ? statusSource.labels : ['Chưa có dữ liệu'],
+                    datasets: [{
+                        data: hasData2 ? statusSource.data : [1],
+                        backgroundColor: hasData2 ? colors : ['#f1f5f9'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
                 options: commonOptions
             });
         }
 
-        // 3. Chart: Trạng thái Bằng
+        // 3. Chart: Tỷ lệ Tra Cứu / Xác minh
         const degreeCtx = document.getElementById('degreeChart');
-        if (degreeCtx && degreeLabels.length > 0) {
+        const verSource = chartData.verifications || chartData.faculty || { labels: [], data: [] };
+        if (degreeCtx) {
+            const hasData3 = verSource.labels && verSource.labels.length > 0;
             new Chart(degreeCtx.getContext('2d'), {
-                type: 'doughnut',
-                data: { labels: degreeLabels, datasets: [{ data: degreeData, backgroundColor: ['#e2e8f0', '#94a3b8', '#c09b4d', '#2a63b2', '#112953', '#dc2626'], borderWidth: 2, borderColor: '#ffffff', hoverOffset: 4 }] },
+                type: 'pie',
+                data: {
+                    labels: hasData3 ? verSource.labels : ['Chưa có dữ liệu'],
+                    datasets: [{
+                        data: hasData3 ? verSource.data : [1],
+                        backgroundColor: hasData3 ? ['#10b981', '#ef4444', '#f59e0b', '#64748b'] : ['#f1f5f9'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
                 options: commonOptions
             });
         }
