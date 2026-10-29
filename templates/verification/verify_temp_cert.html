@@ -1,103 +1,220 @@
 {% extends "base.html" %}
 
-{% block title %}Tra Cứu Giấy Chứng Nhận Tạm Thời - CTUT{% endblock %}
+{% block title %}Tra Cứu Giấy Chứng Nhận Tạm Thời - CTUT Blockchain{% endblock %}
 
 {% block content %}
-<div class="w-full relative flex flex-col items-center pb-20 bg-gray-50/50">
+<div class="w-full relative flex flex-col items-center pb-24 bg-slate-50 min-h-screen">
     
-    <!-- Background Header Xanh -->
-    <div class="w-full bg-gradient-to-r from-ntt-dark to-ntt-light pt-16 pb-36 relative">
-        <h1 class="text-2xl md:text-3xl font-bold text-white uppercase text-center tracking-widest text-shadow-md relative z-10">
-            TRA CỨU GIẤY CHỨNG NHẬN TỐT NGHIỆP TẠM THỜI
-        </h1>
-        <!-- Đường cắt sóng -->
-        <svg class="absolute bottom-0 w-full h-12 md:h-16 text-gray-50/50" preserveAspectRatio="none" viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0 120L1440 120V0C1440 0 1080 120 720 120C360 120 0 0 0 0V120Z" fill="currentColor"/>
-        </svg>
+    <!-- Hero Banner Deep Obsidian & Royal Cobalt -->
+    <div class="w-full bg-gradient-to-br from-[#090d16] via-[#0d162a] to-[#024b9c] pt-16 pb-36 px-4 relative overflow-hidden flex flex-col items-center text-center">
+        <!-- Ambient radial glow -->
+        <div class="absolute inset-0 pointer-events-none opacity-40 bg-[radial-gradient(circle_at_50%_20%,#38bdf8_0%,transparent_60%)]"></div>
+        <div class="absolute inset-0 opacity-[0.06] bg-center bg-no-repeat bg-contain pointer-events-none" style="background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'white\'><path d=\'M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72l5 2.73 5-2.73v3.72z\'/></svg>');"></div>
+        
+        <div class="relative z-10 max-w-3xl">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider text-sky-400 bg-sky-950/60 border border-sky-800/60 mb-3 shadow-xs">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                Xác Thực Chứng Nhận Số On-Chain
+            </span>
+            <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-white uppercase tracking-tight text-shadow-md">
+                Tra Cứu Giấy Chứng Nhận Tốt Nghiệp Tạm Thời
+            </h1>
+            <p class="text-sky-200/80 text-xs sm:text-sm font-medium mt-2">
+                Hệ thống xác thực tính hợp lệ của Giấy chứng nhận tốt nghiệp tạm thời lưu trữ trên chuỗi khối Blockchain
+            </p>
+        </div>
+
+        <!-- Sóng mềm mại chuyển tiếp xuống nền -->
+        <div class="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-slate-50 to-transparent"></div>
     </div>
 
-    <!-- Khối Form Chính -->
-    <div class="max-w-4xl w-full mx-auto px-4 sm:px-6 -mt-24 relative z-20">
-        <div class="bg-white rounded-3xl shadow-lg border border-gray-100 p-8 md:p-10 relative overflow-hidden">
+    <!-- Khối Form & Kết quả -->
+    <div class="max-w-4xl w-full mx-auto px-4 sm:px-6 -mt-24 relative z-20 space-y-6">
+        
+        <!-- Khung Form Tra Cứu -->
+        <div class="bg-white rounded-3xl shadow-xl border border-slate-200/80 p-6 sm:p-10 relative overflow-hidden backdrop-blur-md">
             
-            <!-- Watermark Logo -->
-            <div class="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none z-0">
-                <span class="material-symbols-outlined text-[350px]">workspace_premium</span>
+            <!-- Watermark Logo chìm -->
+            <div class="absolute inset-0 flex items-center justify-center opacity-[0.025] pointer-events-none z-0">
+                <span class="material-symbols-outlined text-[320px]">workspace_premium</span>
             </div>
 
             <div class="relative z-10">
                 <!-- Tiêu đề Form -->
-                <div class="mb-6 border-b border-gray-100 pb-4">
-                    <h2 class="text-lg font-bold text-ntt-dark flex items-center gap-2 mb-1">
-                        <span class="material-symbols-outlined text-ntt-light">key</span> Nhập mã xác minh
-                    </h2>
-                    <p class="text-xs text-gray-500 font-medium">Mã gồm 12 ký tự được in trên giấy chứng nhận tốt nghiệp</p>
+                <div class="mb-6 border-b border-slate-100 pb-4 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold border border-blue-100">
+                            <span class="material-symbols-outlined text-[22px]">vpn_key</span>
+                        </div>
+                        <div>
+                            <h2 class="text-base font-extrabold text-slate-900 tracking-tight">
+                                Nhập mã định danh xác minh
+                            </h2>
+                            <p class="text-xs text-slate-500 font-medium">Nhập Mã số sinh viên (MSSV) hoặc số CCCD/Định danh</p>
+                        </div>
+                    </div>
+                    <a href="{% url 'verification:landing' %}" class="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 hover:underline">
+                        Tra cứu văn bằng &rarr;
+                    </a>
                 </div>
 
-                <form method="POST" action="">
+                <form method="POST" action="" class="space-y-6">
                     {% csrf_token %}
                     
                     <!-- Ô Nhập Mã -->
-                    <div class="mb-6">
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Mã xác minh</label>
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-2">
+                            Mã xác minh / MSSV / CCCD
+                        </label>
                         <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 font-medium">#</div>
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-blue-500 font-black">
+                                <span class="material-symbols-outlined text-[18px]">badge</span>
+                            </div>
                             <input type="text" name="verify_code" required
-                                class="w-full pl-8 pr-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 rounded-lg focus:outline-none focus:border-ntt-light focus:bg-white focus:ring-1 focus:ring-ntt-light transition-all text-sm font-medium uppercase placeholder-gray-300"
-                                placeholder="VD: JS4FIYKFMT1Q">
+                                value="{{ request.POST.verify_code|default:'' }}"
+                                class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-500/10 font-bold uppercase tracking-wider text-sm transition-all placeholder-slate-400"
+                                placeholder="VD: 2311076 HOẶC 089204001234">
                         </div>
                     </div>
 
-                    
-
                     <!-- Nút Bấm -->
-                    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-                        <button type="submit" class="w-full sm:w-auto bg-ntt-light hover:bg-ntt-dark text-white font-bold rounded-full px-8 py-2.5 flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all">
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                        <button type="submit" class="animate-btn w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-extrabold rounded-xl px-8 py-3 flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95 text-xs sm:text-sm uppercase tracking-wider">
                             <span class="material-symbols-outlined text-[20px]">search</span> Tra cứu xác minh
                         </button>
-                        <button type="reset" class="w-full sm:w-auto bg-white text-gray-600 border border-gray-300 hover:bg-gray-50 hover:text-gray-900 font-bold rounded-full px-8 py-2.5 flex items-center justify-center gap-2 transition-all">
+                        <a href="{% url 'verification:verify_temp_cert' %}" class="animate-btn w-full sm:w-auto bg-white text-slate-600 border border-slate-300 hover:bg-slate-50 hover:text-slate-900 font-extrabold rounded-xl px-6 py-3 flex items-center justify-center gap-2 transition-all active:scale-95 text-xs sm:text-sm uppercase tracking-wider">
                             <span class="material-symbols-outlined text-[20px]">refresh</span> Nhập lại
-                        </button>
+                        </a>
                     </div>
 
                     <!-- Cảnh báo Info -->
-                    <div class="bg-blue-50/80 border-l-4 border-ntt-light rounded-r-lg p-4 flex items-start gap-3">
-                        <span class="material-symbols-outlined text-ntt-light mt-0.5">info</span>
-                        <p class="text-sm text-gray-700 leading-relaxed font-medium">
-                            Nhập đúng mã xác minh <strong class="text-ntt-dark">12 ký tự</strong> được in trên giấy chứng nhận tốt nghiệp. Mã phân biệt chữ hoa/thường. Nếu cần hỗ trợ, liên hệ Phòng Quản lý đào tạo – ĐT: <strong>1900 2039</strong> – Nhấn phím 2.
+                    <div class="bg-blue-50/70 border border-blue-200/80 rounded-2xl p-4 flex items-start gap-3.5">
+                        <div class="w-7 h-7 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-[18px]">info</span>
+                        </div>
+                        <p class="text-xs text-slate-700 leading-relaxed font-medium">
+                            Nhập đúng <strong class="text-slate-900 font-bold">Mã số sinh viên (MSSV)</strong> hoặc <strong class="text-slate-900 font-bold">Số CCCD</strong> đã đăng ký tốt nghiệp. Nếu cần hỗ trợ xác minh khẩn cấp, vui lòng liên hệ Phòng Đào tạo – ĐT: <strong>1900 2039</strong>.
                         </p>
                     </div>
                 </form>
             </div>
         </div>
 
+        <!-- KHỐI HIỂN THỊ KẾT QUẢ XÁC MINH (KHI ĐÃ TRA CỨU) -->
+        {% if searched %}
+            <div class="bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden">
+                <!-- Banner Trạng Thái -->
+                <div class="p-6 sm:p-8 text-center text-white relative overflow-hidden
+                    {% if verification_state == 'VALID' %} bg-gradient-to-r from-emerald-600 to-emerald-700
+                    {% elif verification_state == 'REVOKED' %} bg-gradient-to-r from-rose-600 to-rose-700
+                    {% else %} bg-gradient-to-r from-slate-700 to-slate-800 {% endif %}">
+                    
+                    <span class="material-symbols-outlined text-5xl mb-2 inline-block">
+                        {% if verification_state == 'VALID' %}verified
+                        {% elif verification_state == 'REVOKED' %}gpp_bad
+                        {% else %}search_off{% endif %}
+                    </span>
+                    
+                    <h3 class="text-xl sm:text-2xl font-black uppercase tracking-wide">
+                        {% if verification_state == 'VALID' %}CHỨNG NHẬN TỐT NGHIỆP HỢP LỆ
+                        {% elif verification_state == 'REVOKED' %}CHỨNG NHẬN ĐÃ BỊ THU HỒI
+                        {% else %}KHÔNG TÌM THẤY HỒ SƠ TỐT NGHIỆP{% endif %}
+                    </h3>
+                    
+                    <p class="text-white/85 text-xs sm:text-sm font-medium mt-1">
+                        {% if verification_state == 'VALID' %}Sinh viên đủ điều kiện và đã được Hội đồng xét duyệt tốt nghiệp công nhận.
+                        {% elif verification_state == 'REVOKED' %}Hồ sơ này đã bị hủy bỏ hoặc thu hồi theo quyết định của Hội đồng.
+                        {% else %}Không có sinh viên nào khớp với mã tra cứu bạn vừa nhập.{% endif %}
+                    </p>
+                </div>
+
+                <!-- Chi tiết sinh viên (nếu tìm thấy) -->
+                {% if student %}
+                    <div class="p-6 sm:p-8 space-y-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                                <span class="text-slate-400 text-[10px] font-extrabold uppercase block mb-1">Họ và tên sinh viên</span>
+                                <span class="text-slate-900 font-black text-base">{{ student.full_name }}</span>
+                            </div>
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                                <span class="text-slate-400 text-[10px] font-extrabold uppercase block mb-1">Mã số sinh viên (MSSV)</span>
+                                <span class="text-slate-900 font-bold text-base font-mono">{{ student.student_code }}</span>
+                            </div>
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                                <span class="text-slate-400 text-[10px] font-extrabold uppercase block mb-1">Ngành đào tạo</span>
+                                <span class="text-slate-800 font-bold">{{ student.major.name|default:"Chưa cập nhật" }}</span>
+                            </div>
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                                <span class="text-slate-400 text-[10px] font-extrabold uppercase block mb-1">Khoa đào tạo</span>
+                                <span class="text-slate-800 font-bold">{{ student.faculty.name|default:"Chưa cập nhật" }}</span>
+                            </div>
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                                <span class="text-slate-400 text-[10px] font-extrabold uppercase block mb-1">Xếp loại tốt nghiệp</span>
+                                <span class="text-emerald-700 font-black text-sm uppercase">{{ student.classification|default:"Khá" }}</span>
+                            </div>
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                                <span class="text-slate-400 text-[10px] font-extrabold uppercase block mb-1">Trạng thái công nhận</span>
+                                <span class="apple-badge-success">
+                                    <span class="material-symbols-outlined text-[13px]">verified</span>
+                                    {{ student.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
+
+                        {% if degree %}
+                        <div class="p-4 rounded-xl bg-blue-50/70 border border-blue-200/80 flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold">
+                                    <span class="material-symbols-outlined text-[22px]">picture_as_pdf</span>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Giấy Chứng Nhận Điện Tử</h4>
+                                    <p class="text-[11px] text-slate-500 font-medium">Bản điện tử đã được ký số và đóng dấu trường</p>
+                                </div>
+                            </div>
+                            <a href="{% url 'degrees:preview_pdf' degree.id %}" target="_blank" class="animate-btn w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider inline-flex items-center justify-center gap-1.5 shadow-sm transition-all">
+                                <span class="material-symbols-outlined text-[16px]">download</span> Xem / Tải file PDF
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+
         <!-- 3 Bước Hướng dẫn dưới Form -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
             <!-- Bước 1 -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-start gap-4 hover:shadow-md transition-shadow">
-                <div class="w-8 h-8 rounded-full bg-ntt-dark text-white font-bold flex items-center justify-center shrink-0 text-sm">1</div>
-                <p class="text-xs text-gray-600 font-medium leading-relaxed">
-                    <strong class="text-gray-800 block mb-0.5">Tìm mã xác minh</strong>
-                    gồm 12 ký tự được in trên giấy chứng nhận
-                </p>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 flex items-start gap-4 hover:shadow-md transition-shadow">
+                <div class="w-9 h-9 rounded-xl bg-blue-600 text-white font-black flex items-center justify-center shrink-0 text-sm shadow-xs">1</div>
+                <div>
+                    <h4 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider mb-1">Mã xác minh</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed font-medium">
+                        Sử dụng MSSV hoặc CCCD được ghi trên hồ sơ sinh viên
+                    </p>
+                </div>
             </div>
             
             <!-- Bước 2 -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-start gap-4 hover:shadow-md transition-shadow">
-                <div class="w-8 h-8 rounded-full bg-ntt-dark text-white font-bold flex items-center justify-center shrink-0 text-sm">2</div>
-                <p class="text-xs text-gray-600 font-medium leading-relaxed">
-                    <strong class="text-gray-800 block mb-0.5">Nhập mã vào ô tìm kiếm</strong>
-                    và hoàn thành xác thực reCAPTCHA
-                </p>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 flex items-start gap-4 hover:shadow-md transition-shadow">
+                <div class="w-9 h-9 rounded-xl bg-blue-700 text-white font-black flex items-center justify-center shrink-0 text-sm shadow-xs">2</div>
+                <div>
+                    <h4 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider mb-1">Tra cứu hệ thống</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed font-medium">
+                        Nhấn nút tra cứu để kiểm tra đối soát trực tiếp trên hệ thống
+                    </p>
+                </div>
             </div>
             
             <!-- Bước 3 -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-start gap-4 hover:shadow-md transition-shadow">
-                <div class="w-8 h-8 rounded-full bg-ntt-dark text-white font-bold flex items-center justify-center shrink-0 text-sm">3</div>
-                <p class="text-xs text-gray-600 font-medium leading-relaxed">
-                    <strong class="text-gray-800 block mb-0.5">Xem kết quả</strong>
-                    và tải file PDF giấy chứng nhận về máy
-                </p>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 flex items-start gap-4 hover:shadow-md transition-shadow">
+                <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white font-black flex items-center justify-center shrink-0 text-sm shadow-xs">3</div>
+                <div>
+                    <h4 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider mb-1">Tải file PDF</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed font-medium">
+                        Xem kết quả đối soát hợp lệ và tải file chứng nhận có ký số
+                    </p>
+                </div>
             </div>
         </div>
 

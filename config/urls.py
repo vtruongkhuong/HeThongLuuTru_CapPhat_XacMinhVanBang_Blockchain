@@ -3,13 +3,14 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from apps.verification import views as verification_views
-from apps.core.views import dashboard_view, report_view, custom_404_view, custom_500_view
+from apps.core.views import dashboard_view, report_view, custom_404_view, custom_500_view, animate_ui_demo_view
 
 urlpatterns = [
     # Điều hướng gốc & tương thích ngược cho các template gọi trực tiếp tên URL
     path('', verification_views.landing_view, name='landing'),
     path('tracuu/', verification_views.public_verify_view, name='public_verify'),
     path('tracuu-tam-thoi/', verification_views.verify_temp_cert_view, name='verify_temp_cert'),
+    path('animate-ui/', animate_ui_demo_view, name='animate_ui_demo'),
 
     # Route chuẩn có app_name = 'verification' theo yêu cầu N2
     path('verify/', include('apps.verification.urls')),

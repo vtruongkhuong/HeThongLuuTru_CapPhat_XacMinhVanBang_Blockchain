@@ -64,3 +64,68 @@ def custom_404_view(request, exception=None):
 def custom_500_view(request):
     """[N7] Trang báo lỗi 500 tùy biến chuẩn nhận diện thương hiệu"""
     return render(request, '500.html', status=500)
+
+
+def animate_ui_demo_view(request):
+    """[Animate UI Showcase] Trang trải nghiệm hiệu ứng tương tác cao cấp Animate UI"""
+    return render(request, 'animate_ui_demo.html')
+
+
+
+def admin_dashboard_callback(request, context):
+    """
+    [Apple Design Command Center] Callback chuẩn Unfold Admin
+    Cung cấp số liệu thời gian thực, chỉ số KPI và danh sách đợt tốt nghiệp cần xử lý.
+    """
+    try:
+        from apps.students.models import Student
+        from apps.graduation.models import GraduationBatch
+        from apps.degrees.models import Degree
+        from apps.blockchain.models import IssuanceBatch
+
+        total_degrees = Degree.objects.filter(status='ISSUED').count()
+        total_students = Student.objects.count()
+        pending_batches_count = GraduationBatch.objects.filter(status__in=['submitted', 'reviewed']).count()
+        recent_batches = list(GraduationBatch.objects.select_related('faculty', 'created_by').order_by('-created_at')[:5])
+        total_issuance = IssuanceBatch.objects.count()
+
+        context.update({
+            "kpis": [
+                {
+                    "title": "Văn bằng trên chuỗi (ISSUED)",
+                    "metric": total_degrees,
+                    "icon": "workspace_premium",
+                    "badge": "Active On-Chain",
+                    "badge_color": "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20",
+                    "link": "/admin/degrees/degree/?status__exact=ISSUED",
+                },
+                {
+                    "title": "Đợt tốt nghiệp chờ duyệt",
+                    "metric": pending_batches_count,
+                    "icon": "pending_actions",
+                    "badge": "Cần phê duyệt" if pending_batches_count > 0 else "Đã duyệt hết",
+                    "badge_color": "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20" if pending_batches_count > 0 else "bg-gray-500/10 text-gray-500 border border-gray-500/20",
+                    "link": "/admin/graduation/graduationbatch/?status__exact=submitted",
+                },
+                {
+                    "title": "Hồ sơ sinh viên",
+                    "metric": total_students,
+                    "icon": "groups",
+                    "badge": "Toàn trường",
+                    "badge_color": "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20",
+                    "link": "/admin/students/student/",
+                },
+                {
+                    "title": "Đợt phát hành Blockchain",
+                    "metric": total_issuance,
+                    "icon": "token",
+                    "badge": "Smart Contract v2",
+                    "badge_color": "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20",
+                    "link": "/admin/blockchain/issuancebatch/",
+                },
+            ],
+            "recent_batches": recent_batches,
+        })
+    except Exception as e:
+        pass
+    return context

@@ -168,93 +168,111 @@ def check_menu_role(request, allowed_roles):
         return False
 
 UNFOLD = {
-    "SITE_TITLE": "Văn bằng Blockchain - Admin",
-    "SITE_HEADER": "Hệ thống Quản lý Văn bằng Blockchain",
+    "SITE_TITLE": "CTUT Blockchain Degree Admin",
+    "SITE_HEADER": "Hệ thống Quản lý & Xác minh Văn bằng Blockchain",
     "SITE_SYMBOL": "school",
     "SHOW_HISTORY": True,
     "SHOW_VIEW_ON_SITE": True,
-    "LOGIN": {
-        "image": None,
-    },
+    "DASHBOARD_CALLBACK": "apps.core.views.admin_dashboard_callback",
+    "STYLES": [
+        lambda request: static("css/animate-ui.css"),
+        lambda request: static("css/admin-custom.css"),
+    ],
+    "SCRIPTS": [
+        lambda request: static("js/vendor/gsap.min.js"),
+        lambda request: static("js/animate-ui.js"),
+    ],
     "COLORS": {
         "primary": {
-            "50": "238 242 255", "100": "224 231 255", "200": "199 210 254",
-            "300": "165 180 252", "400": "129 140 248", "500": "99 102 241",
-            "600": "79 70 229", "700": "67 56 202", "800": "55 48 163",
-            "900": "49 46 129", "950": "30 27 75",
+            "50": "240 247 255",
+            "100": "224 239 254",
+            "200": "186 224 253",
+            "300": "124 197 251",
+            "400": "56 167 248",
+            "500": "14 140 241",
+            "600": "2 111 224",
+            "700": "2 88 182",
+            "800": "6 75 149",
+            "900": "15 23 42",
+            "950": "9 13 22",
         },
     },
     "SIDEBAR": {
         "show_search": True,
         "show_all_applications": False,
-        "navigation": [
+                "navigation": [
             {
-                "title": _("Tài khoản & Phân quyền"),
+                "title": _("1. Quy Trình Cấp Phát Văn Bằng"),
                 "separator": True,
                 "items": [
                     {
-                        "title": _("Người dùng"),
-                        "icon": "person",
-                        "link": reverse_lazy("admin:accounts_user_changelist"),
-                        "permission": lambda request: request.user.is_superuser, # Chỉ Admin tối cao
-                    },
-                    {
-                        "title": _("Vai trò"),
-                        "icon": "shield",
-                        "link": reverse_lazy("admin:accounts_role_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                    {
-                        "title": _("Quyền hạn"),
-                        "icon": "key",
-                        "link": reverse_lazy("admin:accounts_permission_changelist"),
-                        "permission": lambda request: request.user.is_superuser,
-                    },
-                ],
-            },
-            {
-                "title": _("Danh mục đào tạo"),
-                "separator": True,
-                "items": [
-                    {
-                        "title": _("Khoa"),
-                        "icon": "corporate_fare",
-                        "link": reverse_lazy("admin:academic_faculty_changelist"),
-                        "permission": lambda request: check_menu_role(request, ['officer_a', 'academic_staff']),
-                    },
-                    {
-                        "title": _("Ngành"),
-                        "icon": "school",
-                        "link": reverse_lazy("admin:academic_major_changelist"),
-                        "permission": lambda request: check_menu_role(request, ['officer_a', 'academic_staff']),
-                    },
-                    {
-                        "title": "Đợt tốt nghiệp",
-                        "icon": "calendar_month", 
-                        "link": reverse_lazy("admin:graduation_graduationbatch_changelist"),
-                        # Cả Nhập liệu và Phê duyệt đều cần thấy menu này
-                        "permission": lambda request: check_menu_role(request, ['officer_a', 'academic_staff', 'officer_b', 'reviewer', 'approver']),
-                    },
-                    {
-                        "title": _("Loại văn bằng"),
-                        "icon": "workspace_premium",
-                        "link": reverse_lazy("admin:academic_degreetype_changelist"),
-                        "permission": lambda request: check_menu_role(request, ['officer_a', 'academic_staff']),
-                    },
-                ],
-            },
-            {
-                "title": _("Sinh viên"),
-                "separator": True,
-                "items": [
-                    {
-                        "title": _("Danh sách sinh viên"),
+                        "title": _("Hồ Sơ Sinh Viên"),
                         "icon": "groups",
                         "link": reverse_lazy("admin:students_student_changelist"),
                         "permission": lambda request: check_menu_role(request, ['officer_a', 'academic_staff', 'officer_b', 'reviewer', 'approver']),
                     },
                     {
-                        "title": _("Lịch sử import"),
+                        "title": _("Đợt Xét Tốt Nghiệp"),
+                        "icon": "calendar_month",
+                        "link": reverse_lazy("admin:graduation_graduationbatch_changelist"),
+                        "permission": lambda request: check_menu_role(request, ['officer_a', 'academic_staff', 'officer_b', 'reviewer', 'approver']),
+                    },
+                    {
+                        "title": _("Ký Phát Hành Blockchain"),
+                        "icon": "token",
+                        "link": reverse_lazy("admin:blockchain_issuancebatch_changelist"),
+                        "permission": lambda request: request.user.is_superuser or check_menu_role(request, ['issuer']),
+                    },
+                    {
+                        "title": _("Sổ Cái Văn Bằng Số"),
+                        "icon": "workspace_premium",
+                        "link": reverse_lazy("admin:degrees_degree_changelist"),
+                        "permission": lambda request: request.user.is_superuser or check_menu_role(request, ['officer_a', 'officer_b', 'issuer']),
+                    },
+                ],
+            },
+            {
+                "title": _("2. Thu Hồi Văn Bằng (4-Eyes)"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Yêu Cầu Thu Hồi"),
+                        "icon": "gpp_bad",
+                        "link": reverse_lazy("admin:revocation_revocationrequest_changelist"),
+                        "permission": lambda request: request.user.is_superuser or check_menu_role(request, ['issuer', 'approver', 'officer_b']),
+                    },
+                    {
+                        "title": _("Danh Mục Lý Do Thu Hồi"),
+                        "icon": "rule",
+                        "link": reverse_lazy("admin:revocation_reasoncode_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                ],
+            },
+            {
+                "title": _("3. Cơ Sở Đào Tạo & Nhập Liệu"),
+                "separator": True,
+                "items": [
+                    {
+                        "title": _("Khoa Đào Tạo"),
+                        "icon": "corporate_fare",
+                        "link": reverse_lazy("admin:academic_faculty_changelist"),
+                        "permission": lambda request: check_menu_role(request, ['officer_a', 'academic_staff']),
+                    },
+                    {
+                        "title": _("Ngành Đào Tạo"),
+                        "icon": "school",
+                        "link": reverse_lazy("admin:academic_major_changelist"),
+                        "permission": lambda request: check_menu_role(request, ['officer_a', 'academic_staff']),
+                    },
+                    {
+                        "title": _("Loại Văn Bằng"),
+                        "icon": "category",
+                        "link": reverse_lazy("admin:academic_degreetype_changelist"),
+                        "permission": lambda request: check_menu_role(request, ['officer_a', 'academic_staff']),
+                    },
+                    {
+                        "title": _("Lịch Sử Import Excel"),
                         "icon": "upload_file",
                         "link": reverse_lazy("admin:students_importbatch_changelist"),
                         "permission": lambda request: check_menu_role(request, ['officer_a', 'academic_staff']),
@@ -262,35 +280,54 @@ UNFOLD = {
                 ],
             },
             {
-                "title": "Giám sát & Báo cáo",
+                "title": _("4. Phân Quyền & Kiểm Toán"),
                 "separator": True,
                 "items": [
                     {
-                        "title": "Lịch sử hệ thống",
-                        "icon": "history",
-                        "link": reverse_lazy("admin:audit_auditlog_changelist"),
-                        # Tạm thời chỉ cho phép Admin tối cao xem log hệ thống
-                        "permission": lambda request: request.user.is_superuser, 
+                        "title": _("Quản Lý Người Dùng & Ví"),
+                        "icon": "manage_accounts",
+                        "link": reverse_lazy("admin:accounts_user_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
                     },
                     {
-                        "title": "Nhật ký tra cứu văn bằng",
+                        "title": _("Vai Trò Hệ Thống"),
+                        "icon": "shield",
+                        "link": reverse_lazy("admin:accounts_role_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": _("Nhật Ký Kiểm Toán (Audit)"),
+                        "icon": "history",
+                        "link": reverse_lazy("admin:audit_auditlog_changelist"),
+                        "permission": lambda request: request.user.is_superuser,
+                    },
+                    {
+                        "title": _("Nhật Ký Tra Cứu Công Khai"),
                         "icon": "fact_check",
                         "link": reverse_lazy("admin:verification_verificationlog_changelist"),
-                        "permission": lambda request: request.user.is_superuser, 
+                        "permission": lambda request: request.user.is_superuser,
                     },
                 ],
             },
             {
-                "title": "Báo cáo & Thống kê",
+                "title": _("5. Cổng Báo Cáo & Dịch Vụ"),
                 "separator": True,
                 "items": [
                     {
-                        "title": "Dashboard tổng quan",
-                        "icon": "analytics", 
-                        "link": "/report/", 
-                        
-                        # CHỈ CHO PHÉP ADMIN HOẶC CÁN BỘ PHÁT HÀNH (ISSUER) THẤY NÚT NÀY
-                        "permission": lambda request: request.user.is_superuser or check_menu_role(request, ['issuer']),
+                        "title": _("Dashboard Báo Cáo"),
+                        "icon": "analytics",
+                        "link": "/report/",
+                        "permission": lambda request: request.user.is_superuser or check_menu_role(request, ['issuer', 'admin']),
+                    },
+                    {
+                        "title": _("Cổng Tra Cứu Công Khai"),
+                        "icon": "travel_explore",
+                        "link": "/",
+                    },
+                    {
+                        "title": _("Cổng Sinh Viên (Portal)"),
+                        "icon": "account_circle",
+                        "link": reverse_lazy("student_portal:dashboard"),
                     },
                 ],
             },

@@ -1,0 +1,74 @@
+{% load i18n admin_list unfold unfold_list %}
+
+{% with vertical_filters=cl|unfold_vertical_filters %}
+    {% if cl.has_filters and vertical_filters|length > 0 %}
+        <!-- APPLE DRAWER FILTER OVERLAY (Trượt từ phải sang mượt mà chuẩn Apple) -->
+        <div id="changelist-filter" 
+             class="fixed inset-0 z-[1000] flex justify-end overflow-hidden" 
+             hx-preserve 
+             x-show="filterOpen" 
+             x-cloak>
+             
+            <!-- BACKDROP MỜ KÍNH SƯƠNG NHẸ NHÀNG (KHÔNG LÀM TỐI ĐEN MÀN HÌNH) -->
+            <div id="changelist-filter-backdrop" 
+                 class="fixed inset-0 apple-filter-backdrop" 
+                 x-show="filterOpen"
+                 x-transition:enter="transition-opacity ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition-opacity ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 x-on:click="filterOpen = false"></div>
+
+            <!-- NỘI DUNG DRAWER TRƯỢT TỪ BÊN PHẢI VÀO (SLIDE-IN SHEET) -->
+            <div class="apple-filter-drawer relative z-20 flex flex-col h-full w-full max-w-sm sm:max-w-md shadow-2xl overflow-hidden"
+                 x-show="filterOpen"
+                 x-transition:enter="transition transform ease-out duration-320"
+                 x-transition:enter-start="translate-x-full"
+                 x-transition:enter-end="translate-x-0"
+                 x-transition:leave="transition transform ease-in duration-220"
+                 x-transition:leave-start="translate-x-0"
+                 x-transition:leave-end="translate-x-full">
+                 
+                <!-- DRAWER HEADER: TIÊU ĐỀ + NÚT ĐÓNG (✕) -->
+                <div class="apple-filter-header flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-800 shrink-0">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/80 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
+                            <span class="material-symbols-outlined text-[18px]">filter_list</span>
+                        </div>
+                        <div>
+                            <h2 class="text-sm font-extrabold text-gray-900 dark:text-white uppercase tracking-wider">
+                                Bộ Lọc Dữ Liệu
+                            </h2>
+                            <p class="text-[11px] text-gray-500 dark:text-gray-400">Chọn tiêu chí để lọc nhanh dữ liệu</p>
+                        </div>
+                    </div>
+                    <button type="button" 
+                            class="apple-filter-close-btn p-1.5 rounded-lg text-gray-400 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                            x-on:click="filterOpen = false" 
+                            title="Đóng bộ lọc">
+                        <span class="material-symbols-outlined text-[20px]">close</span>
+                    </button>
+                </div>
+
+                <!-- DRAWER BODY: DANH SÁCH BỘ LỌC TƯƠNG PHẢN CAO -->
+                <div class="grow h-full overflow-y-auto px-5 py-4 space-y-5">
+                    <{% if cl.model_admin.list_filter_submit %}form id="filter-form" method="get"{% else %}div{% endif %} class="flex flex-col h-full outline-none">
+                        {% if cl.model_admin.list_filter_submit %}
+                            {% preserve_filters %}
+                        {% endif %}
+
+                        <div class="flex flex-col gap-5">
+                            {% for spec in vertical_filters %}
+                                {% unfold_admin_list_filter cl spec %}
+                            {% endfor %}
+                        </div>
+
+                        {% include "unfold/helpers/change_list_filter_actions.html" %}
+                    </{% if cl.model_admin.list_filter_submit %}form{% else %}div{% endif %}>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endwith %}

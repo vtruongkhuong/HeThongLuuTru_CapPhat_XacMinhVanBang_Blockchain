@@ -8,7 +8,7 @@ from django.utils import timezone
 from apps.students.utils import get_classification_from_gpa
 from apps.blockchain.models import IssuanceBatch, DegreeMerkleProof
 from apps.workflow.services import ensure_different_actors
-from apps.core.admin import BaseRoleAdmin 
+from apps.core.admin import BaseRoleAdmin, format_crypto_hash_badge 
 
 from apps.blockchain.services import get_merkle_proof, build_merkle_root
 from apps.degrees.canonicalizer import canonical_hash, HASH_VERSION
@@ -24,7 +24,8 @@ class GraduationBatchAdmin(BaseRoleAdmin):
     
     # --- THAY ĐỔI 1: CẬP NHẬT MẢNG list_display ---
     list_display = ['name', 'view_students_link', 'status', 'maker', 'checker', 'approved_at', 'short_merkle_root']
-    
+    list_filter = ('status', 'degree_type')
+    list_filter_submit = True
     search_fields = ['name']
     actions = ['submit_for_approval', 'approve_batch', 'reject_batch', 'generate_batch_pdfs']
 
@@ -35,7 +36,10 @@ class GraduationBatchAdmin(BaseRoleAdmin):
         if obj.pk:
             url = f"/admin/graduation/graduationbatch/{obj.pk}/students/"
             return format_html(
-                '<a href="{}" target="_blank" style="background: #2563eb; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px; display: inline-block;">👀 Nhấn vào đây để xem Danh sách Sinh viên</a>',
+                '<a href="{}" target="_blank" class="apple-action-btn-primary" style="padding: 9px 18px; font-size: 13px;">'
+                '<span class="material-symbols-outlined" style="font-size:18px;">groups</span>'
+                '<span>Nhấn vào đây để xem Danh sách Sinh viên</span>'
+                '</a>',
                 url
             )
         return "Hãy lưu đợt này lại trước khi xem danh sách"
@@ -48,7 +52,10 @@ class GraduationBatchAdmin(BaseRoleAdmin):
         if obj.pk:
             url = f"/admin/graduation/graduationbatch/{obj.pk}/students/"
             return format_html(
-                '<a href="{}" target="_blank" style="background: #10b981; color: white; padding: 4px 8px; border-radius: 4px; text-decoration: none; font-size: 12px; font-weight: bold; white-space: nowrap;">👥 Xem DS</a>',
+                '<a href="{}" target="_blank" class="apple-view-list-btn">'
+                '<span class="material-symbols-outlined" style="font-size:14px;">groups</span>'
+                '<span>Xem DS</span>'
+                '</a>',
                 url
             )
         return "-"
@@ -56,22 +63,7 @@ class GraduationBatchAdmin(BaseRoleAdmin):
 
     # --- HÀM 2.2: RÚT GỌN VÀ THÊM TÍNH NĂNG CLICK TO COPY CHO MERKLE ROOT ---
     def short_merkle_root(self, obj):
-        if obj.merkle_root:
-            full_hash = str(obj.merkle_root)
-            if len(full_hash) > 20:
-                short_hash = f"{full_hash[:8]}...{full_hash[-8:]}"
-                
-                # Gom chung JS vào 1 dòng gọn gàng, đổi màu nền khi click để báo hiệu
-                inline_js = f"navigator.clipboard.writeText('{full_hash}'); this.innerHTML='✅ Đã copy!'; setTimeout(()=>{{this.innerHTML='{short_hash}';}}, 1500);"
-                
-                return format_html(
-                    '<span title="Nhấn để copy: {}" '
-                    'onclick="{}" '
-                    'style="cursor: pointer; font-family: monospace; background: #f3f4f6; padding: 4px 8px; border-radius: 4px; border: 1px solid #e5e7eb; display: inline-block; min-width: 140px; text-align: center;">{}</span>',
-                    full_hash, inline_js, short_hash
-                )
-            return full_hash
-        return "-"
+        return format_crypto_hash_badge(obj.merkle_root, title_prefix="Mã Merkle Root", icon="tag")
     short_merkle_root.short_description = "Mã Merkle Root"
 
 

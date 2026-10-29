@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.http import HttpResponse
 from django.contrib import messages
-from apps.core.admin import BaseRoleAdmin
+from apps.core.admin import BaseRoleAdmin, format_crypto_hash_badge
 from .models import Degree
 from .pdf_generator import get_degree_pdf
 from .tasks import render_degree_pdfs  # Nhập Celery task đã tạo
@@ -11,8 +11,13 @@ class DegreeAdmin(BaseRoleAdmin):
     # Quyền xem: Các cán bộ liên quan đến quy trình duyệt và phát hành
     allowed_roles = ['officer_a', 'officer_b', 'reviewer', 'approver', 'issuer']
     
-    list_display = ['student', 'batch', 'degree_type', 'status', 'generated_at']
-    list_filter = ['batch', 'status', 'degree_type']
+    list_display = ['student', 'batch', 'degree_type', 'status', 'short_canonical_hash', 'generated_at']
+
+    def short_canonical_hash(self, obj):
+        return format_crypto_hash_badge(obj.canonical_hash, title_prefix="Mã Hash Văn Bằng (Canonical Hash)", icon="fingerprint")
+    short_canonical_hash.short_description = "Mã Hash Văn Bằng"
+    list_filter = ('batch', 'status', 'degree_type')
+    list_filter_submit = True
     search_fields = ['student__full_name', 'student__student_code', 'canonical_hash']
     
     # Bổ sung action kết xuất hàng loạt vào danh sách

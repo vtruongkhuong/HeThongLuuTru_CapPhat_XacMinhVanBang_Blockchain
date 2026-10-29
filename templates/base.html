@@ -1,9 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Cổng Tra Cứu Văn Bằng {% endblock %}</title>
+    <title>{% block title %}Cổng Tra Cứu Văn Bằng{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -15,8 +16,9 @@
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: {
                         ntt: {
-                            dark: '#112953', 
-                            light: '#2a63b2', 
+                            dark: '#0f172a', 
+                            light: '#026fe0', 
+                            accent: '#38bdf8',
                             gold: '#c09b4d'
                         }
                     },
@@ -30,54 +32,60 @@
     </script>
     <style>html { scroll-behavior: smooth; }</style>
     {% block extra_head %}{% endblock %}
+    <!-- Animate UI Core Styles & Interaction Engine -->
+    <link rel="stylesheet" href="{% static 'css/animate-ui.css' %}">
+    <script src="{% static 'js/vendor/gsap.min.js' %}"></script>
+    <script defer src="{% static 'js/animate-ui.js' %}"></script>
 </head>
 <body class="bg-gray-50 font-sans text-gray-900 min-h-screen flex flex-col">
 
     <!-- Navbar -->
-    <nav class="bg-white px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50">
-        <a href="{% url 'landing' %}" class="flex items-center gap-4">
-            <div class="w-12 h-12 border-2 border-ntt-dark rounded-full flex items-center justify-center text-ntt-dark">
-                <span class="material-symbols-outlined text-3xl">school</span>
+    <nav class="bg-white/90 backdrop-blur-md px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50 border-b border-gray-100">
+        <a href="{% url 'landing' %}" class="flex items-center gap-3.5 group">
+            <div class="w-11 h-11 border-2 border-blue-600 rounded-2xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-xs">
+                <span class="material-symbols-outlined text-2xl transition-transform group-hover:scale-110">school</span>
             </div>
             <div>
-                <h1 class="font-bold text-ntt-dark uppercase tracking-wide text-sm leading-tight">BLOCKCHAIN<br>DEGREE PORTAL</h1>
+                <h1 class="font-black text-slate-900 uppercase tracking-wider text-xs leading-tight">BLOCKCHAIN<br><span class="text-blue-600">DEGREE PORTAL</span></h1>
             </div>
         </a>
         
-        <div class="flex items-center gap-6 text-sm font-semibold">
+        <div class="flex items-center gap-5 text-sm font-semibold">
+            <a href="{% url 'landing' %}" class="text-gray-600 hover:text-ntt-light transition-colors flex items-center gap-1.5 text-xs uppercase tracking-wider font-bold">
+                <span class="material-symbols-outlined text-base">search</span> Tra cứu
+            </a>
+
             {% if user.is_authenticated %}
                 {% if not user.is_staff and not user.is_superuser %}
-                    <!-- Đã sửa thành student_portal:dashboard -->
-                    <a href="{% url 'student_portal:dashboard' %}" class="text-gray-600 hover:text-ntt-light transition-colors flex items-center gap-1">
-                        <span class="material-symbols-outlined text-lg">workspace_premium</span> Văn bằng của tôi
+                    <a href="{% url 'student_portal:dashboard' %}" class="text-gray-600 hover:text-ntt-light transition-colors flex items-center gap-1.5 text-xs uppercase tracking-wider font-bold">
+                        <span class="material-symbols-outlined text-base">workspace_premium</span> Văn bằng của tôi
                     </a>
                 {% endif %}
                 
                 {% if user.is_staff or user.is_superuser %}
-                    <a href="/admin/" class="text-white bg-ntt-dark hover:bg-ntt-light px-5 py-2 rounded-full transition-colors flex items-center gap-1">
-                        <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span> Quản trị
+                    <a href="/admin/" class="animate-btn text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 text-xs uppercase tracking-wider font-bold shadow-xs">
+                        <span class="material-symbols-outlined text-base">admin_panel_settings</span> Quản trị
                     </a>
                 {% endif %}
                 
-                <div class="w-px h-6 bg-gray-200"></div>
+                <div class="w-px h-5 bg-gray-200"></div>
                 
                 {% if not user.is_staff and not user.is_superuser %}
-                    <!-- Đã sửa thành student_portal:profile_update -->
-                    <a href="{% url 'student_portal:profile_update' %}" class="text-gray-600 hover:text-ntt-dark flex items-center gap-1 transition-colors">
-                        <span class="material-symbols-outlined text-xl">account_circle</span>
+                    <a href="{% url 'student_portal:profile_update' %}" class="text-gray-700 hover:text-ntt-dark flex items-center gap-1.5 text-xs font-bold transition-colors">
+                        <span class="material-symbols-outlined text-lg text-ntt-light">account_circle</span>
                         {{ user.get_full_name|default:user.username }}
                     </a>
                 {% else %}
-                    <!-- Cán bộ thì chỉ hiện tên, không có link bấm vào Profile -->
-                    <span class="text-gray-600 flex items-center gap-1 cursor-default">
-                        <span class="material-symbols-outlined text-xl">shield_person</span>
-                        {{ user.get_full_name|default:user.username }} (Cán bộ)
+                    <span class="text-gray-700 flex items-center gap-1.5 text-xs font-bold cursor-default">
+                        <span class="material-symbols-outlined text-lg text-emerald-600">verified_user</span>
+                        {{ user.get_full_name|default:user.username }}
+                        <span class="text-[10px] bg-blue-50 text-ntt-light px-2 py-0.5 rounded-full uppercase tracking-wider border border-blue-200">Cán bộ</span>
                     </span>
                 {% endif %}
                 
-                <a href="{% url 'accounts:logout' %}" class="text-gray-400 hover:text-red-500 transition-colors ml-2">Đăng xuất</a>
+                <a href="{% url 'accounts:logout' %}" class="text-gray-400 hover:text-red-500 transition-colors text-xs font-bold uppercase tracking-wider ml-1">Đăng xuất</a>
             {% else %}
-                <a href="{% url 'accounts:login' %}" class="px-6 py-2 border-2 border-ntt-dark text-ntt-dark rounded-full hover:bg-ntt-dark hover:text-white transition-colors">
+                <a href="{% url 'accounts:login' %}" class="animate-btn px-5 py-2 border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-xs">
                     Đăng nhập
                 </a>
             {% endif %}
@@ -88,10 +96,11 @@
         {% if messages %}
             <div class="max-w-6xl mx-auto px-6 w-full mt-6 z-50 relative">
                 {% for message in messages %}
-                    <div class="rounded-lg px-4 py-3 text-sm font-medium shadow-sm mb-2
-                        {% if message.tags == 'success' %} bg-green-50 text-green-800 border border-green-200
+                    <div class="rounded-xl px-4 py-3 text-xs font-bold shadow-sm mb-2 flex items-center gap-2
+                        {% if message.tags == 'success' %} bg-emerald-50 text-emerald-800 border border-emerald-200
                         {% elif message.tags == 'error' %} bg-red-50 text-red-800 border border-red-200
                         {% else %} bg-blue-50 text-blue-800 border border-blue-200 {% endif %}">
+                        <span class="material-symbols-outlined text-sm">info</span>
                         {{ message }}
                     </div>
                 {% endfor %}
@@ -101,8 +110,19 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="bg-white py-6 border-t border-gray-200 mt-auto text-center text-sm text-gray-500 font-medium">
-        &copy; 2026 Đồ án Hệ thống Quản lý Văn bằng Blockchain. 
+    <footer class="bg-white py-6 border-t border-gray-100 mt-auto text-center text-xs text-gray-400 font-medium flex flex-col sm:flex-row items-center justify-between px-8 gap-3">
+        <div>
+            &copy; 2026 Đồ án Hệ thống Quản lý & Xác thực Văn bằng Blockchain. CTUT.
+        </div>
+        <div class="flex items-center gap-4 text-[11px] font-semibold text-gray-400">
+            <a href="{% url 'landing' %}" class="hover:text-ntt-light transition-colors">Tra cứu công khai</a>
+            <span>&bull;</span>
+            <a href="/animate-ui/" class="hover:text-ntt-light transition-colors flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Animate UI Demo
+            </a>
+            <span>&bull;</span>
+            <a href="/admin/" class="hover:text-ntt-light transition-colors">Admin Unfold</a>
+        </div>
     </footer>
 </body>
 </html>

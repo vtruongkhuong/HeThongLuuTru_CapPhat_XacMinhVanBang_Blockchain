@@ -159,8 +159,8 @@ class ImportBatchAdmin(BaseRoleAdmin):
 
     def status_badge(self, obj):
         if obj.status == 'rolled_back':
-            return mark_safe('<span style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600;">Đã hoàn tác</span>')
-        return mark_safe('<span style="background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600;">Hoàn thành</span>')
+            return mark_safe('<span class="apple-badge-danger"><span class="material-symbols-outlined" style="font-size:12px;">undo</span>Đã hoàn tác</span>')
+        return mark_safe('<span class="apple-badge-success"><span class="material-symbols-outlined" style="font-size:12px;">check_circle</span>Hoàn thành</span>')
     status_badge.short_description = "Trạng thái"
 
     def rollback_button(self, obj):
@@ -170,7 +170,10 @@ class ImportBatchAdmin(BaseRoleAdmin):
             return mark_safe('<span style="color: #9ca3af; font-size: 11px;" title="Đợt đã duyệt, không thể hoàn tác">Khóa</span>')
         url = reverse('admin:students_importbatch_single_rollback', args=[obj.id])
         return format_html(
-            '<a href="{}" onclick="return confirm(&quot;Xác nhận hoàn tác (Rollback) đợt nạp này?&quot;);" style="background: #ef4444; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-decoration: none; display: inline-block;">🔄 Rollback</a>',
+            '<a href="{}" onclick="return confirm(&quot;Xác nhận hoàn tác (Rollback) đợt nạp này?&quot;);" class="apple-action-btn-danger">'
+            '<span class="material-symbols-outlined" style="font-size:13px;">history</span>'
+            '<span>Rollback</span>'
+            '</a>',
             url
         )
     rollback_button.short_description = "Hoàn tác"

@@ -1,0 +1,14 @@
+{% load admin_list %}
+
+{% if actions_on_top %}
+    {% if cl.search_fields or action_form or cl.has_filters %}
+        <!-- THANH ACTION BAR HIỂN THỊ MƯỢT MÀ TRÊN ĐẦU BẢNG KHI CÓ MỤC ĐƯỢC CHỌN (SPRING ANIMATION KHÔNG GIẬT KHÔNG CUỘN) -->
+        <div class="apple-action-bar-container sticky top-[60px] z-40 w-full">
+            <div id="changelist-actions-wrapper" class="w-full">
+                {% if action_form %}
+                    {% admin_actions %}
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+{% endif %}

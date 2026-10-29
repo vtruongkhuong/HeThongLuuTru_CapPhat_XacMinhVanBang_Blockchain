@@ -1,0 +1,868 @@
+/**
+ * Custom Admin Styling for Django Unfold
+ * Premium Color Architecture: Linear / Apple Pro / Stripe Dashboard Standard
+ * Royal Sapphire & Deep Obsidian (High Contrast, Silky Smooth, Non-Glare)
+ * Emil Kowalski Hardware-Accelerated Micro-Interactions (60-120FPS)
+ */
+
+/* ==========================================================================
+   1. MASTER COLOR SYSTEM TOKENS (LIGHT & DARK MODE)
+   ========================================================================== */
+:root {
+    /* Emil Kowalski Curves */
+    --apple-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --apple-spring: cubic-bezier(0.16, 1, 0.3, 1);
+    --apple-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --apple-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+    --apple-press: cubic-bezier(0.2, 0, 0, 1);
+    
+    --dur-instant: 70ms;
+    --dur-fast: 160ms;
+    --dur-snappy: 220ms;
+    --dur-fluid: 280ms;
+
+    /* Light Mode Tokens (Crisp Ceramic & Frost Slate) */
+    --canvas-bg: #f8fafc;
+    --surface-card: #ffffff;
+    --surface-elevated: #f1f5f9;
+    --surface-hover: rgba(2, 111, 224, 0.04);
+    --surface-active: rgba(2, 111, 224, 0.08);
+    
+    --border-subtle: #e2e8f0;
+    --border-strong: #cbd5e1;
+    --border-accent: #93c5fd;
+    
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    
+    --accent-primary: #026fe0;
+    --accent-hover: #0258b6;
+    --accent-glow: rgba(2, 111, 224, 0.16);
+    
+    --badge-success-bg: #ecfdf5;
+    --badge-success-border: #a7f3d0;
+    --badge-success-text: #047857;
+    
+    --badge-warning-bg: #fffbeb;
+    --badge-warning-border: #fde68a;
+    --badge-warning-text: #b45309;
+    
+    --badge-danger-bg: #fff1f2;
+    --badge-danger-border: #fecdd3;
+    --badge-danger-text: #be123c;
+    
+    --hash-pill-bg: #eff6ff;
+    --hash-pill-border: #bfdbfe;
+    --hash-pill-text: #1d4ed8;
+}
+
+.dark, html.dark, body.dark, [class*="dark"] {
+    /* Dark Mode Tokens (Linear Obsidian & Deep Midnight Slate) */
+    --canvas-bg: #090d16;
+    --surface-card: #0f172a;
+    --surface-elevated: #141e33;
+    --surface-hover: rgba(56, 167, 248, 0.06);
+    --surface-active: rgba(56, 167, 248, 0.12);
+    
+    --border-subtle: rgba(148, 163, 184, 0.14);
+    --border-strong: rgba(148, 163, 184, 0.24);
+    --border-accent: rgba(56, 167, 248, 0.4);
+    
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #8197b0;
+    
+    --accent-primary: #38bdf8;
+    --accent-hover: #60a5fa;
+    --accent-glow: rgba(56, 167, 248, 0.22);
+    
+    --badge-success-bg: rgba(6, 78, 59, 0.5);
+    --badge-success-border: rgba(16, 185, 129, 0.4);
+    --badge-success-text: #34d399;
+    
+    --badge-warning-bg: rgba(120, 53, 15, 0.5);
+    --badge-warning-border: rgba(245, 158, 11, 0.4);
+    --badge-warning-text: #fbbf24;
+    
+    --badge-danger-bg: rgba(136, 19, 55, 0.5);
+    --badge-danger-border: rgba(244, 63, 94, 0.4);
+    --badge-danger-text: #fb7185;
+    
+    --hash-pill-bg: #141e33;
+    --hash-pill-border: rgba(56, 167, 248, 0.35);
+    --hash-pill-text: #93c5fd;
+}
+
+/* ==========================================================================
+   2. APP BACKGROUND & CANVAS
+   ========================================================================== */
+html, body {
+    background-color: var(--canvas-bg) !important;
+    /* KHÔNG DÙNG transform trên body để không phá vỡ position: fixed của Sidebar */
+}
+
+#main, main, .content {
+    background-color: var(--canvas-bg) !important;
+}
+
+#content {
+    animation: appleFadeIn var(--dur-fast) var(--apple-ease-out) forwards;
+}
+
+@keyframes appleFadeIn {
+    from { opacity: 0.94; }
+    to { opacity: 1; }
+}
+
+/* ==========================================================================
+   3. TABLES, ROWS & CHECKBOX MICRO-INTERACTIONS
+   ========================================================================== */
+.unfold-card,
+.bg-white.dark\:bg-gray-800.rounded-md,
+.bg-white.dark\:bg-gray-900.rounded-md,
+table {
+    border-radius: 14px !important;
+    background-color: var(--surface-card) !important;
+    border-color: var(--border-subtle) !important;
+    transition: box-shadow var(--dur-snappy) var(--apple-ease-out), 
+                border-color var(--dur-snappy) var(--apple-ease-out) !important;
+}
+
+/* Table Headers */
+thead th {
+    background-color: var(--canvas-bg) !important;
+    color: var(--text-muted) !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+}
+
+.dark thead th,
+[class*="dark"] thead th {
+    background-color: #111a2c !important;
+    color: #94a3b8 !important;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.16) !important;
+}
+
+/* Table Rows & Cells */
+tbody tr {
+    border-bottom: 1px solid var(--border-subtle) !important;
+    transition: background-color var(--dur-snappy) var(--apple-ease-out), 
+                box-shadow var(--dur-snappy) var(--apple-ease-out) !important;
+}
+
+tbody tr:hover {
+    background-color: var(--surface-hover) !important;
+    box-shadow: inset 3.5px 0 0 var(--accent-primary) !important;
+}
+
+/* Selected Row (Checked Checkbox) */
+tbody tr:has(input.action-select:checked) {
+    background-color: var(--surface-active) !important;
+    box-shadow: inset 4px 0 0 var(--accent-primary) !important;
+}
+
+/* Checkboxes */
+input[type="checkbox"],
+input.action-select,
+#action-toggle {
+    transition: transform var(--dur-fast) var(--apple-bounce), 
+                background-color var(--dur-fast) var(--apple-ease-out), 
+                border-color var(--dur-fast) var(--apple-ease-out) !important;
+    cursor: pointer !important;
+    transform-origin: center;
+}
+
+input[type="checkbox"]:active,
+input.action-select:active {
+    transform: scale(0.82) !important;
+    transition-duration: var(--dur-instant) !important;
+}
+
+input[type="checkbox"]:checked,
+input.action-select:checked {
+    transform: scale(1.06) !important;
+    background-color: var(--accent-primary) !important;
+    border-color: var(--accent-primary) !important;
+}
+
+/* Safe bottom clearance for sticky elements */
+.change-list #changelist,
+.change-list .result-list-wrapper,
+#changelist-form,
+.unfold-table-container {
+    padding-bottom: 90px !important;
+}
+
+/* ==========================================================================
+   4. APPLE STICKY TOP ACTION BAR (Frosted Glass, Zero Glare)
+   ========================================================================== */
+.apple-action-bar-container {
+    display: grid !important;
+    grid-template-rows: 0fr !important;
+    opacity: 0 !important;
+    transform: translateY(-8px) scale(0.985) !important;
+    transform-origin: top center !important;
+    pointer-events: none !important;
+    margin-bottom: 0px !important;
+    will-change: grid-template-rows, opacity, transform, margin-bottom;
+    transition: grid-template-rows var(--dur-fluid) var(--apple-drawer),
+                opacity var(--dur-snappy) var(--apple-ease-out),
+                transform var(--dur-fluid) var(--apple-drawer),
+                margin-bottom var(--dur-fluid) var(--apple-drawer) !important;
+}
+
+.apple-action-bar-container > * {
+    overflow: hidden !important;
+}
+
+.group:has(input.action-select:checked) .apple-action-bar-container,
+body:has(input.action-select:checked) .apple-action-bar-container,
+#changelist-form:has(input.action-select:checked) .apple-action-bar-container,
+.apple-action-bar-container.is-visible {
+    grid-template-rows: 1fr !important;
+    opacity: 1 !important;
+    transform: translateY(0) scale(1) !important;
+    pointer-events: auto !important;
+    margin-bottom: 12px !important;
+}
+
+.apple-top-action-bar {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 1px solid var(--border-strong) !important;
+    box-shadow: 0 10px 30px -4px rgba(15, 23, 42, 0.08), 
+                0 4px 10px -2px rgba(15, 23, 42, 0.04) !important;
+    border-radius: 14px !important;
+}
+
+.dark .apple-top-action-bar,
+html.dark .apple-top-action-bar,
+body.dark .apple-top-action-bar,
+[class*="dark"] .apple-top-action-bar {
+    background: rgba(15, 23, 42, 0.94) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 1px solid rgba(148, 163, 184, 0.22) !important;
+    box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.6), 
+                0 4px 12px rgba(0, 0, 0, 0.35) !important;
+}
+
+.apple-check-badge {
+    animation: appleCheckPop var(--dur-snappy) var(--apple-bounce);
+    will-change: transform;
+}
+
+@keyframes appleCheckPop {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.apple-top-action-bar select {
+    background-color: var(--surface-elevated) !important;
+    border: 1px solid var(--border-strong) !important;
+    color: var(--text-primary) !important;
+    border-radius: 10px !important;
+    padding: 7px 32px 7px 12px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    outline: none !important;
+    cursor: pointer !important;
+    min-width: 220px !important;
+    transition: border-color var(--dur-fast) var(--apple-ease-out), 
+                box-shadow var(--dur-fast) var(--apple-ease-out) !important;
+}
+
+.apple-top-action-bar select:focus {
+    border-color: var(--accent-primary) !important;
+    box-shadow: 0 0 0 3px var(--accent-glow) !important;
+}
+
+.apple-top-action-bar select option {
+    background-color: var(--surface-card) !important;
+    color: var(--text-primary) !important;
+}
+
+.apple-top-action-bar .apple-action-btn {
+    background: linear-gradient(180deg, var(--accent-primary) 0%, var(--accent-hover) 100%) !important;
+    color: #ffffff !important;
+    border-radius: 10px !important;
+    padding: 7px 18px !important;
+    font-weight: 800 !important;
+    font-size: 13px !important;
+    border: none !important;
+    box-shadow: 0 2px 10px var(--accent-glow) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    cursor: pointer !important;
+    will-change: transform, box-shadow;
+    transition: transform var(--dur-fast) var(--apple-spring), 
+                box-shadow var(--dur-fast) var(--apple-ease-out) !important;
+}
+
+.apple-top-action-bar .apple-action-btn:hover {
+    transform: translateY(-1.5px) scale(1.02) !important;
+    box-shadow: 0 6px 18px var(--accent-glow) !important;
+}
+
+.apple-top-action-bar .apple-action-btn:active {
+    transform: scale(0.96) !important;
+    transition-duration: var(--dur-instant) !important;
+}
+
+div.bottom-0.right-0:has(#changelist-actions-wrapper),
+div.bottom-0:has(#changelist-actions-wrapper) {
+    all: unset !important;
+}
+
+/* ==========================================================================
+   5. WORKFLOW STEPPER HUB (Non-Muddy, Deep Obsidian Surfaces)
+   ========================================================================== */
+.apple-admin-card {
+    background-color: var(--surface-card) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-top: 2.5px solid var(--accent-primary) !important;
+    border-radius: 20px !important;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06) !important;
+}
+
+.dark .apple-admin-card,
+html.dark .apple-admin-card,
+body.dark .apple-admin-card,
+[class*="dark"] .apple-admin-card {
+    background-color: #0f172a !important;
+    border-color: rgba(148, 163, 184, 0.14) !important;
+    border-top: 2.5px solid #38bdf8 !important;
+    box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.5) !important;
+}
+
+.apple-step-item {
+    background-color: var(--surface-elevated) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: 14px !important;
+    will-change: transform, box-shadow, border-color;
+    transition: transform var(--dur-snappy) var(--apple-ease-out), 
+                box-shadow var(--dur-snappy) var(--apple-ease-out), 
+                border-color var(--dur-snappy) var(--apple-ease-out) !important;
+}
+
+.dark .apple-step-item,
+html.dark .apple-step-item,
+body.dark .apple-step-item,
+[class*="dark"] .apple-step-item {
+    background-color: #141e33 !important;
+    border-color: rgba(148, 163, 184, 0.14) !important;
+}
+
+.apple-step-item:hover {
+    border-color: var(--accent-primary) !important;
+    transform: translateY(-2.5px) scale(1.008) !important;
+    box-shadow: 0 8px 24px var(--accent-glow) !important;
+}
+
+.apple-step-item:active {
+    transform: scale(0.98) !important;
+    transition-duration: var(--dur-instant) !important;
+}
+
+.apple-step-item .w-10 {
+    transition: transform var(--dur-snappy) var(--apple-bounce) !important;
+    will-change: transform;
+}
+
+.apple-step-item:hover .w-10 {
+    transform: scale(1.12) rotate(3deg) !important;
+}
+
+/* ==========================================================================
+   6. KPI STAT CARDS
+   ========================================================================== */
+.apple-kpi-item {
+    background-color: var(--surface-card) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: 18px !important;
+    will-change: transform, box-shadow, border-color;
+    transition: transform var(--dur-snappy) var(--apple-ease-out), 
+                box-shadow var(--dur-snappy) var(--apple-ease-out), 
+                border-color var(--dur-snappy) var(--apple-ease-out) !important;
+}
+
+.dark .apple-kpi-item,
+html.dark .apple-kpi-item,
+body.dark .apple-kpi-item,
+[class*="dark"] .apple-kpi-item {
+    background-color: #0f172a !important;
+    border-color: rgba(148, 163, 184, 0.14) !important;
+}
+
+.apple-kpi-item:hover {
+    border-color: var(--accent-primary) !important;
+    transform: translateY(-3px) scale(1.008) !important;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1) !important;
+}
+
+.dark .apple-kpi-item:hover {
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.5) !important;
+}
+
+.apple-kpi-item:active {
+    transform: scale(0.975) !important;
+    transition-duration: var(--dur-instant) !important;
+}
+
+/* ==========================================================================
+   7. TYPOGRAPHY HIERARCHY (HIGH CONTRAST & LEGIBILITY)
+   ========================================================================== */
+.apple-text-title {
+    color: var(--text-primary) !important;
+    font-weight: 800 !important;
+}
+
+.apple-text-desc {
+    color: var(--text-secondary) !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+}
+
+.apple-text-muted {
+    color: var(--text-muted) !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+}
+
+/* ==========================================================================
+   8. SIDEBAR NAVIGATION (CỐ ĐỊNH HOÀN TOÀN KHI CUỘN TRANG - PINNED TO VIEWPORT)
+   ========================================================================== */
+#nav-sidebar,
+div#nav-sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    z-index: 50 !important;
+    background-color: #ffffff !important;
+    border-right: 1px solid var(--border-subtle) !important;
+}
+
+.dark #nav-sidebar,
+.dark div#nav-sidebar,
+html.dark #nav-sidebar,
+body.dark #nav-sidebar,
+[class*="dark"] #nav-sidebar {
+    background-color: #0b1120 !important;
+    border-right: 1px solid rgba(148, 163, 184, 0.12) !important;
+}
+
+/* Thanh cuộn tinh tế trong Sidebar */
+#nav-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+#nav-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+#nav-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.2);
+    border-radius: 9999px;
+}
+#nav-sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.4);
+}
+
+/* Các liên kết điều hướng trong Sidebar */
+#nav-sidebar a,
+aside a {
+    border-radius: 9px !important;
+    will-change: transform, background-color;
+    transition: transform var(--dur-snappy) var(--apple-ease-out), 
+                background-color var(--dur-snappy) var(--apple-ease-out) !important;
+}
+
+#nav-sidebar a:hover,
+aside a:hover {
+    background-color: var(--surface-hover) !important;
+    transform: translateX(3px) !important;
+}
+
+.dark #nav-sidebar a:hover,
+.dark aside a:hover {
+    background-color: rgba(56, 167, 248, 0.08) !important;
+    color: #38bdf8 !important;
+}
+
+#nav-sidebar a.active,
+#nav-sidebar a[aria-current="page"],
+aside a.active,
+aside a[aria-current="page"] {
+    background-color: rgba(2, 111, 224, 0.08) !important;
+    color: #026fe0 !important;
+    font-weight: 700 !important;
+}
+
+.dark #nav-sidebar a.active,
+.dark #nav-sidebar a[aria-current="page"],
+.dark aside a.active,
+.dark aside a[aria-current="page"] {
+    background-color: rgba(56, 167, 248, 0.14) !important;
+    color: #38bdf8 !important;
+}
+
+#nav-sidebar h3, 
+#nav-sidebar .sidebar-title,
+aside h3, 
+aside .sidebar-title {
+    letter-spacing: 0.06em;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    color: var(--text-muted) !important;
+}
+
+/* ==========================================================================
+   9. BUTTONS ACROSS SYSTEM (TACTILE FEEDBACK)
+   ========================================================================== */
+button, 
+.button, 
+input[type="submit"], 
+.submit-row input,
+a.button {
+    border-radius: 10px !important;
+    font-weight: 600 !important;
+    will-change: transform, box-shadow;
+    transition: transform var(--dur-fast) var(--apple-spring), 
+                box-shadow var(--dur-fast) var(--apple-ease-out), 
+                background-color var(--dur-fast) var(--apple-ease-out) !important;
+}
+
+button:hover, 
+.button:hover, 
+input[type="submit"]:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--accent-glow) !important;
+}
+
+button:active, 
+.button:active, 
+input[type="submit"]:active {
+    transform: scale(0.97) !important;
+    transition-duration: var(--dur-instant) !important;
+}
+
+/* Inputs Focus State */
+input[type="text"]:focus,
+input[type="search"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--accent-primary) !important;
+    box-shadow: 0 0 0 3px var(--accent-glow) !important;
+    outline: none !important;
+}
+
+/* ==========================================================================
+   10. BLOCKCHAIN HASH PILL (MERKLE ROOT, TXHASH, PUBLIC ID)
+   No More Stark White Boxes in Dark Mode!
+   Cryptographic Web3 Blue Ice Pill with Soft Glow
+   ========================================================================== */
+.merkle-hash-badge,
+.apple-hash-pill,
+button.merkle-hash-badge,
+button.apple-hash-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.02em !important;
+    padding: 5px 10px !important;
+    border-radius: 9px !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    will-change: transform, box-shadow, background-color, border-color;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+    line-height: 1.2 !important;
+    
+    background-color: var(--hash-pill-bg) !important;
+    color: var(--hash-pill-text) !important;
+    border: 1px solid var(--hash-pill-border) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+.merkle-hash-badge:hover,
+.apple-hash-pill:hover,
+button.merkle-hash-badge:hover,
+button.apple-hash-pill:hover {
+    background-color: #dbeafe !important;
+    border-color: #026fe0 !important;
+    color: #0258b6 !important;
+    transform: translateY(-1px) scale(1.02) !important;
+    box-shadow: 0 4px 12px rgba(2, 111, 224, 0.2) !important;
+}
+
+.dark .merkle-hash-badge,
+html.dark .merkle-hash-badge,
+body.dark .merkle-hash-badge,
+[class*="dark"] .merkle-hash-badge,
+.dark .apple-hash-pill,
+html.dark .apple-hash-pill,
+body.dark .apple-hash-pill,
+[class*="dark"] .apple-hash-pill,
+.dark button.merkle-hash-badge,
+.dark button.apple-hash-pill {
+    background-color: #141e33 !important;
+    background-image: none !important;
+    color: #93c5fd !important;
+    border: 1px solid rgba(56, 167, 248, 0.35) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+}
+
+.dark .merkle-hash-badge:hover,
+.dark .apple-hash-pill:hover,
+.dark button.merkle-hash-badge:hover,
+.dark button.apple-hash-pill:hover {
+    background-color: #1a2744 !important;
+    border-color: #38bdf8 !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 16px rgba(56, 167, 248, 0.35) !important;
+}
+
+/* Copied State */
+.merkle-hash-badge.copied,
+.apple-hash-pill.copied {
+    background-color: #ecfdf5 !important;
+    border-color: #10b981 !important;
+    color: #047857 !important;
+    transform: scale(1.05) !important;
+}
+
+.dark .merkle-hash-badge.copied,
+.dark .apple-hash-pill.copied {
+    background-color: rgba(6, 78, 59, 0.7) !important;
+    border-color: #34d399 !important;
+    color: #34d399 !important;
+    box-shadow: 0 0 16px rgba(52, 211, 153, 0.4) !important;
+}
+
+/* ==========================================================================
+   11. SEMANTIC STATUS BADGES & ACTION PILLS
+   ========================================================================== */
+.apple-badge-success {
+    background-color: var(--badge-success-bg) !important;
+    border: 1px solid var(--badge-success-border) !important;
+    color: var(--badge-success-text) !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    padding: 3px 10px !important;
+    border-radius: 9999px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+}
+
+.apple-badge-warning {
+    background-color: var(--badge-warning-bg) !important;
+    border: 1px solid var(--badge-warning-border) !important;
+    color: var(--badge-warning-text) !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    padding: 3px 10px !important;
+    border-radius: 9999px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+}
+
+.apple-badge-danger {
+    background-color: var(--badge-danger-bg) !important;
+    border: 1px solid var(--badge-danger-border) !important;
+    color: var(--badge-danger-text) !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    padding: 3px 10px !important;
+    border-radius: 9999px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+}
+
+/* Nút "Xem DS" nhỏ gọn, hài hòa, không lòe loẹt */
+.apple-view-list-btn {
+    background-color: #ecfdf5 !important;
+    border: 1px solid #a7f3d0 !important;
+    color: #047857 !important;
+    padding: 4px 10px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    text-decoration: none !important;
+    transition: all var(--dur-fast) var(--apple-spring) !important;
+}
+
+.dark .apple-view-list-btn,
+[class*="dark"] .apple-view-list-btn {
+    background-color: rgba(6, 78, 59, 0.45) !important;
+    border: 1px solid rgba(16, 185, 129, 0.4) !important;
+    color: #34d399 !important;
+}
+
+.apple-view-list-btn:hover {
+    transform: translateY(-1px) scale(1.02) !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25) !important;
+    border-color: #10b981 !important;
+}
+
+/* Nút Action Primary & Danger */
+.apple-action-btn-primary {
+    background-color: var(--accent-primary) !important;
+    color: #ffffff !important;
+    padding: 5px 12px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    box-shadow: 0 2px 8px var(--accent-glow) !important;
+    transition: all var(--dur-fast) var(--apple-spring) !important;
+}
+
+.apple-action-btn-primary:hover {
+    background-color: var(--accent-hover) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 14px var(--accent-glow) !important;
+}
+
+.apple-action-btn-danger {
+    background-color: var(--badge-danger-bg) !important;
+    border: 1px solid var(--badge-danger-border) !important;
+    color: var(--badge-danger-text) !important;
+    padding: 4px 10px !important;
+    border-radius: 8px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    transition: all var(--dur-fast) var(--apple-spring) !important;
+}
+
+.apple-action-btn-danger:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(244, 63, 94, 0.25) !important;
+}
+
+/* ==========================================================================
+   12. APPLE DRAWER FILTER (SLIDE-IN SHEET)
+   ========================================================================== */
+#changelist-filter {
+    background: transparent !important;
+}
+
+.apple-filter-backdrop {
+    background: rgba(9, 13, 22, 0.6) !important;
+    backdrop-filter: blur(8px) saturate(130%) !important;
+    -webkit-backdrop-filter: blur(8px) saturate(130%) !important;
+    cursor: pointer !important;
+}
+
+.apple-filter-drawer {
+    background: #ffffff !important;
+    border-left: 1px solid var(--border-subtle) !important;
+    box-shadow: -10px 0 40px -10px rgba(0, 0, 0, 0.15) !important;
+}
+
+.dark .apple-filter-drawer,
+html.dark .apple-filter-drawer,
+body.dark .apple-filter-drawer,
+[class*="dark"] .apple-filter-drawer {
+    background: #0f172a !important;
+    border-left: 1px solid rgba(148, 163, 184, 0.16) !important;
+    box-shadow: -16px 0 50px -10px rgba(0, 0, 0, 0.75) !important;
+}
+
+.apple-filter-header {
+    background: var(--canvas-bg) !important;
+    border-bottom: 1px solid var(--border-subtle) !important;
+}
+
+.dark .apple-filter-header,
+[class*="dark"] .apple-filter-header {
+    background: #111a2c !important;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.16) !important;
+}
+
+.apple-filter-close-btn {
+    transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.15s ease !important;
+}
+
+.apple-filter-close-btn:hover {
+    transform: rotate(90deg) scale(1.1) !important;
+}
+
+.apple-filter-list {
+    background: var(--surface-card) !important;
+    border: 1px solid var(--border-subtle) !important;
+}
+
+.dark .apple-filter-list,
+[class*="dark"] .apple-filter-list {
+    background: #141e33 !important;
+    border: 1px solid rgba(148, 163, 184, 0.16) !important;
+}
+
+.apple-filter-item {
+    color: var(--text-secondary) !important;
+    transition: all 0.15s ease !important;
+}
+
+.dark .apple-filter-item,
+[class*="dark"] .apple-filter-item {
+    color: #cbd5e1 !important;
+}
+
+.apple-filter-item:hover {
+    background-color: var(--surface-elevated) !important;
+    color: var(--accent-primary) !important;
+}
+
+.dark .apple-filter-item:hover,
+[class*="dark"] .apple-filter-item:hover {
+    background-color: rgba(56, 167, 248, 0.12) !important;
+    color: #38bdf8 !important;
+}
+
+.apple-filter-item-active {
+    background-color: #eff6ff !important;
+    color: #026fe0 !important;
+    font-weight: 800 !important;
+    border-left: 3.5px solid #026fe0 !important;
+}
+
+.dark .apple-filter-item-active,
+[class*="dark"] .apple-filter-item-active {
+    background-color: rgba(56, 167, 248, 0.16) !important;
+    color: #93c5fd !important;
+    font-weight: 800 !important;
+    border-left: 3.5px solid #38bdf8 !important;
+}

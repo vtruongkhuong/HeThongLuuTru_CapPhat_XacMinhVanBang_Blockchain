@@ -4,7 +4,8 @@
 
 {% block content %}
 <!-- Banner xanh -->
-<div class="bg-ntt-dark py-16 -mx-4 sm:-mx-6 lg:-mx-8 px-4 relative overflow-hidden flex flex-col items-center pt-[100px]">
+<div class="bg-gradient-to-br from-[#090d16] via-[#0d162a] to-[#024b9c] py-16 -mx-4 sm:-mx-6 lg:-mx-8 px-4 relative overflow-hidden flex flex-col items-center pt-[100px]">
+    <div class="absolute inset-0 pointer-events-none opacity-40 bg-[radial-gradient(circle_at_50%_20%,#38bdf8_0%,transparent_60%)]"></div>
     <div class="absolute inset-0 opacity-10 bg-center bg-no-repeat bg-contain pointer-events-none" style="background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'white\'><path d=\'M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72l5 2.73 5-2.73v3.72z\'/></svg>');"></div>
     <h1 class="text-3xl md:text-4xl font-bold text-white uppercase text-center relative z-10 tracking-wide mb-12">
         CỔNG TRA CỨU VĂN BẰNG, CHỨNG CHỈ
@@ -15,12 +16,12 @@
         
         <!-- Tab selector -->
         <div class="flex justify-center mb-10">
-            <div class="bg-gray-100 p-1.5 rounded-full flex gap-1 border border-gray-200">
-                <button class="px-6 py-2.5 bg-ntt-dark text-white rounded-full font-bold text-sm flex items-center gap-2 shadow-md">
+            <div class="bg-slate-100 p-1.5 rounded-full flex gap-1 border border-slate-200 shadow-inner">
+                <button class="animate-btn px-6 py-2.5 bg-blue-600 text-white rounded-full font-bold text-sm flex items-center gap-2 shadow-md">
                     <span class="material-symbols-outlined text-[18px]">school</span> Tra cứu văn bằng
                 </button>
-                <a href="{% url 'verification:verify_temp_cert' %}" class="px-6 py-2.5 text-gray-600 hover:text-ntt-dark rounded-full font-bold text-sm flex items-center gap-2 transition-colors">
-                    <span class="material-symbols-outlined text-[18px]">workspace_premium</span> Tra cứu chứng chỉ
+                <a href="{% url 'verification:verify_temp_cert' %}" class="animate-btn px-6 py-2.5 text-slate-600 hover:text-blue-600 rounded-full font-bold text-sm flex items-center gap-2 transition-colors">
+                    <span class="material-symbols-outlined text-[18px]">workspace_premium</span> Tra cứu chứng chỉ tạm thời
                 </a>
             </div>
         </div>
@@ -55,10 +56,10 @@
 
             <!-- Các nút bấm (Đã bỏ xác nhận Không phải người máy) -->
             <div class="flex flex-col sm:flex-row items-center justify-end gap-4 pt-2">
-                <button type="submit" class="w-full sm:w-auto bg-ntt-light hover:bg-ntt-dark text-white px-8 py-3.5 rounded-xl font-bold uppercase text-sm flex items-center justify-center gap-2 transition-colors shadow-md hover:shadow-lg">
+                <button type="submit" class="animate-btn animate-shimmer w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3.5 rounded-xl font-bold uppercase text-sm flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg">
                     <span class="material-symbols-outlined text-[20px]">search</span> Tra cứu
                 </button>
-                <button type="button" id="btn-scan-qr" class="w-full sm:w-auto bg-white hover:bg-gray-50 text-ntt-dark border-2 border-gray-200 px-6 py-3.5 rounded-xl font-bold uppercase text-sm flex items-center justify-center gap-2 transition-colors">
+                <button type="button" id="btn-scan-qr" class="animate-btn w-full sm:w-auto bg-white hover:bg-gray-50 text-ntt-dark border-2 border-gray-200 px-6 py-3.5 rounded-xl font-bold uppercase text-sm flex items-center justify-center gap-2 transition-all">
                     <span class="material-symbols-outlined text-[20px]">qr_code_scanner</span> Tra cứu bằng QR
                 </button>
             </div>

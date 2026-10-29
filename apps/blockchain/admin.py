@@ -2,7 +2,7 @@ from django.contrib import admin, messages
 from django.shortcuts import render, redirect
 from django.urls import path
 from apps.degrees.models import Degree
-from apps.core.admin import BaseRoleAdmin
+from apps.core.admin import BaseRoleAdmin, format_crypto_hash_badge
 from apps.workflow.services import transition
 from .models import IssuanceBatch, BlockchainTransaction
 from .client import BlockchainClient
@@ -16,8 +16,14 @@ class IssuanceBatchAdmin(BaseRoleAdmin):
     # CHỈ role issuer (Người phát hành) mới được vào đây
     allowed_roles = ['issuer']
     
-    list_display = ['graduation_batch', 'merkle_root', 'status', 'created_at']
+    list_display = ['graduation_batch', 'short_merkle_root', 'status', 'created_at']
+    list_filter = ('status', 'created_at')
+    list_filter_submit = True
     actions = ['issue_with_metamask']
+
+    def short_merkle_root(self, obj):
+        return format_crypto_hash_badge(obj.merkle_root, title_prefix="Mã Merkle Root", icon="tag")
+    short_merkle_root.short_description = "Mã Merkle Root"
 
     # --- ACTION 1: HIỂN THỊ MÀN HÌNH KÝ ---
     @admin.action(description="Phát hành bằng MetaMask (Non-custodial)")
@@ -115,3 +121,15 @@ class IssuanceBatchAdmin(BaseRoleAdmin):
                 level=messages.SUCCESS
             )
             return redirect('admin:blockchain_issuancebatch_changelist')
+
+@admin.register(BlockchainTransaction)
+class BlockchainTransactionAdmin(BaseRoleAdmin):
+    allowed_roles = ['issuer', 'approver', 'super_admin']
+    list_display = ['tx_hash_display', 'operation_type', 'status', 'block_number', 'created_at']
+    list_filter = ('operation_type', 'status', 'created_at')
+    list_filter_submit = True
+    search_fields = ['tx_hash']
+
+    def tx_hash_display(self, obj):
+        return format_crypto_hash_badge(obj.tx_hash, title_prefix="Mã TxHash", icon="link")
+    tx_hash_display.short_description = "Mã Giao Dịch TxHash"

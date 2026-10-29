@@ -1,0 +1,207 @@
+{% extends 'admin/index.html' %}
+{% load i18n static %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- =========================================================================
+         1. APPLE-STYLED WORKFLOW STEPPER (Trung tâm điều phối quy trình 4 bước)
+         ========================================================================= -->
+    <div class="apple-admin-card p-6 relative overflow-hidden">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-5 border-b border-gray-200 dark:border-gray-800 pb-4">
+            <div>
+                <span class="text-[11px] font-black uppercase tracking-wider text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Workflow Hub
+                </span>
+                <h2 class="text-xl apple-text-title tracking-tight mt-1">
+                    Quy Trình Nghiệp Vụ Cấp Phát Văn Bằng
+                </h2>
+            </div>
+            <div class="text-xs font-bold apple-text-desc bg-blue-50/80 dark:bg-[#141e33] px-4 py-2 rounded-full border border-blue-200/80 dark:border-blue-900/40 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px] text-blue-500">verified</span>
+                Chuẩn Smart Contract v2 & Cơ chế 4-Mắt
+            </div>
+        </div>
+
+        <!-- 4 Bước Quy trình chuẩn mực (Tương phản cao tuyệt đối, không bị mờ đục) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Bước 1 -->
+            <a href="{% url 'admin:students_student_changelist' %}" class="apple-step-item p-4.5 block group active:scale-[0.98]">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-sm shadow-sm">
+                        1
+                    </div>
+                    <div class="min-w-0">
+                        <span class="apple-text-muted text-[10px] block">Bước 1</span>
+                        <h4 class="text-sm apple-text-title truncate">Hồ sơ Sinh viên</h4>
+                    </div>
+                </div>
+                <p class="apple-text-desc mt-3">Quản lý & Import Excel danh sách SV</p>
+            </a>
+
+            <!-- Bước 2 -->
+            <a href="{% url 'admin:graduation_graduationbatch_changelist' %}" class="apple-step-item p-4.5 block group active:scale-[0.98]">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black text-sm shadow-sm">
+                        2
+                    </div>
+                    <div class="min-w-0">
+                        <span class="apple-text-muted text-[10px] block">Bước 2</span>
+                        <h4 class="text-sm apple-text-title truncate">Xét Tốt Nghiệp</h4>
+                    </div>
+                </div>
+                <p class="apple-text-desc mt-3">Kiểm duyệt 4-mắt & chốt danh sách đợt</p>
+            </a>
+
+            <!-- Bước 3 -->
+            <a href="{% url 'admin:blockchain_issuancebatch_changelist' %}" class="apple-step-item p-4.5 block group active:scale-[0.98]">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-black text-sm shadow-sm">
+                        3
+                    </div>
+                    <div class="min-w-0">
+                        <span class="apple-text-muted text-[10px] block">Bước 3</span>
+                        <h4 class="text-sm apple-text-title truncate">Ký Phát Hành On-Chain</h4>
+                    </div>
+                </div>
+                <p class="apple-text-desc mt-3">Ký ví MetaMask & ghim Merkle Root</p>
+            </a>
+
+            <!-- Bước 4 -->
+            <a href="{% url 'admin:degrees_degree_changelist' %}" class="apple-step-item p-4.5 block group active:scale-[0.98]">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-sm shadow-sm">
+                        4
+                    </div>
+                    <div class="min-w-0">
+                        <span class="apple-text-muted text-[10px] block">Bước 4</span>
+                        <h4 class="text-sm apple-text-title truncate">Sổ Cái Văn Bằng</h4>
+                    </div>
+                </div>
+                <p class="apple-text-desc mt-3">Quản lý văn bằng số & tải PDF chuẩn</p>
+            </a>
+        </div>
+    </div>
+
+    <!-- =========================================================================
+         2. APPLE KPI CARDS (Thẻ chỉ số tương phản cao, số to rõ ràng)
+         ========================================================================= -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {% for item in kpis %}
+            <a href="{{ item.link }}" class="apple-kpi-item stagger-item p-5 flex flex-col justify-between group active:scale-[0.98]">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-950/70 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-200 dark:border-blue-800">
+                        <span class="material-symbols-outlined text-[24px]">{{ item.icon }}</span>
+                    </div>
+                    <span class="text-[10px] font-extrabold uppercase px-3 py-1 rounded-full {{ item.badge_color }}">
+                        {{ item.badge }}
+                    </span>
+                </div>
+                <div>
+                    <h3 class="text-3xl font-black apple-text-title tracking-tight">{{ item.metric }}</h3>
+                    <p class="apple-text-desc mt-1.5">{{ item.title }}</p>
+                </div>
+            </a>
+        {% endfor %}
+    </div>
+
+    <!-- =========================================================================
+         3. RECENT GRADUATION BATCHES (Các đợt tốt nghiệp gần nhất)
+         ========================================================================= -->
+    {% if recent_batches %}
+    <div class="apple-admin-card p-6">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h3 class="text-sm font-bold uppercase tracking-wider apple-text-title flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px] text-blue-600 dark:text-blue-400">history_edu</span>
+                    Đợt Xét Tốt Nghiệp Gần Đây
+                </h3>
+            </div>
+            <a href="{% url 'admin:graduation_graduationbatch_changelist' %}" class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1">
+                Xem tất cả &rarr;
+            </a>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead>
+                    <tr class="border-b border-gray-200 dark:border-gray-800 uppercase tracking-wider text-[11px] bg-gray-50 dark:bg-[#111a2c]">
+                        <th class="py-3 px-3 font-extrabold apple-text-title">Tên đợt tốt nghiệp</th>
+                        <th class="py-3 px-3 font-extrabold apple-text-title">Khoa đào tạo</th>
+                        <th class="py-3 px-3 font-extrabold apple-text-title">Số lượng SV</th>
+                        <th class="py-3 px-3 font-extrabold apple-text-title">Trạng thái</th>
+                        <th class="py-3 px-3 font-extrabold apple-text-title">Mã Merkle Root</th>
+                        <th class="py-3 px-3 font-extrabold text-right apple-text-title">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                    {% for batch in recent_batches %}
+                    <tr class="hover:bg-blue-50/30 dark:hover:bg-sky-950/20 transition-colors">
+                        <td class="py-3.5 px-3 font-bold apple-text-title">
+                            {{ batch.name }}
+                        </td>
+                        <td class="py-3.5 px-3 font-semibold apple-text-desc">
+                            {{ batch.faculty.name|default:"Toàn trường" }}
+                        </td>
+                        <td class="py-3.5 px-3 font-extrabold apple-text-title">
+                            {{ batch.total_students }} SV
+                        </td>
+                        <td class="py-3.5 px-3">
+                            {% if batch.status == 'approved' or batch.status == 'issued' %}
+                                <span class="apple-badge-success">
+                                    <span class="material-symbols-outlined text-[13px]">verified</span>
+                                    {{ batch.get_status_display }}
+                                </span>
+                            {% elif batch.status == 'submitted' or batch.status == 'reviewed' %}
+                                <span class="apple-badge-warning">
+                                    <span class="material-symbols-outlined text-[13px]">pending</span>
+                                    {{ batch.get_status_display }}
+                                </span>
+                            {% else %}
+                                <span class="apple-badge-info">
+                                    <span class="material-symbols-outlined text-[13px]">edit_note</span>
+                                    {{ batch.get_status_display }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3.5 px-3">
+                            {% if batch.merkle_root %}
+                                <button type="button" class="merkle-hash-badge apple-hash-pill" data-copy-text="{{ batch.merkle_root }}" title="Nhấn để chép Merkle Root đầy đủ: {{ batch.merkle_root }}">
+                                    <span class="material-symbols-outlined text-[13px]">tag</span>
+                                    <span>{{ batch.merkle_root|slice:":8" }}...{{ batch.merkle_root|slice:"-8:" }}</span>
+                                </button>
+                            {% else %}
+                                <span class="text-gray-400 dark:text-gray-600 font-mono text-xs">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3.5 px-3 text-right">
+                            <a href="{% url 'admin:graduation_graduationbatch_change' batch.pk %}" class="apple-action-btn-primary" style="padding: 4px 10px; font-size: 11px;">
+                                Chi tiết
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- =========================================================================
+         4. DEFAULT DJANGO APPLICATIONS (Danh mục toàn bộ cơ sở dữ liệu)
+         ========================================================================= -->
+    <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-800">
+        <div class="mb-4">
+            <h3 class="text-xs font-black uppercase tracking-wider apple-text-desc flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[18px] text-blue-600 dark:text-blue-400">database</span>
+                Danh Mục Toàn Bộ Bảng Dữ Liệu Hệ Thống
+            </h3>
+        </div>
+        
+        <!-- Render danh sách model mặc định của Unfold -->
+        {% include "unfold/helpers/dashboard_default.html" %}
+    </div>
+
+</div>
+{% endblock %}

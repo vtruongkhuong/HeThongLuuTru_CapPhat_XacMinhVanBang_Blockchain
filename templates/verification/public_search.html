@@ -5,7 +5,7 @@
 {% block content %}
 <div class="max-w-4xl w-full mx-auto px-4 py-12">
     <!-- Nút quay lại -->
-    <a href="{% url 'verification:landing' %}" class="inline-flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-ntt-dark mb-8 transition-colors">
+    <a href="{% url 'verification:landing' %}" class="animate-btn inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ntt-dark bg-white hover:bg-gray-100 px-5 py-2.5 rounded-xl border border-gray-200 mb-8 transition-all shadow-sm">
         <span class="material-symbols-outlined text-[18px]">arrow_back</span> QUAY LẠI TRANG TRA CỨU
     </a>
 
@@ -18,7 +18,7 @@
                 {% elif verification_state == 'REVOKED' %} bg-gradient-to-r from-red-600 to-red-500
                 {% else %} bg-gradient-to-r from-gray-600 to-gray-500 {% endif %}">
                 
-                <span class="material-symbols-outlined text-6xl mb-4">
+                <span class="material-symbols-outlined text-6xl mb-4 animate-float inline-block">
                     {% if verification_state == 'VALID' %}verified
                     {% elif verification_state == 'REVOKED' %}gpp_bad
                     {% else %}search_off{% endif %}
@@ -83,15 +83,25 @@
                         <div class="space-y-4 text-sm">
                             <div>
                                 <span class="text-gray-500 text-xs font-bold uppercase block mb-1">Mã định danh hợp đồng (Credential ID)</span>
-                                <span class="text-ntt-dark font-mono bg-white px-3 py-2 rounded-lg border border-gray-200 block break-all">
-                                    {{ degree.credential_public_id|default:"-" }}
-                                </span>
+                                {% if degree.credential_public_id %}
+                                    <button type="button" class="apple-hash-pill w-full justify-between" data-copy-text="{{ degree.credential_public_id }}" title="Nhấn để copy Credential ID">
+                                        <span class="break-all text-left">{{ degree.credential_public_id }}</span>
+                                        <span class="material-symbols-outlined text-sm shrink-0">content_copy</span>
+                                    </button>
+                                {% else %}
+                                    <span class="text-gray-400 font-mono text-xs">-</span>
+                                {% endif %}
                             </div>
                             <div>
                                 <span class="text-gray-500 text-xs font-bold uppercase block mb-1">Mã giao dịch phát hành (TxHash)</span>
-                                <span class="text-ntt-dark font-mono bg-white px-3 py-2 rounded-lg border border-gray-200 block break-all">
-                                    {{ degree.tx_hash|default:"-" }}
-                                </span>
+                                {% if degree.tx_hash %}
+                                    <button type="button" class="apple-hash-pill w-full justify-between" data-copy-text="{{ degree.tx_hash }}" title="Nhấn để copy TxHash">
+                                        <span class="break-all text-left">{{ degree.tx_hash }}</span>
+                                        <span class="material-symbols-outlined text-sm shrink-0">content_copy</span>
+                                    </button>
+                                {% else %}
+                                    <span class="text-gray-400 font-mono text-xs">-</span>
+                                {% endif %}
                             </div>
                             {% if verification_state == 'VALID' %}
                                 <div class="flex items-center gap-2 text-green-600 font-bold text-xs uppercase pt-2">

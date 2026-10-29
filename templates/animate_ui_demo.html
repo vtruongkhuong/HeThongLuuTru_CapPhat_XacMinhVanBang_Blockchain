@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}GSAP 3 & Apple Motion - Thư viện Hiệu ứng Tương tác Cao cấp{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 py-12 space-y-12">
+
+    <!-- Header Section -->
+    <div class="text-center space-y-4">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold uppercase tracking-wider animate-float">
+            <span class="material-symbols-outlined text-sm">bolt</span>
+            GSAP 3 (GreenSock Animation Platform) + Apple Design Engine
+        </div>
+        <h1 class="text-3xl md:text-5xl font-extrabold text-ntt-dark tracking-tight">
+            Hiệu ứng Tương tác <span class="bg-gradient-to-r from-emerald-600 via-blue-600 to-ntt-gold bg-clip-text text-transparent">GSAP 3 High-Performance</span>
+        </h1>
+        <p class="max-w-2xl mx-auto text-gray-600 text-sm md:text-base leading-relaxed">
+            Áp dụng nền tảng hoạt họa chuẩn ngành công nghiệp <strong>GreenSock GSAP 3</strong> kết hợp vật lý chuyển động của Apple. Tăng tốc phần cứng GPU 120 FPS, mượt mà tuyệt đối và an toàn tuyệt đối với dữ liệu hệ thống!
+        </p>
+    </div>
+
+    <!-- 0. GSAP INTERACTIVE CONTROL CENTER (Trải nghiệm trực tiếp sức mạnh GSAP) -->
+    <div class="bg-gradient-to-r from-slate-900 to-blue-950 text-white rounded-3xl p-8 shadow-xl space-y-6 border border-slate-800">
+        <div class="flex items-center justify-between border-b border-white/10 pb-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold border border-emerald-500/30">
+                    <span class="material-symbols-outlined">motion_photos_on</span>
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-white">Thử nghiệm Sức mạnh GSAP 3</h2>
+                    <p class="text-xs text-slate-400">Bấm các nút dưới đây để xem GSAP điều phối chuyển động mượt mà thời gian thực.</p>
+                </div>
+            </div>
+            <span class="text-xs px-3 py-1 bg-emerald-500/20 text-emerald-300 font-mono rounded-full border border-emerald-500/40">gsap.v3.12.5</span>
+        </div>
+
+        <div class="flex flex-wrap gap-4">
+            <button onclick="gsapDemoStagger()" class="animate-btn px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm">
+                <span class="material-symbols-outlined text-sm">reorder</span> 1. Chạy Stagger Bảng Dữ Liệu
+            </button>
+            <button onclick="gsapDemoRollup()" class="animate-btn px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm">
+                <span class="material-symbols-outlined text-sm">pin</span> 2. Chạy Number Roll-Up GSAP
+            </button>
+            <button onclick="gsapDemoBounce()" class="animate-btn px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm">
+                <span class="material-symbols-outlined text-sm">sports_volleyball</span> 3. Elastic Spring Physics
+            </button>
+        </div>
+
+        <!-- Demo Counter Rollup Screen -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                <span class="text-xs text-slate-400 uppercase font-semibold">Tổng văn bằng đã cấp</span>
+                <h3 id="demo-counter-1" class="text-3xl font-black text-emerald-400 mt-1">293</h3>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                <span class="text-xs text-slate-400 uppercase font-semibold">Sinh viên tốt nghiệp</span>
+                <h3 id="demo-counter-2" class="text-3xl font-black text-blue-400 mt-1">152</h3>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                <span class="text-xs text-slate-400 uppercase font-semibold">Merkle Root On-Chain</span>
+                <h3 id="demo-counter-3" class="text-3xl font-black text-amber-400 mt-1">100%</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1. BỘ SƯU TẬP NÚT BẤM (BUTTONS & RIPPLE WAVES) -->
+    <div class="bg-white rounded-3xl p-8 border border-gray-100 shadow-soft space-y-6">
+        <div class="flex items-center gap-3 border-b border-gray-100 pb-4">
+            <div class="w-10 h-10 rounded-xl bg-blue-50 text-ntt-light flex items-center justify-center font-bold">
+                <span class="material-symbols-outlined">smart_button</span>
+            </div>
+            <div>
+                <h2 class="text-lg font-bold text-ntt-dark">1. Nút bấm vi tương tác (Spring & Ripple Effect)</h2>
+                <p class="text-xs text-gray-500">Bấm chuột vào các nút bên dưới: Sóng nước (ripple) và độ nảy vật lý được xử lý tối ưu bởi GSAP.</p>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-4 pt-2">
+            <!-- Nút chính NTT Dark -->
+            <button class="animate-btn px-6 py-3 bg-ntt-dark hover:bg-blue-900 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-base">verified</span> Primary Ripple Button
+            </button>
+
+            <!-- Nút NTT Light -->
+            <button class="animate-btn px-6 py-3 bg-ntt-light hover:bg-blue-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-base">download</span> Tải bản PDF
+            </button>
+
+            <!-- Nút Glow Shimmer -->
+            <button class="animate-btn animate-shimmer px-6 py-3 bg-gradient-to-r from-ntt-dark to-ntt-light text-white rounded-xl font-bold text-xs uppercase tracking-wider shadow-md flex items-center gap-2">
+                <span class="material-symbols-outlined text-base">token</span> Ký MetaMask Web3
+            </button>
+
+            <!-- Nút Nền sáng -->
+            <button class="animate-btn px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl font-bold text-xs uppercase tracking-wider border border-gray-200 flex items-center gap-2">
+                <span class="material-symbols-outlined text-base">refresh</span> Tải lại dữ liệu
+            </button>
+
+            <!-- Nút Sao chép Copy biến hình -->
+            <button class="animate-btn animate-copy-btn px-5 py-3 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-xl font-bold text-xs flex items-center gap-2"
+                    data-copy-text="0xcC3163Bb82ba4faB7Ef854242f18FdE76f81F5bF">
+                <span class="material-symbols-outlined text-sm">content_copy</span>
+                Chép địa chỉ ví Admin
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. THẺ NGHIÊNG 3D THEO CON TRỎ CHUỘT (GSAP 3D PERSPECTIVE TILT) -->
+    <div class="bg-white rounded-3xl p-8 border border-gray-100 shadow-soft space-y-6">
+        <div class="flex items-center gap-3 border-b border-gray-100 pb-4">
+            <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
+                <span class="material-symbols-outlined">layers</span>
+            </div>
+            <div>
+                <h2 class="text-lg font-bold text-ntt-dark">2. Thẻ chuyển động 3D (GSAP 3D Perspective Tilt Cards)</h2>
+                <p class="text-xs text-gray-500">Rê chuột xung quanh các thẻ: GSAP nội suy mượt mà độ nghiêng kèm ánh sáng lóa gương và đàn hồi lò xo (elastic ease) khi nhả chuột.</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
+            
+            <!-- Thẻ 1: Văn bằng Kỹ sư -->
+            <div class="animate-tilt-demo bg-gradient-to-br from-blue-900 to-ntt-dark text-white rounded-2xl p-6 shadow-md border border-blue-800 relative cursor-pointer">
+                <div class="animate-tilt-inner space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="px-3 py-1 bg-white/10 rounded-full text-[11px] font-bold tracking-wider uppercase border border-white/20">Văn bằng ĐH</span>
+                        <span class="material-symbols-outlined text-blue-300 text-3xl">school</span>
+                    </div>
+                    <div>
+                        <p class="text-xs text-blue-200 uppercase font-semibold">Bằng tốt nghiệp</p>
+                        <h3 class="text-lg font-extrabold text-white">BẰNG KỸ SƯ CHÍNH QUY</h3>
+                    </div>
+                    <div class="text-xs text-blue-100 space-y-1 border-t border-white/10 pt-3">
+                        <p>Ngành: <strong>Kỹ thuật phần mềm</strong></p>
+                        <p>Xếp loại: <strong class="text-emerald-300">Xuất sắc</strong></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thẻ 2: Chứng chỉ Tin học -->
+            <div class="animate-tilt-demo bg-gradient-to-br from-emerald-900 to-teal-950 text-white rounded-2xl p-6 shadow-md border border-emerald-800 relative cursor-pointer">
+                <div class="animate-tilt-inner space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="px-3 py-1 bg-white/10 rounded-full text-[11px] font-bold tracking-wider uppercase border border-white/20">Chứng chỉ</span>
+                        <span class="material-symbols-outlined text-emerald-300 text-3xl">workspace_premium</span>
+                    </div>
+                    <div>
+                        <p class="text-xs text-emerald-200 uppercase font-semibold">Ứng dụng CNTT</p>
+                        <h3 class="text-lg font-extrabold text-white">TIN HỌC VĂN PHÒNG</h3>
+                    </div>
+                    <div class="text-xs text-emerald-100 space-y-1 border-t border-white/10 pt-3">
+                        <p>Đơn vị cấp: <strong>Trung tâm Đào tạo CTUT</strong></p>
+                        <p>Trạng thái: <strong class="text-emerald-300">Đã kích hoạt On-chain</strong></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thẻ 3: Xác thực Web3 Sepolia -->
+            <div class="animate-tilt-demo bg-white text-gray-800 rounded-2xl p-6 shadow-soft border-2 border-ntt-gold/30 relative cursor-pointer">
+                <div class="animate-tilt-inner space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="px-3 py-1 bg-amber-50 text-ntt-gold rounded-full text-[11px] font-bold tracking-wider uppercase border border-ntt-gold/30">Merkle Tree</span>
+                        <span class="material-symbols-outlined text-ntt-gold text-3xl">token</span>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase font-semibold">Bảo mật Chuỗi khối</p>
+                        <h3 class="text-lg font-extrabold text-ntt-dark">SMART CONTRACT V2</h3>
+                    </div>
+                    <div class="text-xs text-gray-500 space-y-1 border-t border-gray-100 pt-3">
+                        <p>Mạng: <strong>Ethereum Sepolia</strong></p>
+                        <p>Kiến trúc: <strong class="text-blue-600">Multi-Admin Đồng cấp</strong></p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 3. LIÊN KẾT NHANH VỀ HỆ THỐNG -->
+    <div class="text-center pt-4 flex flex-wrap gap-4 justify-center">
+        <a href="{% url 'admin:index' %}" class="animate-btn bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm">
+            <span class="material-symbols-outlined text-base">admin_panel_settings</span> Xem Trang Quản Trị Admin
+        </a>
+        <a href="{% url 'student_portal:dashboard' %}" class="animate-btn bg-ntt-dark hover:bg-blue-900 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm">
+            <span class="material-symbols-outlined text-base">dashboard</span> Cổng Sinh viên
+        </a>
+        <a href="{% url 'landing' %}" class="animate-btn bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2">
+            <span class="material-symbols-outlined text-base">search</span> Cổng Tra cứu Công khai
+        </a>
+    </div>
+
+</div>
+
+<script>
+    // Các hàm tương tác trực quan cho trang Demo GSAP
+    function gsapDemoRollup() {
+        if (typeof gsap === 'undefined') return;
+        
+        const c1 = { val: 0 };
+        gsap.to(c1, {
+            val: 293,
+            duration: 1.2,
+            ease: 'power3.out',
+            onUpdate: () => document.getElementById('demo-counter-1').textContent = Math.floor(c1.val)
+        });
+
+        const c2 = { val: 0 };
+        gsap.to(c2, {
+            val: 152,
+            duration: 1.2,
+            ease: 'power3.out',
+            onUpdate: () => document.getElementById('demo-counter-2').textContent = Math.floor(c2.val)
+        });
+
+        const c3 = { val: 0 };
+        gsap.to(c3, {
+            val: 100,
+            duration: 1.2,
+            ease: 'power3.out',
+            onUpdate: () => document.getElementById('demo-counter-3').textContent = Math.floor(c3.val) + '%'
+        });
+    }
+
+    function gsapDemoStagger() {
+        if (typeof gsap === 'undefined') return;
+        const cards = document.querySelectorAll('.animate-tilt-demo');
+        gsap.fromTo(cards, 
+            { opacity: 0, y: 30, scale: 0.95 },
+            { opacity: 1, y: 0, scale: 1, duration: 0.6, stagger: 0.12, ease: 'back.out(1.7)' }
+        );
+    }
+
+    function gsapDemoBounce() {
+        if (typeof gsap === 'undefined') return;
+        const cards = document.querySelectorAll('.animate-tilt-demo');
+        gsap.fromTo(cards, 
+            { y: -20 },
+            { y: 0, duration: 0.8, ease: 'elastic.out(1.2, 0.4)', stagger: 0.08 }
+        );
+    }
+</script>
+{% endblock %}

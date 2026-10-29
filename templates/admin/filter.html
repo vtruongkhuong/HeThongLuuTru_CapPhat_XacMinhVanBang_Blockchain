@@ -1,0 +1,40 @@
+{% load i18n unfold %}
+
+<div class="apple-filter-group space-y-2">
+    <!-- Tiêu đề bộ lọc (Ví dụ: THEO TRẠNG THÁI, THEO LÝ DO) -->
+    <h3 class="text-xs font-black uppercase tracking-wider text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+        {% if has_label %}
+            {{ label }}
+        {% else %}
+            {% blocktranslate with filter_title=title %}Theo {{ filter_title }}{% endblocktranslate %}
+        {% endif %}
+    </h3>
+
+    {% for choice in choices %}
+        {% if choice.selected and spec.lookup_val.0 %}
+            <input type="hidden" name="{{ spec.lookup_kwarg }}" value="{{ spec.lookup_val.0 }}" />
+        {% endif %}
+    {% endfor %}
+
+    <!-- Danh sách các tùy chọn -->
+    <ul class="apple-filter-list rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 divide-y divide-gray-100 dark:divide-gray-800/80 bg-white dark:bg-gray-900 shadow-xs">
+        {% for choice in choices %}
+            <li>
+                <a href="{{ choice.query_string|iriencode }}" 
+                   title="{{ choice.display }}" 
+                   class="apple-filter-item flex items-center justify-between px-3.5 py-2.5 text-xs font-medium transition-all
+                          {% if choice.selected %}
+                              apple-filter-item-active font-extrabold bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border-l-4 border-blue-600
+                          {% else %}
+                              text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:text-blue-600 dark:hover:text-blue-400
+                          {% endif %}">
+                    <span class="truncate">{{ choice.display }}</span>
+                    {% if choice.selected %}
+                        <span class="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400 shrink-0">check</span>
+                    {% endif %}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+</div>

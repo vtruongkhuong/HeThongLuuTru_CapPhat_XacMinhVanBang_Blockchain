@@ -1,0 +1,312 @@
+/**
+ * Animate UI (Inspired by animate-ui.com & Emil Kowalski Apple Motion Standards)
+ * Native CSS + Micro-interaction transitions for CTUT Blockchain Degree System
+ * Hardware-Accelerated 60-120FPS - Zero Heavy Dependencies
+ */
+
+:root {
+    /* Emil Kowalski Strong Custom Curves */
+    --apple-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --apple-spring: cubic-bezier(0.16, 1, 0.3, 1);
+    --apple-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --apple-press: cubic-bezier(0.2, 0, 0, 1);
+    
+    --spring-easing: var(--apple-bounce);
+    --smooth-easing: var(--apple-ease-out);
+}
+
+/* ==========================================================================
+   1. BUTTONS & MICRO-INTERACTIONS (Physical Spring & Ripple)
+   ========================================================================== */
+
+/* Nút bấm co giãn nảy lò xo khi rê chuột và nhấp với phản hồi tức thời 70ms */
+.animate-btn, 
+.tab-btn, 
+button[type="submit"], 
+.btn-action,
+.animate-press {
+    position: relative;
+    overflow: hidden;
+    will-change: transform, box-shadow;
+    transition: transform 0.22s var(--apple-spring), 
+                box-shadow 0.22s var(--apple-ease-out), 
+                background-color 0.18s ease !important;
+    transform: translateZ(0);
+}
+
+.animate-btn:hover, 
+.tab-btn:hover, 
+button[type="submit"]:hover, 
+.btn-action:hover {
+    transform: translateY(-1.5px) scale(1.015);
+}
+
+.animate-btn:active, 
+.tab-btn:active, 
+button[type="submit"]:active, 
+.btn-action:active,
+.animate-press:active {
+    transform: scale(0.97) !important;
+    transition-duration: 0.07s !important;
+}
+
+/* Hiệu ứng sóng nước Ripple khi click chuột (tọa độ chính xác con trỏ) */
+.ripple-wave {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 70%);
+    transform: scale(0);
+    animation: ripple-animation 0.55s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    pointer-events: none;
+}
+
+.ripple-wave-dark {
+    background: radial-gradient(circle, rgba(17, 41, 83, 0.25) 0%, rgba(17, 41, 83, 0) 70%);
+}
+
+@keyframes ripple-animation {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* ==========================================================================
+   2. 3D INTERACTIVE TILT CARDS (Thẻ nghiêng 3D chuyển động theo con trỏ chuột)
+   ========================================================================== */
+
+.animate-tilt,
+.animate-tilt-demo {
+    transform-style: preserve-3d;
+    perspective: 1000px;
+    transition: transform 0.28s var(--apple-ease-out), box-shadow 0.28s var(--apple-ease-out);
+    will-change: transform;
+    position: relative;
+}
+
+.animate-tilt-inner {
+    transform: translateZ(20px);
+    transition: transform 0.28s var(--apple-ease-out);
+}
+
+/* Hiệu ứng lóa sáng (Glare effect) khi nghiêng thẻ */
+.animate-tilt-glare {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    background: radial-gradient(
+        circle at 50% 50%,
+        rgba(255, 255, 255, 0.2) 0%,
+        rgba(255, 255, 255, 0) 75%
+    );
+    opacity: 0;
+    transition: opacity 0.25s var(--apple-ease-out);
+    mix-blend-mode: overlay;
+    z-index: 10;
+}
+
+/* ==========================================================================
+   3. SHIMMER BORDER & GLOW EFFECT (Viền phát sáng Web3 cao cấp)
+   ========================================================================== */
+
+.animate-shimmer {
+    position: relative;
+    background-clip: padding-box;
+}
+
+.animate-shimmer::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(42, 99, 178, 0.5) 25%,
+        rgba(192, 155, 77, 0.6) 50%,
+        rgba(42, 99, 178, 0.5) 75%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer-flow 4s linear infinite;
+    z-index: -1;
+    pointer-events: none;
+}
+
+@keyframes shimmer-flow {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Nhịp thở phát sáng nhẹ (Glow pulse) */
+.animate-glow-pulse {
+    box-shadow: 0 0 0 0 rgba(42, 99, 178, 0.4);
+    animation: glow-pulse-anim 2.5s infinite;
+}
+
+@keyframes glow-pulse-anim {
+    0% {
+        box-shadow: 0 0 0 0 rgba(42, 99, 178, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 12px rgba(42, 99, 178, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(42, 99, 178, 0);
+    }
+}
+
+/* ==========================================================================
+   4. SLIDING TAB INDICATOR (Thanh trượt lướt mượt mà giữa các Tab)
+   ========================================================================== */
+
+.tab-btn {
+    position: relative;
+    z-index: 1;
+}
+
+.tab-btn.active {
+    box-shadow: 0 4px 14px -2px rgba(17, 41, 83, 0.35);
+}
+
+/* ==========================================================================
+   5. ANIMATED COPY BUTTON (Nút sao chép biến hình với dấu tích nảy nhẹ)
+   ========================================================================== */
+
+.animate-copy-btn {
+    will-change: transform;
+    transition: transform 0.22s var(--apple-bounce), background-color 0.18s ease;
+}
+
+.animate-copy-btn.copied {
+    background-color: #1b7f4b !important;
+    color: #ffffff !important;
+    transform: scale(1.08) !important;
+}
+
+/* ==========================================================================
+   6. FLOATING ELEMENT & STAGGER ENTRANCES
+   ========================================================================== */
+
+.animate-float {
+    animation: floating-subtle 3.5s ease-in-out infinite;
+}
+
+@keyframes floating-subtle {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+/* Hiệu ứng trượt vào so le (Staggered Entrance) */
+.stagger-item {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: staggerFadeIn 0.35s var(--apple-ease-out) forwards;
+}
+
+@keyframes staggerFadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.stagger-item:nth-child(1) { animation-delay: 40ms; }
+.stagger-item:nth-child(2) { animation-delay: 80ms; }
+.stagger-item:nth-child(3) { animation-delay: 120ms; }
+.stagger-item:nth-child(4) { animation-delay: 160ms; }
+.stagger-item:nth-child(5) { animation-delay: 200ms; }
+
+
+/* ==========================================================================
+   7. BLOCKCHAIN HASH PILL (Merkle Root, TxHash, Public ID)
+   Tối ưu màu sắc Web3: Ice Cobalt trên Obsidian Slate, chống lóa mắt
+   ========================================================================== */
+.merkle-hash-badge,
+.apple-hash-pill,
+button.merkle-hash-badge,
+button.apple-hash-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.02em !important;
+    padding: 5px 10px !important;
+    border-radius: 9px !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    will-change: transform, box-shadow, background-color, border-color;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+    line-height: 1.2 !important;
+    
+    background-color: #eff6ff !important;
+    color: #1d4ed8 !important;
+    border: 1px solid #bfdbfe !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+.merkle-hash-badge:hover,
+.apple-hash-pill:hover,
+button.merkle-hash-badge:hover,
+button.apple-hash-pill:hover {
+    background-color: #dbeafe !important;
+    border-color: #026fe0 !important;
+    color: #0258b6 !important;
+    transform: translateY(-1px) scale(1.02) !important;
+    box-shadow: 0 4px 12px rgba(2, 111, 224, 0.2) !important;
+}
+
+.merkle-hash-badge:active,
+.apple-hash-pill:active {
+    transform: scale(0.96) !important;
+    transition-duration: 70ms !important;
+}
+
+.dark .merkle-hash-badge,
+.dark .apple-hash-pill,
+.dark button.merkle-hash-badge,
+.dark button.apple-hash-pill,
+html.dark .merkle-hash-badge,
+body.dark .merkle-hash-badge,
+[class*="dark"] .merkle-hash-badge {
+    background-color: #141e33 !important;
+    background-image: none !important;
+    color: #93c5fd !important;
+    border: 1px solid rgba(56, 167, 248, 0.35) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+}
+
+.dark .merkle-hash-badge:hover,
+.dark .apple-hash-pill:hover,
+.dark button.merkle-hash-badge:hover,
+.dark button.apple-hash-pill:hover {
+    background-color: #1a2744 !important;
+    border-color: #38bdf8 !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 16px rgba(56, 167, 248, 0.35) !important;
+}
+
+.merkle-hash-badge.copied,
+.apple-hash-pill.copied {
+    background-color: #ecfdf5 !important;
+    border-color: #10b981 !important;
+    color: #047857 !important;
+    transform: scale(1.05) !important;
+}
+
+.dark .merkle-hash-badge.copied,
+.dark .apple-hash-pill.copied {
+    background-color: rgba(6, 78, 59, 0.7) !important;
+    border-color: #34d399 !important;
+    color: #34d399 !important;
+    box-shadow: 0 0 16px rgba(52, 211, 153, 0.4) !important;
+}

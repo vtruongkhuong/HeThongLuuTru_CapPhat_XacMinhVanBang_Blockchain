@@ -1,3 +1,4 @@
+from apps.core.admin import format_crypto_hash_badge
 from django.contrib import admin, messages
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -60,6 +61,7 @@ class RevocationRequestAdmin(BaseRoleAdmin):
         'metamask_action_link',
     )
     list_filter = ('status', 'reason_code')
+    list_filter_submit = True
     search_fields = ('degree__student__student_code', 'degree__student__full_name', 'tx_hash')
     readonly_fields = (
         'requested_by',
@@ -136,11 +138,14 @@ class RevocationRequestAdmin(BaseRoleAdmin):
         if obj.status == 'APPROVED':
             url = reverse('revocation:execute_metamask', args=[obj.pk])
             return format_html(
-                '<a href="{}" style="background:#112953;color:#fff;padding:4px 10px;border-radius:6px;font-weight:600;text-decoration:none;">Ký MetaMask (Thực thi)</a>',
+                '<a href="{}" class="apple-action-btn-primary">'
+                '<span class="material-symbols-outlined" style="font-size:14px;">vpn_key</span>'
+                '<span>Ký MetaMask (Thực thi)</span>'
+                '</a>',
                 url
             )
         elif obj.status == 'EXECUTED' and obj.tx_hash:
-            return format_html('<span style="color:#15803d;font-family:monospace;">{}...</span>', obj.tx_hash[:12])
+            return format_crypto_hash_badge(obj.tx_hash, title_prefix='Mã TxHash Thu Hồi', icon='link')
         return "-"
     metamask_action_link.short_description = "Thực thi On-Chain"
 

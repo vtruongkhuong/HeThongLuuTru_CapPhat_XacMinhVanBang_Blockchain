@@ -1,0 +1,67 @@
+{% load i18n %}
+
+<div id="changelist-actions" class="w-full">
+    <div class="apple-top-action-bar flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 px-4 rounded-xl transition-all">
+        <div class="flex items-center gap-3">
+            <div class="apple-check-badge w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                <span class="material-symbols-outlined text-[16px]">check</span>
+            </div>
+            <span class="action-counter text-xs font-bold text-gray-900 dark:text-white" data-actions-icnt="{{ cl.result_list|length }}">
+                {{ selection_note }}
+            </span>
+            
+            {% if cl.result_count != cl.result_list|length %}
+                <span class="all hidden">
+                    {{ selection_note_all }}
+                </span>
+
+                {% if not cl.model_admin.list_disable_select_all %}
+                    <span class="question hidden ml-2">
+                        <a href="#" class="text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline">
+                            {% blocktranslate with cl.result_count as total_count %}Chọn tất cả {{ total_count }} {{ module_name }}{% endblocktranslate %}
+                        </a>
+                    </span>
+
+                    <span class="clear hidden ml-2">
+                        <a href="#" class="text-xs font-bold text-red-500 hover:underline">
+                            {% translate "Clear selection" %}
+                        </a>
+                    </span>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        {% block actions %}
+            <div class="flex items-center gap-2.5 w-full sm:w-auto" x-data="{action: '', selectAcross: 0}">
+                {% block actions-form %}
+                    <div class="relative grow sm:grow-0">
+                        {% for field in action_form %}
+                            {% if field.label %}
+                                <label class="sr-only">
+                                    {{ field.label }}
+                                </label>
+                            {% endif %}
+
+                            {{ field }}
+                        {% endfor %}
+                    </div>
+                {% endblock %}
+
+                {% block actions-submit %}
+                    <button type="submit" x-show="action" 
+                        x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 scale-90 translate-x-1"
+                        x-transition:enter-end="opacity-100 scale-100 translate-x-0"
+                        x-transition:leave="transition ease-in duration-150"
+                        x-transition:leave-start="opacity-100 scale-100 translate-x-0"
+                        x-transition:leave-end="opacity-0 scale-90 translate-x-1"
+                        class="apple-action-btn cursor-pointer font-bold flex items-center justify-center px-4 py-2 rounded-xl text-xs text-white whitespace-nowrap shadow-sm hover:bg-blue-700 transition-all active:scale-95" 
+                        title="{% translate "Run the selected action" %}" name="index" value="{{ action_index|default:0 }}">
+                        <span class="material-symbols-outlined text-[16px] mr-1">play_arrow</span>
+                        {% trans "Run" %}
+                    </button>
+                {% endblock %}
+            </div>
+        {% endblock %}
+    </div>
+</div>
