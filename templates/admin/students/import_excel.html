@@ -59,13 +59,22 @@
         </div>
 
         <div class="p-6">
-            <div class="my-alert mb-6 p-4 rounded-md">
-                <strong class="text-sm my-alert-title">Yêu cầu file Excel (.xlsx):</strong>
-                <ul class="list-disc ml-5 mt-2 space-y-1 text-sm my-alert-text">
-                    <li>Cột bắt buộc: <strong class="my-alert-title">Mã SV, Họ tên, Email, Ngày sinh, GPA, Mã ngành</strong>.</li>
-                    <li>Dữ liệu <strong>Mã ngành</strong> phải khớp với danh mục Ngành học trên hệ thống.</li>
-                    <li>Cột Ngày sinh format theo dạng YYYY-MM-DD.</li>
-                </ul>
+            <div class="my-alert mb-6 p-5 rounded-md flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <strong class="text-sm my-alert-title">Yêu cầu định dạng file Excel (.xlsx):</strong>
+                    <ul class="list-disc ml-5 mt-2 space-y-1 text-sm my-alert-text">
+                        <li>Các cột: <strong class="my-alert-title">Mã SV, Họ Tên, Email, Ngày Sinh, GPA, Mã Ngành, Loại Bằng</strong>.</li>
+                        <li>Cột <strong>Loại Bằng</strong> hỗ trợ chọn 4 loại: <strong>CN</strong> (Cử nhân), <strong>KS</strong> (Kỹ sư), <strong>THVP</strong> (Chứng chỉ Tin học VP), <strong>CNTT</strong> (Chứng chỉ CNTT).</li>
+                        <li>Dữ liệu <strong>Mã Ngành</strong> phải khớp với danh mục Ngành học trên hệ thống (VD: 7480201, 7480103, 7340101...).</li>
+                        <li>Cột Ngày sinh định dạng chuẩn YYYY-MM-DD.</li>
+                    </ul>
+                </div>
+                <div class="flex-shrink-0">
+                    <a href="{% url 'admin:students_download_sample_excel' %}" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-3 rounded-md text-xs transition-colors shadow-sm whitespace-nowrap">
+                        <span class="material-symbols-outlined text-sm">download</span>
+                        <span>Tải file Excel mẫu</span>
+                    </a>
+                </div>
             </div>
 
             <form method="POST" enctype="multipart/form-data" class="space-y-6">

@@ -205,8 +205,23 @@ class GraduationBatchAdmin(BaseRoleAdmin):
                 degrees_to_create = []
                 issue_date = timezone.now().date()
 
+                from apps.academic.models import DegreeType
                 for student in students:
-                    degree_type = batch.degree_type or student.major.degree_type
+                    # Ưu tiên 1: Loại bằng/chứng chỉ được chọn trong file Excel import (H5)
+                    dt_code = None
+                    last_item = ImportBatchItem.objects.filter(import_batch__batch=batch, student_code=student.student_code).order_by('-id').first()
+                    if last_item and isinstance(last_item.new_value, dict):
+                        dt_code = last_item.new_value.get('degree_type')
+
+                    degree_type = None
+                    if dt_code:
+                        degree_type = DegreeType.objects.filter(code__iexact=dt_code).first()
+                        if not degree_type and dt_code.upper() in ['CN', 'KS', 'THVP', 'CNTT']:
+                            degree_type = DegreeType.objects.filter(code__icontains=dt_code).first()
+
+                    # Ưu tiên 2 & 3: Đợt tốt nghiệp hoặc Ngành học
+                    if not degree_type:
+                        degree_type = batch.degree_type or (student.major.degree_type if student.major else None)
                     pub_id = uuid.uuid4()
                     classification = get_classification_from_gpa(student.gpa_score) or ""
                     

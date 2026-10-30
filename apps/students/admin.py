@@ -294,8 +294,18 @@ class StudentAdmin(BaseRoleAdmin):
         urls = super().get_urls()
         custom_urls = [
             path('import-excel/', self.admin_site.admin_view(self.process_excel_import), name='students_import_excel'),
+            path('download-sample-excel/', self.admin_site.admin_view(self.download_sample_excel), name='students_download_sample_excel'),
         ]
         return custom_urls + urls
+
+    def download_sample_excel(self, request):
+        import os
+        from django.conf import settings
+        from django.http import FileResponse, Http404
+        file_path = os.path.join(settings.BASE_DIR, 'sample_import_khiem.xlsx')
+        if os.path.exists(file_path):
+            return FileResponse(open(file_path, 'rb'), as_attachment=True, filename='sample_import_khiem.xlsx')
+        raise Http404('Không tìm thấy file mẫu.')
 
     def process_excel_import(self, request):
         GraduationBatch = apps.get_model('graduation', 'GraduationBatch')
