@@ -310,3 +310,27 @@ body.dark .merkle-hash-badge,
     color: #34d399 !important;
     box-shadow: 0 0 16px rgba(52, 211, 153, 0.4) !important;
 }
+
+/* ==========================================================================
+   8. HUMAN VERIFICATION (ANTI-BOT CHALLENGE WIDGET)
+   ========================================================================== */
+.shake-animate {
+    animation: appleShake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes appleShake {
+    10%, 90% { transform: translate3d(-2px, 0, 0); }
+    20%, 80% { transform: translate3d(3px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-5px, 0, 0); }
+    40%, 60% { transform: translate3d(5px, 0, 0); }
+}
+
+.captcha-pop,
+.animate-pop {
+    animation: captchaCheckPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes captchaCheckPop {
+    0% { transform: scale(0.6); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}

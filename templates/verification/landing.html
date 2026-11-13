@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Cổng Tra Cứu Văn Bằng - Chứng Chỉ{% endblock %}
 
@@ -54,7 +55,40 @@
                 <input type="file" id="pdf-input" name="pdf_file" accept=".pdf,application/pdf" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-ntt-dark file:text-white file:font-bold file:cursor-pointer">
             </div>
 
-            <!-- Các nút bấm (Đã bỏ xác nhận Không phải người máy) -->
+            <!-- Xác minh con người (Anti-bot Captcha) -->
+            <div id="captcha-container" class="rounded-2xl border border-slate-200 bg-slate-50/90 p-4 transition-all duration-200">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <label class="flex items-center gap-3.5 cursor-pointer select-none group" id="captcha-trigger">
+                        <input type="checkbox" id="human-checkbox" class="sr-only">
+                        <div id="checkbox-visual" class="w-7 h-7 rounded-lg border-2 border-slate-300 bg-white flex items-center justify-center transition-all duration-200 group-hover:border-blue-500 shadow-xs shrink-0">
+                            <span id="captcha-spinner" class="hidden w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></span>
+                            <span id="captcha-check" class="hidden material-symbols-outlined text-[18px] text-white">check</span>
+                        </div>
+                        <div>
+                            <span id="captcha-label" class="text-sm font-bold text-slate-700 transition-colors block">
+                                Tôi không phải là người máy
+                            </span>
+                            <span id="captcha-subtext" class="block text-[11px] text-slate-400 font-medium">
+                                Nhấp để giải câu đố xác thực bảo mật
+                            </span>
+                        </div>
+                    </label>
+                    <div class="flex items-center gap-2.5 border-t sm:border-t-0 sm:border-l border-slate-200 pt-2 sm:pt-0 sm:pl-4 text-slate-400">
+                        <span class="material-symbols-outlined text-[24px] text-blue-600">verified_user</span>
+                        <div class="text-[10px] leading-tight text-slate-500 font-semibold text-left">
+                            <span class="block text-slate-700 font-black uppercase tracking-wider text-[10px]">reCAPTCHA</span>
+                            <span class="text-[9px] text-slate-400">Bảo mật • Điều khoản</span>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" name="human_verified" id="human_verified" value="0">
+                <p id="captcha-error-msg" class="hidden mt-3 text-xs font-bold text-rose-600 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[16px]">error</span>
+                    Vui lòng hoàn thành giải câu đố xác minh "Tôi không phải là người máy" trước khi bấm tra cứu.
+                </p>
+            </div>
+
+            <!-- Các nút bấm -->
             <div class="flex flex-col sm:flex-row items-center justify-end gap-4 pt-2">
                 <button type="submit" class="animate-btn animate-shimmer w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3.5 rounded-xl font-bold uppercase text-sm flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg">
                     <span class="material-symbols-outlined text-[20px]">search</span> Tra cứu
@@ -95,8 +129,10 @@
 
 <!-- Thư viện quét QR -->
 <script src="https://unpkg.com/html5-qrcode"></script>
+<!-- Widget xác minh con người 3x3 interactive reCAPTCHA -->
+<script src="{% static 'js/recaptcha-widget.js' %}"></script>
 
-<!-- Logic xử lý -->
+<!-- Logic quét QR và form -->
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const btnScan = document.getElementById('btn-scan-qr');
@@ -104,7 +140,8 @@ document.addEventListener("DOMContentLoaded", function() {
     const qrContainer = document.getElementById('qr-reader-container');
     const searchInput = document.getElementById('search-input');
     const searchForm = document.getElementById('search-form');
-    
+    const humanVerified = document.getElementById('human_verified');
+
     let html5QrcodeScanner = null;
     
     searchForm.addEventListener('submit', (e) => {
@@ -112,6 +149,7 @@ document.addEventListener("DOMContentLoaded", function() {
         if (!searchInput.value.trim() && !hasFile) {
             e.preventDefault();
             alert('Vui lòng nhập mã tra cứu hoặc chọn file PDF văn bằng.');
+            return;
         }
     });
 
@@ -145,6 +183,8 @@ document.addEventListener("DOMContentLoaded", function() {
         html5QrcodeScanner.clear();
         html5QrcodeScanner = null;
         
+        // Quét QR trực tiếp qua webcam được công nhận là tương tác người dùng thực
+        if (humanVerified) humanVerified.value = '1';
         searchForm.submit();
     }
 

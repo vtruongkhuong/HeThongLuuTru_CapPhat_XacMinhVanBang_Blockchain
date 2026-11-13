@@ -1,6 +1,7 @@
 {% extends "base.html" %}
+{% load static %}
 
-{% block title %}Tra Cứu Giấy Chứng Nhận Tạm Thời - CTUT Blockchain{% endblock %}
+{% block title %}Tra Cứu Giấy Chứng Nhận Tạm Thời - Blockchain Degree Portal{% endblock %}
 
 {% block content %}
 <div class="w-full relative flex flex-col items-center pb-24 bg-slate-50 min-h-screen">
@@ -75,6 +76,39 @@
                                 class="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:outline-none focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-500/10 font-bold uppercase tracking-wider text-sm transition-all placeholder-slate-400"
                                 placeholder="VD: 2311076 HOẶC 089204001234">
                         </div>
+                    </div>
+
+                    <!-- Xác minh con người (Anti-bot Captcha) -->
+                    <div id="captcha-container" class="rounded-2xl border border-slate-200 bg-slate-50/90 p-4 transition-all duration-200">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <label class="flex items-center gap-3.5 cursor-pointer select-none group" id="captcha-trigger">
+                                <input type="checkbox" id="human-checkbox" class="sr-only">
+                                <div id="checkbox-visual" class="w-7 h-7 rounded-lg border-2 border-slate-300 bg-white flex items-center justify-center transition-all duration-200 group-hover:border-blue-500 shadow-xs shrink-0">
+                                    <span id="captcha-spinner" class="hidden w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></span>
+                                    <span id="captcha-check" class="hidden material-symbols-outlined text-[18px] text-white">check</span>
+                                </div>
+                                <div>
+                                    <span id="captcha-label" class="text-sm font-bold text-slate-700 transition-colors block">
+                                        Tôi không phải là người máy
+                                    </span>
+                                    <span id="captcha-subtext" class="block text-[11px] text-slate-400 font-medium">
+                                        Nhấp để giải câu đố xác thực bảo mật
+                                    </span>
+                                </div>
+                            </label>
+                            <div class="flex items-center gap-2.5 border-t sm:border-t-0 sm:border-l border-slate-200 pt-2 sm:pt-0 sm:pl-4 text-slate-400">
+                                <span class="material-symbols-outlined text-[24px] text-blue-600">verified_user</span>
+                                <div class="text-[10px] leading-tight text-slate-500 font-semibold text-left">
+                                    <span class="block text-slate-700 font-black uppercase tracking-wider text-[10px]">reCAPTCHA</span>
+                                    <span class="text-[9px] text-slate-400">Bảo mật • Điều khoản</span>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="human_verified" id="human_verified" value="0">
+                        <p id="captcha-error-msg" class="hidden mt-3 text-xs font-bold text-rose-600 flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[16px]">error</span>
+                            Vui lòng hoàn thành giải câu đố xác minh "Tôi không phải là người máy" trước khi bấm tra cứu.
+                        </p>
                     </div>
 
                     <!-- Nút Bấm -->
@@ -172,7 +206,7 @@
                                     <p class="text-[11px] text-slate-500 font-medium">Bản điện tử đã được ký số và đóng dấu trường</p>
                                 </div>
                             </div>
-                            <a href="{% url 'degrees:preview_pdf' degree.id %}" target="_blank" class="animate-btn w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider inline-flex items-center justify-center gap-1.5 shadow-sm transition-all">
+                            <a href="{% url 'student_portal:preview_pdf' degree.id %}" target="_blank" class="animate-btn w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider inline-flex items-center justify-center gap-1.5 shadow-sm transition-all">
                                 <span class="material-symbols-outlined text-[16px]">download</span> Xem / Tải file PDF
                             </a>
                         </div>
@@ -220,4 +254,7 @@
 
     </div>
 </div>
+
+<!-- Widget xác minh con người 3x3 interactive reCAPTCHA -->
+<script src="{% static 'js/recaptcha-widget.js' %}"></script>
 {% endblock %}

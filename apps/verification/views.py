@@ -5,7 +5,7 @@ from uuid import UUID
 from urllib.parse import urlparse, parse_qs
 
 import numpy as np
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.db.models import Q
 from django.apps import apps
@@ -246,6 +246,12 @@ def public_verify_view(request):
     verification_type = 'CODE'
 
     if request.method == 'POST':
+        # [Anti-bot Captcha] Kiểm tra xác minh con người
+        human_verified = request.POST.get('human_verified')
+        if not human_verified or str(human_verified).strip() != '1':
+            messages.error(request, "Vui lòng xác minh 'Tôi không phải là người máy' trước khi tra cứu.")
+            return redirect('verification:landing')
+
         search_query = request.POST.get('search_query', '').strip()
         uploaded_pdf = request.FILES.get('pdf_file') or request.FILES.get('file')
 
@@ -359,6 +365,12 @@ def verify_temp_cert_view(request):
 
     search_query = ''
     if request.method == 'POST':
+        # [Anti-bot Captcha] Kiểm tra xác minh con người
+        human_verified = request.POST.get('human_verified')
+        if not human_verified or str(human_verified).strip() != '1':
+            messages.error(request, "Vui lòng xác minh 'Tôi không phải là người máy' trước khi tra cứu.")
+            return redirect('verification:verify_temp_cert')
+
         search_query = request.POST.get('search_query', '').strip() or request.POST.get('verify_code', '').strip()
     elif request.method == 'GET' and request.GET.get('q'):
         search_query = request.GET.get('q', '').strip()
