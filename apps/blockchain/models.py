@@ -9,7 +9,7 @@ class IssuanceBatch(models.Model):
 
     graduation_batch = models.ForeignKey('graduation.GraduationBatch', on_delete=models.CASCADE, related_name='issuance_batches', verbose_name="Đợt tốt nghiệp")
     merkle_root = models.CharField(max_length=66, null=True, blank=True, verbose_name="Mã Merkle Root")
-    chain_id = models.CharField(max_length=50, null=True, blank=True, verbose_name="Chain ID")
+    chain_id = models.CharField(max_length=100, null=True, blank=True, verbose_name="Chain ID / Batch ID")
     network_name = models.CharField(max_length=50, null=True, blank=True, verbose_name="Mạng Blockchain")
     contract_address = models.CharField(max_length=42, null=True, blank=True, verbose_name="Địa chỉ Smart Contract")
     contract_version = models.CharField(max_length=20, null=True, blank=True, verbose_name="Phiên bản Contract")

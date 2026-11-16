@@ -79,3 +79,101 @@ def register_view(request):
 
     # Truyền biến 'form' ra giao diện
     return render(request, 'accounts/register.html', {'form': form})
+
+
+import json
+import secrets
+from django.http import JsonResponse
+from eth_account.messages import encode_defunct
+from web3 import Web3
+
+
+def web3_nonce_view(request):
+    """Sinh chuỗi ngẫu nhiên (Nonce) chống tấn công Replay Attack khi đăng nhập Web3."""
+    nonce = secrets.token_hex(16)
+    request.session['web3_nonce'] = nonce
+    return JsonResponse({'nonce': nonce})
+
+
+def web3_login_view(request):
+    """
+    Xác thực chữ ký số MetaMask theo chuẩn SIWE (EIP-4361):
+    1. Kiểm tra nonce hợp lệ trong session.
+    2. Giải mã chữ ký (recover address) từ thông điệp.
+    3. Đăng nhập user tương ứng hoặc tạo mới tài khoản Web3.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Phương thức không được hỗ trợ.'}, status=405)
+
+    try:
+        data = json.loads(request.body)
+        address = (data.get('address') or '').strip()
+        signature = (data.get('signature') or '').strip()
+        message = data.get('message') or ''
+
+        if not address or not signature or not message:
+            return JsonResponse({'success': False, 'error': 'Thiếu tham số xác thực (address, signature, message).'}, status=400)
+
+        stored_nonce = request.session.get('web3_nonce')
+        if not stored_nonce or stored_nonce not in message:
+            return JsonResponse({'success': False, 'error': 'Mã nonce không hợp lệ hoặc đã hết hạn.'}, status=400)
+
+        # 1. Giải mã chữ ký để lấy địa chỉ ví thực tế
+        msg_encoded = encode_defunct(text=message)
+        w3 = Web3()
+        recovered_address = w3.eth.account.recover_message(msg_encoded, signature=signature)
+
+        if recovered_address.lower() != address.lower():
+            return JsonResponse({'success': False, 'error': 'Chữ ký không khớp với địa chỉ ví cung cấp.'}, status=400)
+
+        # Xóa nonce đã dùng
+        request.session.pop('web3_nonce', None)
+
+        # 2. Tìm User có wallet_address này (case-insensitive)
+        user = User.objects.filter(wallet_address__iexact=recovered_address).first()
+
+        if not user:
+            # Tạo tài khoản Web3 mới nếu chưa có
+            clean_addr = recovered_address.lower()
+            base_username = f"web3_{clean_addr[2:8]}_{clean_addr[-4:]}"
+            username = base_username
+            counter = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base_username}_{counter}"
+                counter += 1
+
+            user = User.objects.create(
+                username=username,
+                wallet_address=recovered_address,
+                first_name='Ví Web3',
+                last_name=f"{clean_addr[:6]}...{clean_addr[-4:]}",
+                is_active=True
+            )
+
+        # 3. Đăng nhập người dùng vào session
+        login(request, user, backend='apps.accounts.backends.EmailOrUsernameModelBackend')
+        
+        # Ghi log đăng nhập
+        try:
+            from apps.audit.services import log_action
+            log_action(
+                actor=user,
+                action='LOGIN',
+                entity_type='User',
+                entity_id=str(user.id),
+                new={'method': 'SIWE_METAMASK', 'wallet': recovered_address},
+                request=request
+            )
+        except Exception:
+            pass
+
+        # Điều hướng phù hợp
+        redirect_url = '/dashboard/'
+        if user.is_staff or user.is_superuser:
+            redirect_url = '/admin/'
+
+        return JsonResponse({'success': True, 'redirect_url': redirect_url})
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'Lỗi xác thực Web3: {str(e)}'}, status=500)
+

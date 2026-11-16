@@ -99,8 +99,17 @@ def _verify_merkle_and_contract(degree):
             if revoked:
                 is_revoked_on_chain = True
 
-        # Đọc Merkle Root từ Smart Contract nếu có tên đợt
-        if batch_name and hasattr(client.contract.functions, 'getMerkleRoot'):
+        # Đọc Merkle Root từ Smart Contract: ưu tiên get_batch theo batch_id_hex
+        if batch_id_hex and hasattr(client, 'get_batch'):
+            b_data = client.get_batch(batch_id_hex)
+            if b_data and b_data.get('root') and b_data['root'] != '0'*64:
+                chain_root_hex = b_data['root']
+                proof_info['chain_merkle_root'] = chain_root_hex
+                if chain_root_hex and proof_info['local_merkle_root']:
+                    c_clean = chain_root_hex.replace('0x', '').lower()
+                    l_clean = str(proof_info['local_merkle_root']).replace('0x', '').lower()
+                    proof_info['root_matched'] = (c_clean == l_clean and len(c_clean) > 0 and c_clean != '0'*64)
+        elif batch_name and hasattr(client.contract.functions, 'getMerkleRoot'):
             try:
                 chain_root = client.contract.functions.getMerkleRoot(batch_name).call()
                 chain_root_hex = chain_root.hex() if hasattr(chain_root, 'hex') else str(chain_root)
@@ -310,6 +319,21 @@ def public_verify_view(request):
     result_status = 'NOT_FOUND'
 
     if degree:
+        # Tự động đồng bộ giao dịch nếu đang ở trạng thái chờ phát hành
+        if degree.status == 'ISSUANCE_PENDING':
+            try:
+                from apps.blockchain.models import BlockchainTransaction
+                from apps.blockchain.tasks import sync_transaction
+                tx = BlockchainTransaction.objects.filter(
+                    Q(degree=degree) | Q(issuance_batch__graduation_batch=degree.batch),
+                    operation_type='ISSUE'
+                ).order_by('-id').first()
+                if tx and tx.tx_hash:
+                    sync_transaction(tx.tx_hash)
+                    degree.refresh_from_db()
+            except Exception as e:
+                logger.warning('Auto sync on verify notice: %s', e)
+
         is_valid_on_chain, is_revoked_on_chain, proof_info, rpc_error = _verify_merkle_and_contract(degree)
         context['degree'] = degree
         context['student'] = degree.student

@@ -59,6 +59,15 @@ def approve_degree(degree_id, user):
         degree.pdf_path = f"degrees/{file_name}"
         degree.pdf_sha256 = hashlib.sha256(pdf_bytes).hexdigest()
         degree.generated_at = timezone.now()
+        
+        # Tải lên mạng lưu trữ IPFS phi tập trung
+        try:
+            from apps.blockchain.ipfs import pin_file_to_ipfs
+            cid, gateway_url = pin_file_to_ipfs(pdf_bytes, file_name=file_name)
+            degree.ipfs_cid = cid
+            degree.ipfs_url = gateway_url
+        except Exception as e:
+            print(f"[IPFS Pin Error] {e}")
 
     degree.save()
 

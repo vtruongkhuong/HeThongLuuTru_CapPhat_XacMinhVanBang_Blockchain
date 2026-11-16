@@ -12,6 +12,10 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
     path('password/change/', views.change_password_view, name='change_password'),
 
+    # Đăng nhập bằng Ví Web3 MetaMask (SIWE EIP-4361)
+    path('web3/nonce/', views.web3_nonce_view, name='web3_nonce'),
+    path('web3/login/', views.web3_login_view, name='web3_login'),
+
     # Reset password qua email (dùng view mặc định của Django, chỉ định template riêng)
     path('password/reset/', auth_views.PasswordResetView.as_view(
         template_name='accounts/password_reset.html'

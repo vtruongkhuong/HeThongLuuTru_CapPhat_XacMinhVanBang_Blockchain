@@ -73,6 +73,16 @@ def render_degree_pdfs(self, batch_id, actor_id=None):
                 degree.pdf_sha256 = file_sha256
                 degree.generated_at = datetime.now()
                 degree.status = 'GENERATED'
+                
+                # Tải lên IPFS phi tập trung
+                try:
+                    from apps.blockchain.ipfs import pin_file_to_ipfs
+                    cid, gateway_url = pin_file_to_ipfs(pdf_bytes, file_name=file_name)
+                    degree.ipfs_cid = cid
+                    degree.ipfs_url = gateway_url
+                except Exception as ipfs_err:
+                    print(f"[IPFS Task Error] {ipfs_err}")
+
                 degree.save()
 
             success_count += 1

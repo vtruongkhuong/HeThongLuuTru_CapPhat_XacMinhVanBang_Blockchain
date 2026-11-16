@@ -118,15 +118,22 @@ def _handle_issue_confirmed(tx_record, receipt, client):
         update_fields.append('chain_id')
     issuance_batch.save(update_fields=update_fields)
 
-    # Chuyển tất cả Degree thuộc đợt này sang ISSUED
-    count = Degree.objects.filter(
-        batch=issuance_batch.graduation_batch,
-        status='ISSUANCE_PENDING'
-    ).update(status='ISSUED', generated_at=timezone.now())
-    logger.info(
-        f"[sync_transaction] IssuanceBatch #{issuance_batch.pk} CONFIRMED. "
-        f"Đã chuyển {count} Degree sang ISSUED."
-    )
+    # Chuyển Degree sang ISSUED (đơn lẻ hoặc hàng loạt)
+    if tx_record.degree:
+        tx_record.degree.status = 'ISSUED'
+        tx_record.degree.generated_at = timezone.now()
+        tx_record.degree.save(update_fields=['status', 'generated_at'])
+        count = 1
+        logger.info(f"[sync_transaction] Degree đơn lẻ #{tx_record.degree.pk} đã chuyển sang ISSUED.")
+    else:
+        count = Degree.objects.filter(
+            batch=issuance_batch.graduation_batch,
+            status='ISSUANCE_PENDING'
+        ).update(status='ISSUED', generated_at=timezone.now())
+        logger.info(
+            f"[sync_transaction] IssuanceBatch #{issuance_batch.pk} CONFIRMED. "
+            f"Đã chuyển {count} Degree sang ISSUED."
+        )
 
     try:
         from apps.audit.services import log_action
@@ -171,16 +178,21 @@ def _handle_tx_failed(tx_record):
       - ISSUE thất bại: Degree về APPROVED để có thể retry phát hành.
       - REVOKE thất bại: giữ nguyên trạng thái.
     """
-    if tx_record.operation_type == 'ISSUE' and tx_record.issuance_batch:
+    if tx_record.operation_type == 'ISSUE':
         from apps.degrees.models import Degree
-        count = Degree.objects.filter(
-            batch=tx_record.issuance_batch.graduation_batch,
-            status='ISSUANCE_PENDING'
-        ).update(status='APPROVED')
-        logger.warning(
-            f"[sync_transaction] Giao dịch ISSUE thất bại. "
-            f"Đã trả {count} Degree về APPROVED để retry."
-        )
+        if tx_record.degree:
+            tx_record.degree.status = 'APPROVED'
+            tx_record.degree.save(update_fields=['status'])
+            logger.warning(f"[sync_transaction] Giao dịch ISSUE đơn lẻ thất bại. Đã trả Degree #{tx_record.degree.pk} về APPROVED để retry.")
+        elif tx_record.issuance_batch:
+            count = Degree.objects.filter(
+                batch=tx_record.issuance_batch.graduation_batch,
+                status='ISSUANCE_PENDING'
+            ).update(status='APPROVED')
+            logger.warning(
+                f"[sync_transaction] Giao dịch ISSUE thất bại. "
+                f"Đã trả {count} Degree về APPROVED để retry."
+            )
 
 
 @shared_task

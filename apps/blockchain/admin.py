@@ -92,11 +92,17 @@ class IssuanceBatchAdmin(BaseRoleAdmin):
             except IssuanceBatch.DoesNotExist:
                 self.message_user(request, "Không tìm thấy đợt phát hành tương ứng!", level=messages.ERROR)
                 return redirect('admin:blockchain_issuancebatch_changelist')
+            degree_id = request.POST.get('degree_id')
+            single_degree = None
+            if degree_id:
+                single_degree = Degree.objects.filter(id=degree_id).first()
+
             # 1. Tạo bản ghi giao dịch BlockchainTransaction với trạng thái 'pending'
             BlockchainTransaction.objects.update_or_create(
                 tx_hash=tx_hash,
                 defaults={
                     'issuance_batch': batch,
+                    'degree': single_degree,
                     'operation_type': 'ISSUE',
                     'status': 'pending'
                 }
@@ -104,11 +110,15 @@ class IssuanceBatchAdmin(BaseRoleAdmin):
             # Cập nhật tx_hash vào GraduationBatch để tiện tra cứu
             batch.graduation_batch.tx_hash = tx_hash
             batch.graduation_batch.save(update_fields=['tx_hash'])
-            # 2. TỐI ƯU: Cập nhật hàng loạt trạng thái Degree sang ISSUANCE_PENDING chỉ trong 1 câu lệnh SQL duy nhất
-            Degree.objects.filter(
-                batch=batch.graduation_batch,
-                status__in=('APPROVED', 'DRAFT', 'GENERATED')
-            ).update(status='ISSUANCE_PENDING')
+            # 2. Cập nhật trạng thái Degree sang ISSUANCE_PENDING (đơn lẻ hoặc hàng loạt)
+            if single_degree:
+                single_degree.status = 'ISSUANCE_PENDING'
+                single_degree.save(update_fields=['status'])
+            else:
+                Degree.objects.filter(
+                    batch=batch.graduation_batch,
+                    status__in=('APPROVED', 'DRAFT', 'GENERATED')
+                ).update(status='ISSUANCE_PENDING')
             # 3. Kích hoạt Celery task đồng bộ giao dịch
             try:
                 sync_transaction.delay(tx_hash)

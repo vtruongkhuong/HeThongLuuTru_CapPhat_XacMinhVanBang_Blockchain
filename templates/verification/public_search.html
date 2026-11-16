@@ -103,6 +103,15 @@
                                     <span class="text-gray-400 font-mono text-xs">-</span>
                                 {% endif %}
                             </div>
+                            {% if degree.ipfs_cid %}
+                            <div>
+                                <span class="text-gray-500 text-xs font-bold uppercase block mb-1">Lưu trữ phi tập trung (IPFS CID)</span>
+                                <a href="{% url 'blockchain:ipfs_viewer' degree.ipfs_cid %}" target="_blank" class="apple-hash-pill w-full justify-between text-teal-700 bg-teal-50 border-teal-200 hover:bg-teal-100 transition-all flex items-center" title="Xem văn bằng gốc trên mạng phi tập trung IPFS">
+                                    <span class="break-all text-left font-mono text-xs">ipfs://{{ degree.ipfs_cid }}</span>
+                                    <span class="material-symbols-outlined text-sm shrink-0">open_in_new</span>
+                                </a>
+                            </div>
+                            {% endif %}
                             {% if verification_state == 'VALID' %}
                                 <div class="flex items-center gap-2 text-green-600 font-bold text-xs uppercase pt-2">
                                     <span class="material-symbols-outlined text-[16px]">verified_user</span> Dữ liệu toàn vẹn, khớp với Smart Contract (Sepolia)

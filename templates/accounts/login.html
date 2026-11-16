@@ -63,8 +63,38 @@
                 </div>
             </div>
 
+            <!-- Thông báo lỗi Web3 nếu có -->
+            <div id="web3-error" class="hidden mb-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold px-4 py-3 flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm text-amber-600">warning</span>
+                <span id="web3-error-text">Lỗi kết nối ví.</span>
+            </div>
+
+            <!-- Nút Đăng nhập bằng Ví Web3 MetaMask -->
+            <button type="button" id="btn-web3-login"
+                    class="animate-btn flex items-center justify-center w-full px-4 py-3 mb-3 border border-orange-200 rounded-xl shadow-sm bg-gradient-to-r from-orange-50 to-amber-50 text-xs font-bold uppercase tracking-wider text-orange-800 hover:from-orange-100 hover:to-amber-100 transition-all gap-2.5">
+                <svg class="h-5 w-5" viewBox="0 0 318.6 318.6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <polygon fill="#E2761B" points="274.1 35.5 174.6 109.4 193 65.8"/>
+                    <polygon fill="#E4761B" points="44.4 35.5 143.1 110.1 125.6 65.8"/>
+                    <polygon fill="#D7C1B3" points="238.3 206.8 211.8 247.4 268.5 263 284.8 207.7"/>
+                    <polygon fill="#233447" points="33.9 207.7 50.1 263 106.8 247.4 80.3 206.8"/>
+                    <polygon fill="#CD6116" points="103.6 138.2 87.8 162.1 144.1 164.6 142.1 104.1"/>
+                    <polygon fill="#E4751F" points="214.9 138.2 175.9 103.4 174.6 164.6 230.8 162.1"/>
+                    <polygon fill="#E4751F" points="106.8 247.4 140.6 230.9 111.4 208.1"/>
+                    <polygon fill="#CD6116" points="177.9 230.9 211.8 247.4 207.1 208.1"/>
+                    <polygon fill="#161616" points="144.1 164.6 87.8 162.1 106.8 247.4 140.6 230.9"/>
+                    <polygon fill="#763D16" points="174.6 164.6 177.9 230.9 211.8 247.4 230.8 162.1"/>
+                    <polygon fill="#F6851B" points="284.8 207.7 268.5 263 306.9 207.7"/>
+                    <polygon fill="#C0AD9E" points="11.7 207.7 50.1 263 33.9 207.7"/>
+                    <polygon fill="#161616" points="159.3 221.7 159.3 277.6 177.9 230.9 140.6 230.9"/>
+                    <polygon fill="#763D16" points="159.3 277.6 159.3 221.7 174.6 164.6 144.1 164.6"/>
+                    <polygon fill="#F6851B" points="159.3 125.5 175.9 103.4 214.9 138.2 207.1 208.1 177.9 230.9 174.6 164.6"/>
+                    <polygon fill="#C0AD9E" points="159.3 125.5 144.1 164.6 140.6 230.9 111.4 208.1 103.6 138.2 143.1 110.1"/>
+                </svg>
+                <span id="btn-web3-text">Đăng nhập bằng ví MetaMask</span>
+            </button>
+
             <!-- Nút Đăng nhập bằng Google -->
-            <form action="{% provider_login_url 'google' %}" method="post" class="mt-6 w-full">
+            <form action="{% provider_login_url 'google' %}" method="post" class="w-full">
                 {% csrf_token %}
                 <button type="submit" 
                         class="animate-btn flex items-center justify-center w-full px-4 py-3 border border-gray-200 rounded-xl shadow-sm bg-white text-xs font-bold uppercase tracking-wider text-gray-700 hover:bg-gray-50 transition-all gap-2.5">
@@ -93,4 +123,96 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const btnWeb3 = document.getElementById('btn-web3-login');
+    const txtWeb3 = document.getElementById('btn-web3-text');
+    const errBox = document.getElementById('web3-error');
+    const errText = document.getElementById('web3-error-text');
+
+    function showError(msg) {
+        if (!errBox || !errText) return;
+        errBox.classList.remove('hidden');
+        errText.textContent = msg;
+    }
+    function hideError() {
+        if (!errBox) return;
+        errBox.classList.add('hidden');
+    }
+
+    if (!btnWeb3) return;
+
+    btnWeb3.addEventListener('click', async () => {
+        hideError();
+
+        if (typeof window.ethereum === 'undefined') {
+            showError('Trình duyệt chưa cài đặt MetaMask. Vui lòng cài tiện ích MetaMask để sử dụng tính năng này.');
+            return;
+        }
+
+        try {
+            btnWeb3.disabled = true;
+            txtWeb3.textContent = 'Đang kết nối ví...';
+
+            // 1. Yêu cầu quyền truy cập tài khoản ví
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            if (!accounts || accounts.length === 0) {
+                throw new Error('Chưa chọn tài khoản ví nào.');
+            }
+            const address = accounts[0];
+
+            // 2. Lấy mã Nonce ngẫu nhiên từ máy chủ
+            txtWeb3.textContent = 'Đang nhận Nonce bảo mật...';
+            const nonceRes = await fetch("{% url 'accounts:web3_nonce' %}");
+            const nonceData = await nonceRes.json();
+            const nonce = nonceData.nonce;
+
+            // 3. Chuẩn bị thông điệp ký chuẩn SIWE (EIP-4361)
+            const domain = window.location.host;
+            const message = `Cổng Quản lý Văn bằng Blockchain yêu cầu xác thực danh tính ví của bạn.\n\nTên miền: ${domain}\nĐịa chỉ ví: ${address}\nNonce bảo mật: ${nonce}\nThời gian: ${new Date().toISOString()}\n\nVui lòng nhấn ký để đăng nhập an toàn mà không tốn phí Gas.`;
+
+            // 4. Gọi MetaMask yêu cầu người dùng ký thông điệp (Miễn phí Gas)
+            txtWeb3.textContent = 'Vui lòng ký trên MetaMask...';
+            const signature = await window.ethereum.request({
+                method: 'personal_sign',
+                params: [message, address]
+            });
+
+            // 5. Gửi chữ ký và địa chỉ ví lên Server xác thực
+            txtWeb3.textContent = 'Đang xác thực trên hệ thống...';
+            const loginRes = await fetch("{% url 'accounts:web3_login' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    address: address,
+                    signature: signature,
+                    message: message
+                })
+            });
+
+            const loginData = await loginRes.json();
+            if (loginData.success) {
+                txtWeb3.textContent = 'Đăng nhập thành công! Đang chuyển hướng...';
+                window.location.href = loginData.redirect_url || '/dashboard/';
+            } else {
+                throw new Error(loginData.error || 'Xác thực chữ ký thất bại.');
+            }
+
+        } catch (err) {
+            console.error('Web3 Login Error:', err);
+            let msg = err.message || 'Lỗi không xác định khi kết nối ví.';
+            if (err.code === 4001) {
+                msg = 'Bạn đã từ chối ký thông điệp xác thực trên MetaMask.';
+            }
+            showError(msg);
+            btnWeb3.disabled = false;
+            txtWeb3.textContent = 'Đăng nhập bằng ví MetaMask';
+        }
+    });
+});
+</script>
 {% endblock %}

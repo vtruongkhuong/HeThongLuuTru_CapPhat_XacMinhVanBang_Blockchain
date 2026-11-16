@@ -1,6 +1,8 @@
 from django.contrib import admin, messages
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
+from django.utils.html import format_html
 from apps.core.admin import BaseRoleAdmin, format_crypto_hash_badge
 from .models import Degree
 from .pdf_generator import get_degree_pdf
@@ -15,11 +17,24 @@ class DegreeAdmin(BaseRoleAdmin):
     # Quyền xem: Các cán bộ liên quan đến quy trình duyệt và phát hành
     allowed_roles = ['officer_a', 'officer_b', 'reviewer', 'approver', 'issuer']
     
-    list_display = ['student', 'batch', 'degree_type', 'status', 'short_canonical_hash', 'generated_at']
+    list_display = ['student', 'batch', 'degree_type', 'status', 'short_canonical_hash', 'ipfs_badge', 'generated_at']
 
     def short_canonical_hash(self, obj):
         return format_crypto_hash_badge(obj.canonical_hash, title_prefix="Mã Hash Văn Bằng (Canonical Hash)", icon="fingerprint")
     short_canonical_hash.short_description = "Mã Hash Văn Bằng"
+
+    def ipfs_badge(self, obj):
+        if obj.ipfs_cid:
+            url = f"/blockchain/ipfs/{obj.ipfs_cid}/"
+            return format_html(
+                '<a href="{}" target="_blank" class="apple-hash-pill" style="color: #0d9488; background: #f0fdfa; border: 1px solid #99f6e4; font-size: 11px; padding: 3px 8px; border-radius: 9999px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Mở file trên IPFS: {}">'
+                '<span class="material-symbols-outlined" style="font-size: 13px;">cloud_done</span>'
+                '<span>IPFS: {}...{}</span>'
+                '</a>',
+                url, obj.ipfs_cid, obj.ipfs_cid[:4], obj.ipfs_cid[-4:]
+            )
+        return "-"
+    ipfs_badge.short_description = "Lưu trữ IPFS"
     
     list_filter = ('batch', 'status', 'degree_type')
     list_filter_submit = True
@@ -31,7 +46,9 @@ class DegreeAdmin(BaseRoleAdmin):
         'approve_single_degree',
         'issue_single_metamask',
         'preview_pdf',
-        'generate_bulk_pdfs'
+        'generate_bulk_pdfs',
+        'reset_to_draft',
+        'sync_blockchain_status',
     ]
 
     # --- 1. ACTION ĐƠN LẺ: TRÌNH DUYỆT (MAKER) ---
@@ -88,8 +105,8 @@ class DegreeAdmin(BaseRoleAdmin):
             return
 
         degree = queryset.first()
-        if degree.status not in ('APPROVED', 'GENERATED'):
-            self.message_user(request, f"Văn bằng phải ở trạng thái ĐÃ DUYỆT (APPROVED). Hiện tại đang là: {degree.get_status_display()}", level=messages.ERROR)
+        if degree.status not in ('APPROVED', 'GENERATED', 'ISSUANCE_PENDING'):
+            self.message_user(request, f"Văn bằng phải ở trạng thái ĐÃ DUYỆT (APPROVED) hoặc CHỜ PHÁT HÀNH. Hiện tại đang là: {degree.get_status_display()}", level=messages.ERROR)
             return
 
         try:
@@ -172,3 +189,33 @@ class DegreeAdmin(BaseRoleAdmin):
             f"🚀 Đã đưa yêu cầu kết xuất PDF của {len(batch_ids)} đợt vào hàng đợi xử lý nền.",
             level=messages.SUCCESS
         )
+
+    # --- 6. ACTION ADMIN: RESET VỀ NHÁP ĐỂ TEST LẠI ---
+    @admin.action(description="🔄 [Admin] Trả văn bằng về trạng thái Nháp (DRAFT) để test lại")
+    def reset_to_draft(self, request, queryset):
+        user_roles = request.user.roles.values_list('code', flat=True) if hasattr(request.user, 'roles') else []
+        is_admin = request.user.is_superuser or 'admin' in user_roles
+        if not is_admin:
+            self.message_user(request, "Lỗi phân quyền: Chỉ Quản trị viên (Admin) mới có quyền reset trạng thái văn bằng!", level=messages.ERROR)
+            return
+
+        count = queryset.update(status='DRAFT')
+        self.message_user(request, f"✅ Đã reset {count} văn bằng về trạng thái Nháp (DRAFT). Bây giờ bạn có thể test lại từ Bước 1.", level=messages.SUCCESS)
+
+    # --- 7. ACTION ĐỒNG BỘ TRẠNG THÁI ON-CHAIN ---
+    @admin.action(description="🔄 Đồng bộ trạng thái On-Chain từ Sepolia")
+    def sync_blockchain_status(self, request, queryset):
+        from apps.blockchain.models import BlockchainTransaction
+        from apps.blockchain.tasks import sync_transaction
+        count = 0
+        for degree in queryset:
+            tx = BlockchainTransaction.objects.filter(
+                Q(degree=degree) | Q(issuance_batch__graduation_batch=degree.batch)
+            ).order_by('-id').first()
+            if tx and tx.tx_hash:
+                try:
+                    sync_transaction(tx.tx_hash)
+                    count += 1
+                except Exception as e:
+                    self.message_user(request, f"Không thể đồng bộ {degree.student.student_code}: {e}", level=messages.WARNING)
+        self.message_user(request, f"🚀 Đã hoàn tất đồng bộ dữ liệu On-Chain cho {count} văn bằng.", level=messages.SUCCESS)

@@ -217,6 +217,7 @@
     <form id="tx-form" method="POST" action="{% url 'admin:blockchain_issuancebatch_save_tx_hash' %}" style="display: none;">
         {% csrf_token %}
         <input type="hidden" name="batch_id" value="{{ batch.id }}">
+        <input type="hidden" name="degree_id" value="{{ degree.id|default:'' }}">
         <input type="hidden" name="tx_hash" id="input-tx-hash">
     </form>
 </div>
