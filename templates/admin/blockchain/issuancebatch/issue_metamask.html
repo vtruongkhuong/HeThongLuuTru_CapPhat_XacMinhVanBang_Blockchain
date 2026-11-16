@@ -116,6 +116,46 @@
 
 <div class="iss">
 
+    {% if is_single %}
+    <div class="iss-head">
+        <h1>Phát hành văn bằng ĐƠN LẺ lên Blockchain</h1>
+        <p>Ký giao dịch bằng ví MetaMask để ghi nhận mã băm văn bằng của sinh viên <strong>{{ degree.student.full_name }} ({{ degree.student.student_code }})</strong> lên Smart Contract. Giao dịch đã gửi thì không thể thu hồi.</p>
+    </div>
+
+    <!-- Thông tin văn bằng đơn lẻ -->
+    <div class="iss-card" style="border-left: 5px solid #0066CC;">
+        <div class="iss-row">
+            <div class="iss-label">Hình thức cấp phát</div>
+            <div class="iss-value" style="color: #0066CC; font-weight: bold;">Cấp phát văn bằng đơn lẻ (1 sinh viên)</div>
+        </div>
+        <div class="iss-row">
+            <div class="iss-label">Sinh viên</div>
+            <div class="iss-value">{{ degree.student.full_name }} (MSSV: {{ degree.student.student_code }})</div>
+        </div>
+        <div class="iss-row">
+            <div class="iss-label">Loại văn bằng</div>
+            <div class="iss-value">{{ degree.degree_type.name }} - Ngành: {{ degree.student.major.name|default:"N/A" }}</div>
+        </div>
+        <div class="iss-row">
+            <div class="iss-label">Điểm GPA / Xếp loại</div>
+            <div class="iss-value">Điểm: {{ degree.student.gpa_score|default:"-" }} — Xếp loại: {{ degree.classification|default:"Chưa xếp loại" }}</div>
+        </div>
+        <div class="iss-row">
+            <div class="iss-label">Mã Hash Văn bằng (Leaf)</div>
+            <div>
+                <code class="iss-mono" id="v-root">{{ batch.merkle_root }}</code>
+                <button type="button" class="iss-copy" data-copy="v-root">Sao chép</button>
+            </div>
+        </div>
+        <div class="iss-row">
+            <div class="iss-label">Smart contract</div>
+            <div>
+                <code class="iss-mono" id="v-contract">{{ contract_address }}</code>
+                <button type="button" class="iss-copy" data-copy="v-contract">Sao chép</button>
+            </div>
+        </div>
+    </div>
+    {% else %}
     <div class="iss-head">
         <h1>Phát hành văn bằng lên blockchain</h1>
         <p>Ký giao dịch bằng ví MetaMask để ghi Merkle Root của đợt tốt nghiệp lên smart contract. Giao dịch đã gửi thì không thể thu hồi.</p>
@@ -142,6 +182,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
 
     <!-- Hai bước thao tác -->
     <div class="iss-steps">

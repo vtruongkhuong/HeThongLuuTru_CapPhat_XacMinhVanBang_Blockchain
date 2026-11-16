@@ -47,12 +47,8 @@ def render_degree_pdfs(self, batch_id, actor_id=None):
         try:
             # 1. Sinh Canonical Hash tạm thời nếu chưa có
             if not degree.canonical_hash:
-                leaf_data = {
-                    "credential_public_id": str(degree.credential_public_id),
-                    "student_code": degree.student.student_code,
-                    "degree_type_code": degree.degree_type.code if degree.degree_type else "CN",
-                }
-                degree.canonical_hash = canonical_hash(leaf_data)
+                from .canonicalizer import degree_leaf_hash
+                degree.canonical_hash = degree_leaf_hash(degree)
 
             # 2. Gọi logic Render PDF từ pdf_generator.py (Tự phân luồng 4 template CN, KS, THVP, CNTT)
             pdf_bytes = get_degree_pdf(degree)

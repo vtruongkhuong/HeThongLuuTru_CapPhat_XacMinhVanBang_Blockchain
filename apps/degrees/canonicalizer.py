@@ -18,8 +18,9 @@ def make_leaf_data(degree) -> dict:
         "full_name": degree.student.full_name,
         "major_code": degree.student.major.code if degree.student.major else "",
         "degree_type_code": degree.degree_type.code if degree.degree_type else "",
-        "batch_name": degree.batch.name,
+        "batch_name": degree.batch.name if degree.batch else "",
         "classification": degree.classification or "",
+        "gpa_score": str(degree.student.gpa_score or "") if (degree.student and hasattr(degree.student, 'gpa_score')) else "",
         "issue_date": str(degree.issue_date) if degree.issue_date else "",
     }
 

@@ -110,7 +110,9 @@ def _hash_pair(left: str, right: str) -> str:
     Ghép cặp hash theo thứ tự từ điển rồi keccak256.
     Đồng bộ với _verifyProof() trong Solidity (h < p ? h+p : p+h).
     """
-    a, b = (left, right) if left <= right else (right, left)
+    a_clean = left.replace('0x', '').lower()
+    b_clean = right.replace('0x', '').lower()
+    a, b = (a_clean, b_clean) if a_clean <= b_clean else (b_clean, a_clean)
     return keccak256(bytes.fromhex(a) + bytes.fromhex(b)).hex()
 
 

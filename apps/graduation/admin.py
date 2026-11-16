@@ -234,6 +234,7 @@ class GraduationBatchAdmin(BaseRoleAdmin):
                         "degree_type_code": degree_type.code,
                         "batch_name": batch.name,
                         "classification": classification,
+                        "gpa_score": str(student.gpa_score or "") if hasattr(student, 'gpa_score') else "",
                         "issue_date": str(issue_date),
                     }
                     c_hash = canonical_hash(leaf_data)
