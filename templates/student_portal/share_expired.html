@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Liên Kết Đã Hết Hạn - Cổng Chia Sẻ Hồ Sơ Sinh Viên{% endblock %}
+
+{% block content %}
+<div class="min-h-[75vh] flex items-center justify-center px-4 py-16 bg-slate-50">
+    <div class="max-w-md w-full bg-white rounded-3xl p-8 sm:p-10 shadow-xl border border-slate-200 text-center space-y-6">
+        <div class="w-20 h-20 rounded-3xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto shadow-xs">
+            <span class="material-symbols-outlined text-4xl">link_off</span>
+        </div>
+        
+        <div>
+            <span class="text-xs uppercase tracking-wider font-extrabold text-amber-600 bg-amber-100/60 px-3 py-1 rounded-full border border-amber-200">
+                Thông Báo Hạn Dùng
+            </span>
+            <h2 class="text-2xl font-black text-slate-800 mt-3">Liên Kết Đã Hết Hạn</h2>
+            <p class="text-sm text-slate-500 mt-2 leading-relaxed font-medium">
+                Liên kết chia sẻ hồ sơ văn bằng này đã hết thời hạn bảo mật (7–30 ngày) hoặc đã bị ứng viên thu hồi quyền truy cập.
+            </p>
+        </div>
+
+        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 text-xs text-slate-600 text-left space-y-1.5 font-medium">
+            <p class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[16px] text-blue-600">info</span>
+                <strong>Dành cho Nhà tuyển dụng / Doanh nghiệp:</strong>
+            </p>
+            <p class="pl-6 text-slate-500">
+                Vui lòng liên hệ trực tiếp ứng viên để yêu cầu cấp lại liên kết chia sẻ mới, hoặc sử dụng mã văn bằng để tra cứu trực tiếp tại Cổng công khai.
+            </p>
+        </div>
+
+        <div class="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
+            <a href="{% url 'verification:landing' %}" class="animate-btn w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md">
+                Tra Cứu Bằng Khác
+            </a>
+            <a href="{% url 'verification:employer_batch_verify' %}" class="animate-btn w-full sm:w-auto px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs uppercase tracking-wider transition-all">
+                Cổng Doanh Nghiệp
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

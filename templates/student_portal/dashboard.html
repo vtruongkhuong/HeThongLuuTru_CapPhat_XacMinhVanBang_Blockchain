@@ -49,12 +49,58 @@
             </div>
         </div>
 
-        <div class="relative z-10 mt-6 md:mt-0 flex flex-col items-center md:items-end gap-2">
-            <span class="px-5 py-2.5 bg-green-500/20 text-green-300 rounded-xl font-bold text-sm border border-green-500/30 flex items-center gap-2 backdrop-blur-md shadow-sm">
-                <span class="material-symbols-outlined text-green-400 text-[18px]">verified_user</span>
+        <div class="relative z-10 mt-6 md:mt-0 flex flex-col items-center md:items-end gap-3">
+            <span class="px-4 py-2 bg-green-500/20 text-green-300 rounded-xl font-bold text-xs border border-green-500/30 flex items-center gap-1.5 backdrop-blur-md shadow-sm">
+                <span class="material-symbols-outlined text-green-400 text-[16px]">verified_user</span>
                 Tài khoản Sinh viên xác thực
             </span>
+            <button type="button" id="btn-open-share-modal" onclick="openShareModal()" class="animate-btn px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95 cursor-pointer">
+                <span class="material-symbols-outlined text-[18px]">share</span> Tạo Link Chia Sẻ CV
+            </button>
             <span class="text-xs text-blue-200 font-medium">Tổng số văn bằng/chứng chỉ: <strong class="text-white text-sm">{{ counts.all }}</strong></span>
+        </div>
+    </div>
+
+    <!-- KHỐI QUẢN LÝ LINK CHIA SẺ HỒ SƠ TẠM THỜI (Nghĩa - Task 3) -->
+    <div id="share-links-container" class="{% if not share_links %}hidden{% endif %} bg-amber-50/70 border border-amber-200 rounded-2xl p-5 space-y-3">
+        <div class="flex items-center justify-between">
+            <h3 class="text-xs font-black uppercase tracking-wider text-amber-900 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px] text-amber-600">link</span>
+                Danh sách Link chia sẻ hồ sơ đang hoạt động
+            </h3>
+            <button type="button" onclick="openShareModal()" class="text-xs font-bold text-amber-700 hover:text-amber-800 underline">
+                + Tạo link mới
+            </button>
+        </div>
+        <div id="active-share-list" class="space-y-2">
+            {% for sl in share_links %}
+            <div id="share-link-item-{{ sl.id }}" class="bg-white rounded-xl p-3 border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                <div class="flex items-center gap-3">
+                    <span class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[18px]">verified</span>
+                    </span>
+                    <div>
+                        <p class="text-xs font-extrabold text-slate-800">{{ sl.label|default:"Link nộp CV xin việc" }}</p>
+                        <p class="text-[11px] text-slate-500">
+                            Hạn đến: <strong class="text-slate-700">{{ sl.expires_at|date:"d/m/Y" }}</strong> 
+                            (Còn <span class="text-amber-600 font-bold">{{ sl.remaining_days }}</span> ngày) • 
+                            Lượt xem: <strong class="text-blue-600">{{ sl.view_count }}</strong>
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="copyShareUrl('{% url 'student_portal:public_shared_profile' sl.token %}')" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-lg transition-colors border border-blue-200 flex items-center gap-1 cursor-pointer">
+                        <span class="material-symbols-outlined text-[14px]">content_copy</span> Copy Link
+                    </button>
+                    <a href="{% url 'student_portal:public_shared_profile' sl.token %}" target="_blank" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition-colors flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[14px]">open_in_new</span> Xem
+                    </a>
+                    <button type="button" onclick="revokeShareLink('{{ sl.id }}')" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors" title="Hủy kích hoạt sớm">
+                        <span class="material-symbols-outlined text-[18px]">delete</span>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
         </div>
     </div>
 
@@ -361,5 +407,240 @@ function filterCategory(category, button) {
         }
     }
 }
+
+// --- QUẢN LÝ MODAL LINK CHIA SẺ HỒ SƠ TẠM THỜI (Nghĩa - Task 3) ---
+function openShareModal() {
+    const modal = document.getElementById('share-profile-modal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+function closeShareModal() {
+    const modal = document.getElementById('share-profile-modal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const btnOpenShare = document.getElementById('btn-open-share-modal');
+    if (btnOpenShare) {
+        btnOpenShare.addEventListener('click', openShareModal);
+    }
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeShareModal();
+});
+
+function selectShareDays(selectedLabel) {
+    document.querySelectorAll('#share-days-group .day-opt').forEach(el => {
+        el.className = 'day-opt flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-slate-200 hover:border-amber-400 bg-white cursor-pointer transition-all select-none';
+        const t1 = el.querySelector('span:first-child');
+        if (t1) t1.className = 'text-sm font-black text-slate-800';
+        const t2 = el.querySelector('span:last-child');
+        if (t2) t2.className = 'text-[10px] text-slate-400 font-medium';
+    });
+    selectedLabel.className = 'day-opt flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-amber-500 bg-amber-50 text-amber-950 font-black shadow-sm ring-2 ring-amber-400/40 cursor-pointer transition-all select-none';
+    const activeT1 = selectedLabel.querySelector('span:first-child');
+    if (activeT1) activeT1.className = 'text-sm font-black text-amber-900';
+    const activeT2 = selectedLabel.querySelector('span:last-child');
+    if (activeT2) activeT2.className = 'text-[10px] text-amber-700 font-semibold';
+    const radio = selectedLabel.querySelector('input[type="radio"]');
+    if (radio) radio.checked = true;
+}
+
+async function handleCreateShareLink(e) {
+    e.preventDefault();
+    const form = document.getElementById('create-share-link-form');
+    const formData = new FormData(form);
+    const btnSubmit = document.getElementById('btn-submit-share');
+    const resultBox = document.getElementById('share-result-box');
+    const shareInput = document.getElementById('generated-share-url');
+
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = 'Đang khởi tạo...';
+
+    try {
+        const response = await fetch("{% url 'student_portal:create_share_link' %}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        const data = await response.json();
+        if (data.success) {
+            shareInput.value = data.share_url;
+            resultBox.classList.remove('hidden');
+            form.classList.add('hidden');
+
+            // Cập nhật danh sách ngoài dashboard
+            const container = document.getElementById('share-links-container');
+            const list = document.getElementById('active-share-list');
+            if (container && list) {
+                container.classList.remove('hidden');
+                const newItem = document.createElement('div');
+                newItem.id = `share-link-item-${data.token}`;
+                newItem.className = 'bg-white rounded-xl p-3 border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs';
+                newItem.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-[18px]">verified</span>
+                        </span>
+                        <div>
+                            <p class="text-xs font-extrabold text-slate-800">${data.label}</p>
+                            <p class="text-[11px] text-slate-500">
+                                Hạn đến: <strong class="text-slate-700">${data.expires_at}</strong> 
+                                (Còn <span class="text-amber-600 font-bold">${data.remaining_days}</span> ngày) • Lượt xem: <strong>0</strong>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="navigator.clipboard.writeText('${data.share_url}'); alert('Đã sao chép liên kết!');" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-lg transition-colors border border-blue-200 flex items-center gap-1 cursor-pointer">
+                            <span class="material-symbols-outlined text-[14px]">content_copy</span> Copy Link
+                        </button>
+                        <a href="${data.share_url}" target="_blank" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition-colors flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px]">open_in_new</span> Xem
+                        </a>
+                    </div>
+                `;
+                list.prepend(newItem);
+            }
+        } else {
+            alert(data.error || 'Có lỗi xảy ra khi tạo link!');
+        }
+    } catch (err) {
+        alert('Lỗi kết nối máy chủ!');
+    } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = 'Tạo Liên Kết';
+    }
+}
+
+async function revokeShareLink(linkId) {
+    if (!confirm('Bạn có chắc muốn hủy kích hoạt liên kết chia sẻ này ngay lập tức? Nhà tuyển dụng sẽ không thể xem hồ sơ qua link này nữa.')) {
+        return;
+    }
+    try {
+        const response = await fetch(`/portal/huy-link-chia-se/${linkId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        const data = await response.json();
+        if (data.success) {
+            const item = document.getElementById(`share-link-item-${linkId}`);
+            if (item) item.remove();
+            alert('Đã hủy kích hoạt liên kết chia sẻ thành công.');
+        } else {
+            alert(data.error || 'Lỗi khi hủy liên kết!');
+        }
+    } catch (e) {
+        alert('Lỗi kết nối!');
+    }
+}
+
+function copyShareUrl(relUrl) {
+    const fullUrl = window.location.origin + relUrl;
+    navigator.clipboard.writeText(fullUrl).then(() => {
+        alert('Đã sao chép liên kết hồ sơ vào bộ nhớ đệm!\nBạn có thể dán vào CV hoặc email gửi nhà tuyển dụng.');
+    });
+}
 </script>
+
+<!-- MODAL TẠO LINK CHIA SẺ HỒ SƠ (Nghĩa - Task 3) -->
+<div id="share-profile-modal" onclick="if(event.target===this) closeShareModal()" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden transform transition-all duration-200 p-6 sm:p-7 space-y-5">
+        
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-xl">share</span>
+                </div>
+                <h3 class="text-base font-black text-slate-800 uppercase tracking-wide">Tạo Link Chia Sẻ CV</h3>
+            </div>
+            <button type="button" onclick="closeShareModal()" class="text-slate-400 hover:text-slate-600 material-symbols-outlined cursor-pointer">
+                close
+            </button>
+        </div>
+
+        <!-- Form tạo link -->
+        <form id="create-share-link-form" onsubmit="handleCreateShareLink(event)" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Thời hạn hiệu lực của liên kết:
+                </label>
+                <div class="grid grid-cols-3 gap-2.5" id="share-days-group">
+                    <label onclick="selectShareDays(this)" class="day-opt flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-slate-200 hover:border-amber-400 bg-white cursor-pointer transition-all select-none">
+                        <input type="radio" name="days" value="7" class="sr-only">
+                        <span class="text-sm font-black text-slate-800">7 Ngày</span>
+                        <span class="text-[10px] text-slate-400 font-medium">1 tuần</span>
+                    </label>
+                    <label onclick="selectShareDays(this)" class="day-opt flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-amber-500 bg-amber-50 text-amber-950 font-black shadow-sm ring-2 ring-amber-400/40 cursor-pointer transition-all select-none">
+                        <input type="radio" name="days" value="14" checked class="sr-only">
+                        <span class="text-sm font-black text-amber-900">14 Ngày</span>
+                        <span class="text-[10px] text-amber-700 font-semibold">2 tuần (Gợi ý)</span>
+                    </label>
+                    <label onclick="selectShareDays(this)" class="day-opt flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-slate-200 hover:border-amber-400 bg-white cursor-pointer transition-all select-none">
+                        <input type="radio" name="days" value="30" class="sr-only">
+                        <span class="text-sm font-black text-slate-800">30 Ngày</span>
+                        <span class="text-[10px] text-slate-400 font-medium">1 tháng</span>
+                    </label>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Ghi chú / Doanh nghiệp ứng tuyển (Tùy chọn):
+                </label>
+                <input type="text" name="label" placeholder="VD: Nộp ứng tuyển FPT Software, Viettel..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:border-amber-500 outline-none">
+            </div>
+
+            <p class="text-[11px] text-slate-400 leading-relaxed font-medium">
+                💡 Người có liên kết này có thể xem danh sách văn bằng đã xác thực của bạn trên Blockchain Sepolia mà không cần đăng nhập. Sau thời hạn đã chọn, liên kết sẽ tự động vô hiệu hóa.
+            </p>
+
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="closeShareModal()" class="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors">
+                    Hủy bỏ
+                </button>
+                <button type="submit" id="btn-submit-share" class="animate-btn px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl text-xs font-extrabold uppercase tracking-wider shadow-sm transition-all cursor-pointer">
+                    Tạo Liên Kết
+                </button>
+            </div>
+        </form>
+
+        <!-- Khối kết quả khi tạo thành công -->
+        <div id="share-result-box" class="hidden space-y-4 pt-1">
+            <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl text-center space-y-1">
+                <span class="material-symbols-outlined text-2xl text-emerald-600">check_circle</span>
+                <p class="text-xs font-extrabold text-emerald-800">Liên kết chia sẻ đã sẵn sàng!</p>
+            </div>
+            <div>
+                <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                    Sao chép đường dẫn dưới đây và dán vào CV:
+                </label>
+                <div class="flex gap-2">
+                    <input type="text" id="generated-share-url" readonly class="flex-1 bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono font-semibold text-slate-700 select-all">
+                    <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('generated-share-url').value); alert('Đã sao chép liên kết vào bộ nhớ tạm!');" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shrink-0 transition-colors">
+                        Copy
+                    </button>
+                </div>
+            </div>
+            <div class="text-center pt-2">
+                <button type="button" onclick="closeShareModal(); window.location.reload();" class="text-xs font-bold text-slate-500 hover:text-slate-800">
+                    Đóng cửa sổ
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
 {% endblock %}

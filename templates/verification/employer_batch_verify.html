@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cổng Thẩm Định Văn Bằng Cho Doanh Nghiệp - Xác Minh Hàng Loạt{% endblock %}
+
+{% block content %}
+<div class="w-full relative flex flex-col items-center pb-24 bg-slate-50 min-h-screen">
+    
+    <!-- Hero Banner Doanh Nghiệp -->
+    <div class="w-full bg-gradient-to-br from-[#0c1a30] via-[#102a4e] to-[#034ea2] pt-14 pb-32 px-4 relative overflow-hidden flex flex-col items-center text-center">
+        <div class="absolute inset-0 pointer-events-none opacity-30 bg-[radial-gradient(circle_at_50%_20%,#38bdf8_0%,transparent_60%)]"></div>
+        <div class="relative z-10 max-w-3xl">
+            <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider text-sky-300 bg-sky-950/70 border border-sky-700/60 mb-3 shadow-xs">
+                <span class="material-symbols-outlined text-[16px]">domain</span> Cổng Dành Cho Doanh Nghiệp & Nhà Tuyển Dụng
+            </span>
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight uppercase leading-tight">
+                Thẩm Định Văn Bằng Hàng Loạt
+            </h1>
+            <p class="text-blue-100/90 text-sm sm:text-base mt-2 max-w-2xl mx-auto font-medium">
+                Kéo thả cùng lúc 20–50 file PDF hồ sơ ứng viên để hệ thống tự động bóc tách chữ ký số và đối soát trực tiếp với Smart Contract Ethereum Sepolia trong vài giây.
+            </p>
+        </div>
+    </div>
+
+    <!-- Container Chính -->
+    <div class="max-w-6xl w-full mx-auto px-4 -mt-20 relative z-20 space-y-8">
+        
+        <!-- CARD DRAG & DROP UPLOAD -->
+        <div class="bg-white rounded-3xl shadow-xl border border-slate-200/80 p-6 sm:p-8 backdrop-blur-md">
+            <form id="batch-verify-form" method="POST" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                <input type="hidden" name="action" id="form-action" value="verify">
+
+                <!-- Dropzone Area -->
+                <div id="drop-zone" class="border-2 border-dashed border-blue-300 hover:border-blue-500 rounded-3xl p-8 sm:p-12 text-center bg-blue-50/40 hover:bg-blue-50/70 transition-all cursor-pointer group flex flex-col items-center justify-center">
+                    <input type="file" id="file-input" name="pdf_files" multiple accept=".pdf,application/pdf" class="hidden">
+                    
+                    <div class="w-16 h-16 rounded-2xl bg-blue-100 group-hover:bg-blue-600 text-blue-600 group-hover:text-white flex items-center justify-center transition-all duration-300 shadow-sm group-hover:scale-110 mb-4">
+                        <span class="material-symbols-outlined text-4xl">cloud_upload</span>
+                    </div>
+
+                    <h3 class="text-lg sm:text-xl font-black text-slate-800 group-hover:text-blue-700 transition-colors">
+                        Kéo & Thả các file PDF văn bằng vào đây
+                    </h3>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
+                        Hoặc <span class="text-blue-600 font-bold underline">bấm vào đây để chọn nhiều file</span> từ máy tính (Hỗ trợ định dạng .PDF)
+                    </p>
+
+                    <div class="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-500 font-medium">
+                        <span class="px-2.5 py-1 rounded-lg bg-white border border-slate-200">Hỗ trợ tối đa 50 file/lần</span>
+                        <span class="px-2.5 py-1 rounded-lg bg-white border border-slate-200">Tốc độ đối soát ~3 giây</span>
+                        <span class="px-2.5 py-1 rounded-lg bg-white border border-slate-200">Xác thực Chuỗi Sepolia</span>
+                    </div>
+                </div>
+
+                <!-- Danh sách file đã chọn Preview -->
+                <div id="file-list-container" class="hidden space-y-3">
+                    <div class="flex items-center justify-between text-xs font-bold text-slate-600 border-b border-slate-200 pb-2">
+                        <span>Đã chọn <strong id="selected-count" class="text-blue-600">0</strong> file PDF:</span>
+                        <button type="button" id="clear-files-btn" class="text-rose-600 hover:text-rose-700 flex items-center gap-1 font-bold">
+                            <span class="material-symbols-outlined text-[16px]">delete</span> Xóa chọn lại
+                        </button>
+                    </div>
+                    <div id="file-chips" class="max-h-36 overflow-y-auto flex flex-wrap gap-2 p-1">
+                        <!-- Chips sinh bằng JS -->
+                    </div>
+                </div>
+
+                <!-- Nút bấm hành động -->
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
+                    <button type="submit" id="btn-submit-verify" disabled class="animate-btn w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold rounded-2xl px-10 py-4 flex items-center justify-center gap-2.5 shadow-lg hover:shadow-xl transition-all active:scale-95 text-sm uppercase tracking-wider">
+                        <span id="btn-spinner" class="hidden w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        <span class="material-symbols-outlined text-[20px]">verified</span> Bắt đầu Thẩm Định Hàng Loạt
+                    </button>
+                    <a href="{% url 'verification:landing' %}" class="w-full sm:w-auto text-center px-6 py-4 rounded-2xl font-bold text-slate-600 hover:text-slate-900 text-xs sm:text-sm uppercase tracking-wider transition-colors">
+                        ← Về Cổng Tra Cứu Đơn Lẻ
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- KHỐI KẾT QUẢ THẨM ĐỊNH (KHI ĐÃ BẤM XÁC MINH) -->
+        {% if has_searched %}
+        <div id="results-section" class="bg-white rounded-3xl shadow-xl border border-slate-200/80 p-6 sm:p-8 space-y-6">
+            
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+                <div>
+                    <span class="text-xs uppercase tracking-wider font-extrabold text-blue-600">Kết quả thẩm định doanh nghiệp</span>
+                    <h2 class="text-2xl font-black text-slate-900 mt-0.5">Báo Cáo Thẩm Định Ứng Viên</h2>
+                    <p class="text-xs text-slate-500 font-medium mt-0.5">Thời gian thực hiện: {% now "H:i:s, d/m/Y" %}</p>
+                </div>
+                
+                <!-- Nút xuất Excel -->
+                <button type="button" onclick="exportResultsExcel()" class="animate-btn px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm transition-all">
+                    <span class="material-symbols-outlined text-[18px]">table_view</span> Xuất Báo Cáo Excel (.XLSX)
+                </button>
+            </div>
+
+            <!-- 4 Thẻ KPI Tóm Tắt -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-center">
+                    <span class="block text-2xl font-black text-slate-800">{{ summary.total }}</span>
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Tổng số file</span>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-center">
+                    <span class="block text-2xl font-black text-emerald-700">{{ summary.verified }}</span>
+                    <span class="text-xs font-bold text-emerald-600 uppercase tracking-wide">Hợp lệ (Chuẩn)</span>
+                </div>
+                <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 text-center">
+                    <span class="block text-2xl font-black text-rose-700">{{ summary.tampered }}</span>
+                    <span class="text-xs font-bold text-rose-600 uppercase tracking-wide">Nghi vấn giả mạo</span>
+                </div>
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-center">
+                    <span class="block text-2xl font-black text-amber-700">{{ summary.revoked }}</span>
+                    <span class="text-xs font-bold text-amber-600 uppercase tracking-wide">Đã bị thu hồi</span>
+                </div>
+            </div>
+
+            <!-- Bảng chi tiết kết quả -->
+            <div class="overflow-x-auto rounded-2xl border border-slate-200">
+                <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                    <thead>
+                        <tr class="bg-slate-100 text-slate-700 uppercase font-black tracking-wider text-[11px] border-b border-slate-200">
+                            <th class="py-3.5 px-4">STT</th>
+                            <th class="py-3.5 px-4">Tên File</th>
+                            <th class="py-3.5 px-4">Ứng Viên / MSSV</th>
+                            <th class="py-3.5 px-4">Loại Bằng & Ngành</th>
+                            <th class="py-3.5 px-4">Số Hiệu</th>
+                            <th class="py-3.5 px-4 text-center">Kết Quả Thẩm Định</th>
+                            <th class="py-3.5 px-4 text-center">Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 font-medium text-slate-800">
+                        {% for r in results %}
+                        <tr class="hover:bg-slate-50/80 transition-colors">
+                            <td class="py-3.5 px-4 font-bold text-slate-500">{{ forloop.counter }}</td>
+                            <td class="py-3.5 px-4">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-rose-500 text-[18px]">picture_as_pdf</span>
+                                    <div>
+                                        <p class="font-bold text-slate-900 truncate max-w-[160px]" title="{{ r.file_name }}">{{ r.file_name }}</p>
+                                        <p class="text-[10px] text-slate-400">{{ r.file_size }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-3.5 px-4">
+                                <p class="font-bold text-slate-900">{{ r.student_name }}</p>
+                                <p class="text-[11px] text-slate-500 font-mono">{{ r.student_code }}</p>
+                            </td>
+                            <td class="py-3.5 px-4">
+                                <p class="font-semibold text-slate-800">{{ r.degree_type }}</p>
+                                <p class="text-[11px] text-slate-500">{{ r.major }}</p>
+                            </td>
+                            <td class="py-3.5 px-4 font-mono font-bold text-slate-700">
+                                {{ r.degree_number }}
+                            </td>
+                            <td class="py-3.5 px-4 text-center">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase border {{ r.badge_class }}">
+                                    {% if r.status == 'VERIFIED' %}
+                                        <span class="material-symbols-outlined text-[15px]">verified</span>
+                                    {% elif r.status == 'TAMPERED' %}
+                                        <span class="material-symbols-outlined text-[15px]">warning</span>
+                                    {% elif r.status == 'REVOKED' %}
+                                        <span class="material-symbols-outlined text-[15px]">gpp_bad</span>
+                                    {% else %}
+                                        <span class="material-symbols-outlined text-[15px]">help</span>
+                                    {% endif %}
+                                    {{ r.status_text }}
+                                </span>
+                                {% if r.etherscan_url %}
+                                <a href="{{ r.etherscan_url }}" target="_blank" class="block text-[10px] text-blue-600 hover:underline mt-1 font-mono">
+                                    Xem trên Sepolia Etherscan ↗
+                                </a>
+                                {% endif %}
+                            </td>
+                            <td class="py-3.5 px-4 text-center">
+                                {% if r.degree_id and r.status == 'VERIFIED' %}
+                                <a href="{% url 'verification:download_verification_cert_pdf' r.degree_id %}" target="_blank" class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-lg transition-colors border border-blue-200 shadow-2xs" title="Tải Giấy chứng thực điện tử PDF">
+                                    <span class="material-symbols-outlined text-[16px]">file_download</span> Tải Chứng Thực
+                                </a>
+                                {% else %}
+                                <span class="text-slate-400 text-xs italic">---</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const fileListContainer = document.getElementById('file-list-container');
+    const fileChips = document.getElementById('file-chips');
+    const selectedCount = document.getElementById('selected-count');
+    const clearFilesBtn = document.getElementById('clear-files-btn');
+    const btnSubmit = document.getElementById('btn-submit-verify');
+    const form = document.getElementById('batch-verify-form');
+
+    // Click dropzone -> trigger file dialog
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    // Drag & Drop visual events
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.add('border-blue-600', 'bg-blue-100/50', 'scale-[1.01]');
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('border-blue-600', 'bg-blue-100/50', 'scale-[1.01]');
+        });
+    });
+
+    // Handle dropped files
+    dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        if (dt.files && dt.files.length > 0) {
+            fileInput.files = dt.files;
+            updateFileList();
+        }
+    });
+
+    // Handle selected files
+    fileInput.addEventListener('change', updateFileList);
+
+    function updateFileList() {
+        const files = Array.from(fileInput.files);
+        if (files.length === 0) {
+            fileListContainer.classList.add('hidden');
+            btnSubmit.disabled = true;
+            return;
+        }
+
+        selectedCount.textContent = files.length;
+        fileChips.innerHTML = '';
+
+        files.forEach((f, idx) => {
+            const chip = document.createElement('div');
+            chip.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-medium text-slate-700 shadow-2xs';
+            chip.innerHTML = `
+                <span class="material-symbols-outlined text-[15px] text-rose-500">picture_as_pdf</span>
+                <span class="truncate max-w-[150px]">${f.name}</span>
+                <span class="text-[10px] text-slate-400">(${Math.round(f.size/1024)}KB)</span>
+            `;
+            fileChips.appendChild(chip);
+        });
+
+        fileListContainer.classList.remove('hidden');
+        btnSubmit.disabled = false;
+    }
+
+    clearFilesBtn.addEventListener('click', () => {
+        fileInput.value = '';
+        updateFileList();
+    });
+
+    form.addEventListener('submit', () => {
+        const btnSpinner = document.getElementById('btn-spinner');
+        btnSpinner.classList.remove('hidden');
+        btnSubmit.disabled = true;
+    });
+});
+
+function exportResultsExcel() {
+    const form = document.getElementById('batch-verify-form');
+    const actionInput = document.getElementById('form-action');
+    actionInput.value = 'export_excel';
+    form.submit();
+    actionInput.value = 'verify';
+}
+</script>
+{% endblock %}

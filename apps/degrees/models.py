@@ -51,12 +51,54 @@ class Degree(models.Model):
     @property
     def graduation_year(self):
         d = self.issue_date or self.approved_at
-        return d.year if d else ""
+        if d:
+            return d.year
+        if self.batch:
+            if self.batch.decision_date:
+                return self.batch.decision_date.year
+            if self.batch.approved_at:
+                return self.batch.approved_at.year
+            import re
+            m = re.search(r'\b(20\d{2})\b', self.batch.name or '')
+            if m:
+                return int(m.group(1))
+        if self.generated_at:
+            return self.generated_at.year
+        return 2026
 
     @property
     def serial_number(self):
-        return f"CTUT-{self.graduation_year or 'XXXX'}-{self.pk:06d}"
-    
+        year = self.graduation_year or 2026
+        return f"CTUT-{year}-{self.pk:06d}"
+
+    @property
+    def degree_number(self):
+        """Số hiệu văn bằng chuẩn hóa"""
+        return self.serial_number
+
+    @property
+    def reg_number(self):
+        """Số vào sổ gốc cấp bằng chuẩn Thông tư 21/2019/TT-BGDĐT"""
+        year = self.graduation_year or 2026
+        return f"{self.pk:04d}/{year}/SGCB-CTUT"
+
+    @property
+    def effective_issue_date(self):
+        """Ngày cấp bằng hiệu lực (fallback theo batch / phê duyệt)"""
+        if self.issue_date:
+            return self.issue_date
+        if self.batch:
+            if self.batch.decision_date:
+                return self.batch.decision_date
+            if self.batch.approved_at:
+                return self.batch.approved_at.date()
+        if self.approved_at:
+            return self.approved_at.date()
+        if self.generated_at:
+            return self.generated_at.date()
+        from datetime import date
+        return date(2026, 6, 30)
+
     class Meta:
         verbose_name = "Văn bằng số"
         verbose_name_plural = "Sổ cái Văn bằng số"

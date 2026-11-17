@@ -211,6 +211,29 @@
             </div>
         </div>
     </div>
+
+    <!-- TẦNG 3: BIỂU ĐỒ XẾP LOẠI TỐT NGHIỆP & TRA CỨU THEO NGÀY (Nghĩa - Task 4) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-md p-6 flex flex-col items-center">
+            <div class="w-full mb-4 text-center">
+                <h2 class="text-lg font-bold text-gray-900">Tỷ Lệ Xếp Loại Tốt Nghiệp</h2>
+                <p class="text-sm text-gray-500 font-medium">Phân bố thứ hạng văn bằng (Xuất sắc, Giỏi, Khá, TB)</p>
+            </div>
+            <div class="relative w-full h-[280px] flex justify-center">
+                <canvas id="classificationChart"></canvas>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-md p-6 flex flex-col items-center">
+            <div class="w-full mb-4 text-center">
+                <h2 class="text-lg font-bold text-gray-900">Xu Hướng Tra Cứu Theo Ngày</h2>
+                <p class="text-sm text-gray-500 font-medium">Lưu lượng truy cập đối soát xác minh 7 ngày qua</p>
+            </div>
+            <div class="relative w-full h-[280px] flex justify-center">
+                <canvas id="dailyVerificationChart"></canvas>
+            </div>
+        </div>
+    </div>
 </div>
 
 
@@ -306,6 +329,72 @@
                     }]
                 },
                 options: commonOptions
+            });
+        }
+
+        // 4. [Nghĩa - Task 4] Chart: Tỷ Lệ Xếp Loại Tốt Nghiệp
+        const classCtx = document.getElementById('classificationChart');
+        const classSource = chartData.classifications || { labels: [], data: [] };
+        if (classCtx) {
+            const hasData4 = classSource.labels && classSource.labels.length > 0;
+            const classColors = ['#10b981', '#2563eb', '#f59e0b', '#94a3b8', '#64748b'];
+            new Chart(classCtx.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: hasData4 ? classSource.labels : ['Chưa có dữ liệu'],
+                    datasets: [{
+                        data: hasData4 ? classSource.data : [1],
+                        backgroundColor: hasData4 ? classColors : ['#f1f5f9'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: commonOptions
+            });
+        }
+
+        // 5. [Nghĩa - Task 4] Chart: Xu Hướng Tra Cứu Theo Ngày
+        const dailyCtx = document.getElementById('dailyVerificationChart');
+        const dailySource = chartData.daily_verifications || { labels: [], data: [] };
+        if (dailyCtx) {
+            const hasData5 = dailySource.labels && dailySource.labels.length > 0;
+            new Chart(dailyCtx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: hasData5 ? dailySource.labels : ['Hôm nay'],
+                    datasets: [{
+                        label: 'Lượt tra cứu',
+                        data: hasData5 ? dailySource.data : [0],
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.12)',
+                        borderWidth: 2.5,
+                        fill: true,
+                        tension: 0.35,
+                        pointBackgroundColor: '#2563eb',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0, font: { family: 'Inter', size: 11 } },
+                            grid: { color: 'rgba(226, 232, 240, 0.7)' }
+                        },
+                        x: {
+                            ticks: { font: { family: 'Inter', size: 11 } },
+                            grid: { display: false }
+                        }
+                    }
+                }
             });
         }
     });

@@ -1,6 +1,8 @@
 import io
 import json
 import base64
+import secrets
+from datetime import timedelta
 import qrcode
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -8,12 +10,15 @@ from django.contrib.auth.decorators import login_required
 from django.http import FileResponse, HttpResponse, JsonResponse
 from django.conf import settings
 from django.utils import timezone
+from django.urls import reverse
+from django.db.models import F
 
 from apps.students.models import Student
 from apps.degrees.models import Degree
 from apps.degrees.pdf_generator import get_degree_pdf
 from apps.blockchain.models import DegreeMerkleProof, BlockchainTransaction
 from .forms import StudentProfileForm
+from .models import StudentProfileShareLink
 
 
 def get_student_for_user(user):
@@ -139,6 +144,8 @@ def student_dashboard(request):
             degrees.append(deg_item)
             counts['all'] += 1
 
+    share_links = student.share_links.filter(is_active=True).order_by('-created_at') if student else []
+
     return render(request, 'student_portal/dashboard.html', {
         'student': student,
         'degrees': degrees,
@@ -146,6 +153,7 @@ def student_dashboard(request):
         'certifications': certifications,
         'other_degrees': other_degrees,
         'counts': counts,
+        'share_links': share_links,
     })
 
 
@@ -315,3 +323,107 @@ def download_verification_package(request, degree_id):
     filename = f"VerificationPackage_{student.student_code}_{degree.id}.json"
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
+
+
+@login_required
+def create_share_link(request):
+    """
+    [Nghĩa - Task 3] Sinh liên kết chia sẻ hồ sơ tạm thời (7, 14, 30 ngày)
+    để sinh viên đính kèm vào CV xin việc gửi nhà tuyển dụng.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Phương thức không được hỗ trợ.'}, status=405)
+
+    student = get_student_for_user(request.user)
+    if not student:
+        return JsonResponse({'success': False, 'error': 'Chưa liên kết hồ sơ sinh viên.'}, status=400)
+
+    try:
+        days = int(request.POST.get('days', 14))
+        if days not in (7, 14, 30):
+            days = 14
+    except (ValueError, TypeError):
+        days = 14
+
+    label = request.POST.get('label', '').strip() or f"CV Ứng tuyển ({days} ngày)"
+    token = secrets.token_urlsafe(16)
+    expires_at = timezone.now() + timedelta(days=days)
+
+    link = StudentProfileShareLink.objects.create(
+        student=student,
+        token=token,
+        label=label,
+        days_valid=days,
+        expires_at=expires_at,
+        is_active=True
+    )
+
+    share_url = request.build_absolute_uri(reverse('student_portal:public_shared_profile', args=[token]))
+
+    return JsonResponse({
+        'success': True,
+        'token': token,
+        'share_url': share_url,
+        'label': label,
+        'expires_at': expires_at.strftime('%d/%m/%Y'),
+        'remaining_days': days,
+        'message': f'Tạo liên kết chia sẻ thành công ({days} ngày).'
+    })
+
+
+@login_required
+def revoke_share_link(request, link_id):
+    """
+    [Nghĩa - Task 3] Hủy kích hoạt / thu hồi sớm liên kết chia sẻ hồ sơ.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Yêu cầu không hợp lệ.'}, status=405)
+
+    student = get_student_for_user(request.user)
+    if not student:
+        return JsonResponse({'success': False, 'error': 'Không có quyền truy cập.'}, status=403)
+
+    link = get_object_or_404(StudentProfileShareLink, id=link_id, student=student)
+    link.is_active = False
+    link.save(update_fields=['is_active'])
+
+    return JsonResponse({'success': True, 'message': 'Đã hủy kích hoạt liên kết chia sẻ.'})
+
+
+def public_shared_profile_view(request, token):
+    """
+    [Nghĩa - Task 3] Cổng xem hồ sơ văn bằng chia sẻ công khai dành cho Nhà tuyển dụng / HR.
+    Không yêu cầu đăng nhập. Kiểm tra thời hạn hết hạn 7-30 ngày.
+    """
+    link = StudentProfileShareLink.objects.filter(token=token).select_related(
+        'student', 'student__major', 'student__faculty'
+    ).first()
+
+    if not link or link.is_expired:
+        return render(request, 'student_portal/share_expired.html', {'link': link}, status=410)
+
+    # Tăng lượt xem
+    StudentProfileShareLink.objects.filter(id=link.id).update(view_count=F('view_count') + 1)
+
+    student = link.student
+    raw_degrees = student.degrees.filter(status='ISSUED').select_related(
+        'degree_type', 'batch'
+    ).order_by('-issue_date')
+
+    degrees_list = []
+    for deg in raw_degrees:
+        tx_obj = BlockchainTransaction.objects.filter(degree=deg, status='confirmed').first()
+        tx_hash = getattr(tx_obj, 'tx_hash', None) or getattr(deg, 'tx_hash', None)
+        degrees_list.append({
+            'obj': deg,
+            'tx_hash': tx_hash,
+            'etherscan_url': f"https://sepolia.etherscan.io/tx/{tx_hash}" if tx_hash else None,
+        })
+
+    context = {
+        'student': student,
+        'link': link,
+        'degrees': degrees_list,
+        'total_degrees': len(degrees_list),
+    }
+    return render(request, 'student_portal/public_shared_profile.html', context)

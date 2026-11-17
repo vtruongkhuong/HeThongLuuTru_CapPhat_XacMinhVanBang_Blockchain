@@ -54,6 +54,9 @@
             <a href="{% url 'landing' %}" class="text-gray-600 hover:text-ntt-light transition-colors flex items-center gap-1.5 text-xs uppercase tracking-wider font-bold">
                 <span class="material-symbols-outlined text-base">search</span> Tra cứu
             </a>
+            <a href="{% url 'verification:employer_batch_verify' %}" class="text-gray-600 hover:text-blue-600 transition-colors flex items-center gap-1.5 text-xs uppercase tracking-wider font-bold">
+                <span class="material-symbols-outlined text-base">domain</span> Doanh nghiệp
+            </a>
 
             {% if user.is_authenticated %}
                 {% if not user.is_staff and not user.is_superuser %}

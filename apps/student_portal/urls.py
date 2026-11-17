@@ -17,4 +17,9 @@ urlpatterns = [
 
     # Tải gói xác minh độc lập (JSON Verification Package)
     path('tai-goi-xac-minh/<int:degree_id>/', views.download_verification_package, name='download_verification_package'),
+
+    # [Nghĩa - Task 3] Quản lý & Xem Link chia sẻ hồ sơ tạm thời cho Nhà tuyển dụng
+    path('tao-link-chia-se/', views.create_share_link, name='create_share_link'),
+    path('huy-link-chia-se/<uuid:link_id>/', views.revoke_share_link, name='revoke_share_link'),
+    path('chia-se/<str:token>/', views.public_shared_profile_view, name='public_shared_profile'),
 ]

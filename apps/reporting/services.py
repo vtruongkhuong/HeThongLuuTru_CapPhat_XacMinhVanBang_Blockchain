@@ -1,5 +1,8 @@
 import unicodedata
+from datetime import timedelta
+from django.utils import timezone
 from django.db.models import Count
+from django.db.models.functions import TruncDate
 from apps.students.models import Student, ImportBatch
 from apps.academic.models import Faculty, Major
 from apps.degrees.models import Degree
@@ -108,8 +111,55 @@ def get_chart_data():
     except Exception as e:
         print(f"Lỗi truy vấn VerificationLog: {e}")
 
+    # 4. [Nghĩa - Task 4] Tỷ lệ Xếp loại tốt nghiệp (Xuất sắc, Giỏi, Khá, Trung bình)
+    class_order = ['Xuất sắc', 'Giỏi', 'Khá', 'Trung bình']
+    class_counts = {k: 0 for k in class_order}
+    raw_classes = Degree.objects.values('classification').annotate(count=Count('id'))
+    for rc in raw_classes:
+        c_name = (rc['classification'] or '').strip()
+        matched = False
+        for std_c in class_order:
+            if std_c.lower() in c_name.lower():
+                class_counts[std_c] += rc['count']
+                matched = True
+                break
+        if not matched and c_name:
+            class_counts['Khác'] = class_counts.get('Khác', 0) + rc['count']
+
+    class_labels = [k for k, v in class_counts.items() if v > 0]
+    class_data = [class_counts[k] for k in class_labels]
+    if not class_labels:
+        class_labels = class_order
+        class_data = [0, 0, 0, 0]
+
+    # 5. [Nghĩa - Task 4] Xu hướng Tra cứu theo Ngày (7 ngày gần nhất)
+    today = timezone.now().date()
+    start_date = today - timedelta(days=6)
+    daily_counts = {}
+    for i in range(7):
+        d = start_date + timedelta(days=i)
+        daily_counts[d.strftime('%d/%m')] = 0
+
+    try:
+        vlogs = VerificationLog.objects.filter(created_at__date__gte=start_date).annotate(
+            log_date=TruncDate('created_at')
+        ).values('log_date').annotate(count=Count('id'))
+
+        for vl in vlogs:
+            if vl['log_date']:
+                d_str = vl['log_date'].strftime('%d/%m')
+                if d_str in daily_counts:
+                    daily_counts[d_str] = vl['count']
+    except Exception as e:
+        print(f"Lỗi truy vấn daily verifications: {e}")
+
+    daily_labels = list(daily_counts.keys())
+    daily_data = list(daily_counts.values())
+
     return {
         'degree_types': {'labels': degree_type_labels, 'data': degree_type_data},
         'degrees_status': {'labels': degree_labels, 'data': degree_data},
         'verifications': {'labels': ver_labels, 'data': ver_data},
+        'classifications': {'labels': class_labels, 'data': class_data},
+        'daily_verifications': {'labels': daily_labels, 'data': daily_data},
     }

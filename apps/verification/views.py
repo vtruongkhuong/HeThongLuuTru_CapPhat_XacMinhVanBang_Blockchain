@@ -1,14 +1,22 @@
 import hashlib
+import io
 import re
 import logging
 from uuid import UUID
 from urllib.parse import urlparse, parse_qs
 
 import numpy as np
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
 from django.db.models import Q
 from django.apps import apps
+from django.utils import timezone
+from django.conf import settings
+from django.template.loader import render_to_string
+from xhtml2pdf import pisa
+import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
 from apps.degrees.models import Degree
 from apps.students.models import Student
@@ -439,3 +447,269 @@ def verify_temp_cert_view(request):
         messages.error(request, f"Không tìm thấy hồ sơ tốt nghiệp tạm thời cho mã: {search_query}")
 
     return render(request, 'verification/verify_temp_cert.html', context)
+
+
+def download_verification_cert_pdf(request, degree_id):
+    """
+    [Nghĩa - Task 2] Xuất Bản Chứng Thực Điện Tử (PDF) có dấu xác nhận Blockchain
+    khớp với Smart Contract, kèm TxHash, Merkle Root và Leaf Hash.
+    Hỗ trợ cả primary key (int) hoặc UUID credential_public_id.
+    """
+    qs = Degree.objects.select_related('student', 'student__major', 'student__faculty', 'degree_type', 'batch')
+    try:
+        deg_id_int = int(degree_id)
+        degree = get_object_or_404(qs, id=deg_id_int)
+    except (ValueError, TypeError):
+        degree = get_object_or_404(qs, credential_public_id=degree_id)
+
+    is_valid, is_revoked, proof_info, rpc_err = _verify_merkle_and_contract(degree)
+
+    proof_obj = getattr(degree, 'merkle_proof', None)
+    if not proof_obj:
+        try:
+            DegreeMerkleProof = apps.get_model('blockchain', 'DegreeMerkleProof')
+            proof_obj = DegreeMerkleProof.objects.filter(degree=degree).first()
+        except LookupError:
+            proof_obj = None
+
+    issuance_batch = getattr(degree, 'issuance_batch', None) or getattr(proof_obj, 'issuance_batch', None)
+    if not issuance_batch and degree.batch:
+        issuance_batch = degree.batch.issuance_batches.filter(status='CONFIRMED').first()
+
+    merkle_root = proof_info.get('chain_merkle_root') or proof_info.get('local_merkle_root') or getattr(issuance_batch, 'merkle_root', '---')
+    leaf_hash = getattr(proof_obj, 'leaf_hash', degree.canonical_hash or '---')
+    tx_hash = getattr(degree, 'tx_hash', None) or getattr(issuance_batch, 'tx_hash', '---')
+    contract_addr = getattr(settings, 'BLOCKCHAIN_CONTRACT_ADDRESS', '0x8E53683464fE95222b854b9336ba1b8B6B913577')
+
+    now = timezone.now()
+    student_code = degree.student.student_code if degree.student else 'SV'
+    cert_code = f"CERT-{student_code}-{now.strftime('%Y%m%d%H%M')}"
+
+    context = {
+        'degree': degree,
+        'merkle_root': merkle_root,
+        'leaf_hash': leaf_hash,
+        'tx_hash': tx_hash,
+        'contract_address': contract_addr,
+        'issued_time': now,
+        'cert_code': cert_code,
+    }
+
+    html_content = render_to_string('verification/verification_certificate_pdf.html', context)
+    pdf_buffer = io.BytesIO()
+
+    from apps.degrees.pdf_generator import link_callback
+    try:
+        from xhtml2pdf.config.resources import ResourceAccessPolicy
+        policy = ResourceAccessPolicy(allow_local_outside_base=True, base_dir=settings.BASE_DIR)
+    except Exception:
+        policy = None
+
+    pisa_status = pisa.CreatePDF(
+        src=html_content,
+        dest=pdf_buffer,
+        encoding='utf-8',
+        link_callback=link_callback,
+        resource_policy=policy
+    )
+    if pisa_status.err:
+        return HttpResponse("Có lỗi khi tạo file PDF chứng thực điện tử.", status=500)
+
+    pdf_buffer.seek(0)
+    filename = f"Chung_Thuc_Dien_Tu_{student_code}.pdf"
+    response = HttpResponse(pdf_buffer.getvalue(), content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+    return response
+
+
+def employer_batch_verify_view(request):
+    """
+    [Nghĩa - Task 1] Cổng Doanh nghiệp Xác minh Hàng loạt (Batch Employer Verification).
+    Cho phép nhà tuyển dụng kéo-thả hàng loạt file PDF (20-50 files) để hệ thống tự động
+    đối soát thật/giả/thu hồi trong vài giây và xuất báo cáo thẩm định dạng Excel/PDF.
+    """
+    context = {
+        'results': [],
+        'summary': {'total': 0, 'verified': 0, 'tampered': 0, 'revoked': 0, 'not_found': 0},
+        'has_searched': False,
+    }
+
+    if request.method == 'POST':
+        files = request.FILES.getlist('pdf_files')
+        action = request.POST.get('action', 'verify')
+        results = []
+
+        for f in files:
+            file_name = f.name
+            file_size_kb = round(f.size / 1024, 1)
+            file_bytes = f.read()
+            f.seek(0)
+
+            file_sha256 = hashlib.sha256(file_bytes).hexdigest()
+            qr_text, text_hash = _read_pdf(file_bytes)
+
+            degree = Degree.objects.filter(pdf_sha256__iexact=file_sha256).select_related(
+                'student', 'student__major', 'student__faculty', 'degree_type', 'batch'
+            ).first()
+
+            extracted_query = None
+            if not degree:
+                if qr_text:
+                    q = parse_qs(urlparse(qr_text).query).get('q')
+                    extracted_query = q[0] if q else qr_text.strip()
+                elif text_hash:
+                    extracted_query = text_hash
+
+                if extracted_query:
+                    degree = Degree.objects.filter(
+                        Q(canonical_hash__iexact=extracted_query) |
+                        Q(credential_public_id__iexact=extracted_query) |
+                        Q(student__student_code__iexact=extracted_query)
+                    ).select_related(
+                        'student', 'student__major', 'student__faculty', 'degree_type', 'batch'
+                    ).first()
+
+            if degree:
+                is_tampered = False
+                if degree.pdf_sha256 and degree.pdf_sha256.lower() != file_sha256.lower():
+                    is_tampered = True
+
+                if is_tampered:
+                    status = 'TAMPERED'
+                    status_text = 'Nghi vấn sửa đổi / Sai băm PDF'
+                    badge_class = 'bg-rose-50 text-rose-700 border-rose-200'
+                elif degree.status == 'REVOKED':
+                    status = 'REVOKED'
+                    status_text = 'Văn bằng đã bị thu hồi'
+                    badge_class = 'bg-amber-50 text-amber-700 border-amber-200'
+                elif degree.status == 'ISSUED':
+                    status = 'VERIFIED'
+                    status_text = 'Hợp lệ (Chuẩn Blockchain)'
+                    badge_class = 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                else:
+                    status = 'PENDING'
+                    status_text = 'Chưa phát hành chính thức'
+                    badge_class = 'bg-slate-50 text-slate-700 border-slate-200'
+
+                proof_obj = getattr(degree, 'merkle_proof', None)
+                if not proof_obj:
+                    try:
+                        DegreeMerkleProof = apps.get_model('blockchain', 'DegreeMerkleProof')
+                        proof_obj = DegreeMerkleProof.objects.filter(degree=degree).first()
+                    except LookupError:
+                        proof_obj = None
+                issuance_batch = getattr(degree, 'issuance_batch', None) or getattr(proof_obj, 'issuance_batch', None)
+                if not issuance_batch and degree.batch:
+                    issuance_batch = degree.batch.issuance_batches.filter(status='CONFIRMED').first()
+
+                merkle_root = getattr(issuance_batch, 'merkle_root', '---')
+                tx_hash = getattr(degree, 'tx_hash', None) or getattr(issuance_batch, 'tx_hash', '---')
+
+                item = {
+                    'file_name': file_name,
+                    'file_size': f"{file_size_kb} KB",
+                    'status': status,
+                    'status_text': status_text,
+                    'badge_class': badge_class,
+                    'degree_id': str(degree.id),
+                    'student_name': degree.student.full_name if degree.student else '---',
+                    'student_code': degree.student.student_code if degree.student else '---',
+                    'degree_type': degree.degree_type.name if degree.degree_type else 'Cử nhân',
+                    'major': degree.student.major.name if (degree.student and degree.student.major) else '---',
+                    'degree_number': str(degree.credential_public_id)[:8].upper() if getattr(degree, 'credential_public_id', None) else '---',
+                    'merkle_root': merkle_root,
+                    'tx_hash': tx_hash,
+                    'etherscan_url': f"https://sepolia.etherscan.io/tx/{tx_hash}" if tx_hash and tx_hash != '---' else None,
+                }
+            else:
+                item = {
+                    'file_name': file_name,
+                    'file_size': f"{file_size_kb} KB",
+                    'status': 'NOT_FOUND',
+                    'status_text': 'Không tìm thấy hồ sơ',
+                    'badge_class': 'bg-gray-50 text-gray-600 border-gray-200',
+                    'degree_id': None,
+                    'student_name': '---',
+                    'student_code': '---',
+                    'degree_type': '---',
+                    'major': '---',
+                    'degree_number': '---',
+                    'merkle_root': '---',
+                    'tx_hash': '---',
+                    'etherscan_url': None,
+                }
+
+            results.append(item)
+
+        summary = {
+            'total': len(results),
+            'verified': sum(1 for r in results if r['status'] == 'VERIFIED'),
+            'tampered': sum(1 for r in results if r['status'] == 'TAMPERED'),
+            'revoked': sum(1 for r in results if r['status'] == 'REVOKED'),
+            'not_found': sum(1 for r in results if r['status'] == 'NOT_FOUND'),
+        }
+
+        if action == 'export_excel' or request.POST.get('export') == 'excel':
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "Ket_Qua_Tham_Dinh"
+
+            ws.merge_cells("A1:H1")
+            title_cell = ws["A1"]
+            title_cell.value = "BÁO CÁO THẨM ĐỊNH VĂN BẰNG ỨNG VIÊN TUYỂN DỤNG (BLOCKCHAIN)"
+            title_cell.font = Font(name="Arial", size=13, bold=True, color="1E3A8A")
+            title_cell.alignment = Alignment(horizontal="center", vertical="center")
+            ws.row_dimensions[1].height = 30
+
+            headers = ["STT", "Tên File PDF", "Họ và Tên", "MSSV", "Loại Bằng", "Số Hiệu Bằng", "Kết Quả Thẩm Định", "Mã Giao Dịch Chuỗi (TxHash)"]
+            header_fill = PatternFill(start_color="1E3A8A", end_color="1E3A8A", fill_type="solid")
+            header_font = Font(name="Arial", size=10, bold=True, color="FFFFFF")
+
+            for col_idx, h in enumerate(headers, 1):
+                cell = ws.cell(row=3, column=col_idx, value=h)
+                cell.fill = header_fill
+                cell.font = header_font
+                cell.alignment = Alignment(horizontal="center", vertical="center")
+
+            for idx, r in enumerate(results, 1):
+                row_num = 3 + idx
+                ws.cell(row=row_num, column=1, value=idx)
+                ws.cell(row=row_num, column=2, value=r['file_name'])
+                ws.cell(row=row_num, column=3, value=r['student_name'])
+                ws.cell(row=row_num, column=4, value=r['student_code'])
+                ws.cell(row=row_num, column=5, value=r['degree_type'])
+                ws.cell(row=row_num, column=6, value=r['degree_number'])
+
+                status_cell = ws.cell(row=row_num, column=7, value=r['status_text'])
+                if r['status'] == 'VERIFIED':
+                    status_cell.font = Font(name="Arial", color="047857", bold=True)
+                elif r['status'] == 'TAMPERED':
+                    status_cell.font = Font(name="Arial", color="B91C1C", bold=True)
+                elif r['status'] == 'REVOKED':
+                    status_cell.font = Font(name="Arial", color="B45309", bold=True)
+
+                ws.cell(row=row_num, column=8, value=r['tx_hash'])
+
+            for col in ws.columns:
+                max_len = max(len(str(cell.value or '')) for cell in col)
+                col_letter = openpyxl.utils.get_column_letter(col[0].column)
+                ws.column_dimensions[col_letter].width = max(max_len + 3, 12)
+
+            excel_buffer = io.BytesIO()
+            wb.save(excel_buffer)
+            excel_buffer.seek(0)
+            resp = HttpResponse(
+                excel_buffer.getvalue(),
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            resp['Content-Disposition'] = 'attachment; filename="Bao_Cao_Tham_Dinh_Ung_Vien_Blockchain.xlsx"'
+            return resp
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.POST.get('format') == 'json':
+            return JsonResponse({'success': True, 'results': results, 'summary': summary})
+
+        context['results'] = results
+        context['summary'] = summary
+        context['has_searched'] = True
+
+    return render(request, 'verification/employer_batch_verify.html', context)
