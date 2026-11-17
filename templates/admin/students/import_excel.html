@@ -52,7 +52,7 @@
 </style>
 
 <div class="px-4 py-6 md:px-8">
-    <div class="my-card rounded-lg shadow-sm max-w-2xl">
+    <div class="my-card taste-card rounded-xl shadow-sm max-w-2xl">
         
         <div class="px-6 py-5 my-header">
             <h2 class="text-xl font-bold my-title">📥 Import dữ liệu sinh viên</h2>
@@ -70,7 +70,7 @@
                     </ul>
                 </div>
                 <div class="flex-shrink-0">
-                    <a href="{% url 'admin:students_download_sample_excel' %}" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-3 rounded-md text-xs transition-colors shadow-sm whitespace-nowrap">
+                    <a href="{% url 'admin:students_download_sample_excel' %}" class="taste-btn inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-3 rounded-md text-xs transition-colors shadow-sm whitespace-nowrap">
                         <span class="material-symbols-outlined text-sm">download</span>
                         <span>Tải file Excel mẫu</span>
                     </a>
@@ -103,10 +103,10 @@
                 
                 <div class="pt-4 flex gap-3">
                     <!-- Nút Tải lên giữ nguyên bg-primary-600 vì class này Unfold không bao giờ xóa -->
-                    <button type="submit" class="bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-md text-sm transition-colors">
+                    <button type="submit" class="taste-btn bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-md text-sm transition-colors cursor-pointer">
                         Tải lên & Xử lý
                     </button>
-                    <a href="{% url 'admin:students_student_changelist' %}" class="my-cancel-btn text-sm font-medium transition-colors">
+                    <a href="{% url 'admin:students_student_changelist' %}" class="taste-btn my-cancel-btn text-sm font-medium transition-colors">
                         Hủy bỏ
                     </a>
                 </div>

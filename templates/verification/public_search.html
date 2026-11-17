@@ -1,132 +1,185 @@
 {% extends 'base.html' %}
 
-{% block title %}Kết quả Tra cứu Văn bằng{% endblock %}
+{% block title %}Kết quả Tra cứu Văn bằng - Cổng Xác Thực Sepolia{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl w-full mx-auto px-4 py-12">
+<div class="max-w-4xl w-full mx-auto px-4 py-10">
     <!-- Nút quay lại -->
-    <a href="{% url 'verification:landing' %}" class="animate-btn inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ntt-dark bg-white hover:bg-gray-100 px-5 py-2.5 rounded-xl border border-gray-200 mb-8 transition-all shadow-sm">
-        <span class="material-symbols-outlined text-[18px]">arrow_back</span> QUAY LẠI TRANG TRA CỨU
-    </a>
+    <div class="flex items-center justify-between mb-6">
+        <a href="{% url 'verification:landing' %}" class="taste-btn inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700 bg-white hover:bg-slate-50 px-4 py-2.5 rounded-xl border border-slate-200 shadow-2xs transition-all">
+            <span class="material-symbols-outlined text-[18px]">arrow_back</span> QUAY LẠI TRANG TRA CỨU
+        </a>
+        <div class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-[11px] font-mono text-slate-600">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse-subtle"></span>
+            <span>Sepolia Block Explorer</span>
+        </div>
+    </div>
 
     <!-- KHỐI KẾT QUẢ -->
     {% if searched %}
-        <div class="bg-white rounded-[30px] shadow-soft border border-gray-100 overflow-hidden">
+        <div class="taste-card bg-white rounded-[28px] shadow-soft border border-slate-200/90 overflow-hidden">
             <!-- Header trạng thái -->
             <div class="p-8 text-center text-white relative overflow-hidden
-                {% if verification_state == 'VALID' %} bg-gradient-to-r from-green-600 to-green-500
-                {% elif verification_state == 'REVOKED' %} bg-gradient-to-r from-red-600 to-red-500
-                {% else %} bg-gradient-to-r from-gray-600 to-gray-500 {% endif %}">
+                {% if verification_state == 'VALID' %} bg-gradient-to-r from-emerald-700 via-emerald-600 to-teal-700
+                {% elif verification_state == 'REVOKED' %} bg-gradient-to-r from-rose-700 via-red-700 to-rose-900
+                {% else %} bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 {% endif %}">
                 
-                <span class="material-symbols-outlined text-6xl mb-4 animate-float inline-block">
-                    {% if verification_state == 'VALID' %}verified
-                    {% elif verification_state == 'REVOKED' %}gpp_bad
-                    {% else %}search_off{% endif %}
-                </span>
+                <!-- Status Chip -->
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-black/20 backdrop-blur-md text-[11px] font-mono text-white/90 mb-3 border border-white/20">
+                    {% if verification_state == 'VALID' %}
+                        <span class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse-subtle"></span>
+                        <span class="font-bold">MẠNG ETHEREUM SEPOLIA: KHỚP 100%</span>
+                    {% elif verification_state == 'REVOKED' %}
+                        <span class="w-2 h-2 rounded-full bg-rose-300"></span>
+                        <span class="font-bold">SMART CONTRACT: VĂN BẰNG ĐÃ THU HỒI</span>
+                    {% else %}
+                        <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                        <span class="font-bold">CHƯA TÌM THẤY DỮ LIỆU</span>
+                    {% endif %}
+                </div>
+
+                <div class="flex items-center justify-center mb-3">
+                    <span class="material-symbols-outlined text-5xl">
+                        {% if verification_state == 'VALID' %}verified
+                        {% elif verification_state == 'REVOKED' %}gpp_bad
+                        {% else %}search_off{% endif %}
+                    </span>
+                </div>
                 
-                <h2 class="text-2xl md:text-3xl font-bold uppercase tracking-wide mb-2">
-                    {% if verification_state == 'VALID' %}VĂN BẰNG HỢP LỆ
+                <h2 class="text-2xl md:text-3xl font-black uppercase tracking-wide mb-1.5">
+                    {% if verification_state == 'VALID' %}VĂN BẰNG HỢP LỆ VÀ NGUYÊN VẸN
                     {% elif verification_state == 'REVOKED' %}VĂN BẰNG ĐÃ BỊ THU HỒI
                     {% else %}KHÔNG TÌM THẤY DỮ LIỆU{% endif %}
                 </h2>
                 
-                <p class="text-white/80 text-sm font-medium">
-                    {% if verification_state == 'VALID' %}Thông tin văn bằng khớp với hệ thống Blockchain của trường.
-                    {% elif verification_state == 'REVOKED' %}Văn bằng này đã bị hủy bỏ và không còn giá trị pháp lý.
-                    {% else %}Không có văn bằng nào khớp với mã tra cứu bạn vừa nhập.{% endif %}
+                <p class="text-white/85 text-xs sm:text-sm font-medium max-w-xl mx-auto">
+                    {% if verification_state == 'VALID' %}Thông tin văn bằng đã được đối soát mật mã học toàn vẹn trên Smart Contract và mạng phi tập trung.
+                    {% elif verification_state == 'REVOKED' %}Văn bằng này đã bị hủy bỏ theo quyết định của Hội đồng và không còn giá trị pháp lý.
+                    {% else %}Không có văn bằng nào khớp với mã tra cứu bạn vừa nhập. Vui lòng kiểm tra lại mã số.{% endif %}
                 </p>
             </div>
 
             <!-- Nội dung chi tiết (Chỉ hiện khi tìm thấy) -->
             {% if degree %}
-                <div class="p-8 space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
-                        <!-- Cột 1 -->
-                        <div class="space-y-4">
-                            <div class="border-b border-gray-100 pb-3">
-                                <span class="text-gray-500 text-xs font-bold uppercase block mb-1">Họ và tên</span>
-                                <span class="text-gray-900 font-bold text-base uppercase">{{ student.full_name }}</span>
+                <div class="p-6 sm:p-8 space-y-6">
+                    <div>
+                        <h3 class="text-xs font-black uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[16px] text-blue-600">person</span>
+                            Thông tin người được cấp bằng
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                            <div class="bg-slate-50/80 rounded-xl p-3.5 border border-slate-100">
+                                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Họ và tên</span>
+                                <span class="text-slate-900 font-extrabold text-sm uppercase leading-snug">{{ student.full_name }}</span>
                             </div>
-                            <div class="border-b border-gray-100 pb-3">
-                                <span class="text-gray-500 text-xs font-bold uppercase block mb-1">Ngày sinh</span>
-                                <span class="text-gray-900 font-semibold">{{ student.date_of_birth|date:"d/m/Y"|default:"-" }}</span>
+                            <div class="bg-slate-50/80 rounded-xl p-3.5 border border-slate-100">
+                                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Ngày sinh</span>
+                                <span class="text-slate-900 font-bold text-sm font-mono">{{ student.date_of_birth|date:"d/m/Y"|default:"-" }}</span>
                             </div>
-                            <div class="border-b border-gray-100 pb-3">
-                                <span class="text-gray-500 text-xs font-bold uppercase block mb-1">Ngành đào tạo</span>
-                                <span class="text-gray-900 font-semibold">{{ student.major.name|default:"Chưa cập nhật" }}</span>
+                            <div class="bg-slate-50/80 rounded-xl p-3.5 border border-slate-100">
+                                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Mã sinh viên (MSSV)</span>
+                                <span class="text-slate-900 font-bold text-sm font-mono">{{ student.student_code }}</span>
                             </div>
-                        </div>
-
-                        <!-- Cột 2 -->
-                        <div class="space-y-4">
-                            <div class="border-b border-gray-100 pb-3">
-                                <span class="text-gray-500 text-xs font-bold uppercase block mb-1">Xếp loại tốt nghiệp</span>
-                                <span class="text-ntt-light font-bold text-base uppercase">{{ degree.classification }}</span>
+                            <div class="bg-slate-50/80 rounded-xl p-3.5 border border-slate-100">
+                                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Ngành đào tạo</span>
+                                <span class="text-slate-900 font-bold text-xs">{{ student.major.name|default:"Chưa cập nhật" }}</span>
                             </div>
-                            <div class="border-b border-gray-100 pb-3">
-                                <span class="text-gray-500 text-xs font-bold uppercase block mb-1">Số hiệu văn bằng</span>
-                                <span class="text-gray-900 font-mono font-bold">{{ degree.serial_number|default:"-" }}</span>
+                            <div class="bg-slate-50/80 rounded-xl p-3.5 border border-slate-100">
+                                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Số hiệu văn bằng</span>
+                                <span class="text-slate-900 font-black text-xs font-mono">{{ degree.degree_number|default:degree.serial_number|default:"-" }}</span>
                             </div>
-                            <div class="border-b border-gray-100 pb-3">
-                                <span class="text-gray-500 text-xs font-bold uppercase block mb-1">Năm tốt nghiệp</span>
-                                <span class="text-gray-900 font-semibold">{{ degree.graduation_year }}</span>
+                            <div class="bg-slate-50/80 rounded-xl p-3.5 border border-slate-100">
+                                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Số vào sổ cấp bằng</span>
+                                <span class="text-slate-900 font-black text-xs font-mono">{{ degree.reg_number|default:"-" }}</span>
+                            </div>
+                            <div class="bg-slate-50/80 rounded-xl p-3.5 border border-slate-100">
+                                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Xếp loại tốt nghiệp</span>
+                                <span class="text-blue-700 font-extrabold text-sm uppercase">{{ degree.classification }}</span>
+                            </div>
+                            <div class="bg-slate-50/80 rounded-xl p-3.5 border border-slate-100">
+                                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Năm tốt nghiệp</span>
+                                <span class="text-slate-900 font-bold text-sm font-mono">{{ degree.graduation_year }}</span>
+                            </div>
+                            <div class="bg-slate-50/80 rounded-xl p-3.5 border border-slate-100">
+                                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Ngày ký phát hành</span>
+                                <span class="text-slate-900 font-bold text-xs">{{ degree.effective_issue_date|date:"d/m/Y"|default:degree.graduation_year|default:"2026" }}</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Block Blockchain -->
-                    <div class="mt-8 bg-blue-50/50 rounded-2xl p-6 border border-blue-100">
-                        <h3 class="text-sm font-bold text-ntt-dark uppercase mb-4 flex items-center gap-2">
-                            <span class="material-symbols-outlined text-[18px]">link</span> Dữ liệu xác thực Blockchain
-                        </h3>
+                    <!-- Block Blockchain Proof (Dark Authentic Tech Styling) -->
+                    <div class="bg-gradient-to-br from-slate-900 via-slate-950 to-blue-950 rounded-2xl p-6 border border-slate-800 text-white shadow-md space-y-4">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                            <h3 class="text-xs font-black uppercase tracking-wider text-sky-400 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[18px]">lock_reset</span> 
+                                Bằng Chứng Mật Mã Học Trên Chuỗi Khối (Blockchain Proof)
+                            </h3>
+                            <span class="text-[11px] font-mono text-slate-400">Sepolia (11155111)</span>
+                        </div>
                         
-                        <div class="space-y-4 text-sm">
+                        <div class="space-y-3 text-xs">
                             <div>
-                                <span class="text-gray-500 text-xs font-bold uppercase block mb-1">Mã định danh hợp đồng (Credential ID)</span>
+                                <span class="text-slate-400 text-[11px] font-bold uppercase tracking-wider block mb-1">Mã định danh hợp đồng (Credential ID)</span>
                                 {% if degree.credential_public_id %}
-                                    <button type="button" class="apple-hash-pill w-full justify-between" data-copy-text="{{ degree.credential_public_id }}" title="Nhấn để copy Credential ID">
-                                        <span class="break-all text-left">{{ degree.credential_public_id }}</span>
-                                        <span class="material-symbols-outlined text-sm shrink-0">content_copy</span>
-                                    </button>
+                                    <div class="bg-slate-950/80 rounded-xl p-3 border border-slate-800 font-mono text-xs text-sky-300 break-all select-all flex items-center justify-between gap-2">
+                                        <span>{{ degree.credential_public_id }}</span>
+                                        <button type="button" class="taste-btn px-2.5 py-1 bg-sky-900/60 hover:bg-sky-800/80 text-sky-200 rounded-lg text-xs font-bold inline-flex items-center gap-1 transition-all border border-sky-700/60 shrink-0 cursor-pointer" onclick="navigator.clipboard.writeText('{{ degree.credential_public_id }}'); alert('Đã chép Credential ID!');">
+                                            <span class="material-symbols-outlined text-[14px]">content_copy</span> Chép
+                                        </button>
+                                    </div>
                                 {% else %}
-                                    <span class="text-gray-400 font-mono text-xs">-</span>
+                                    <span class="text-slate-500 font-mono text-xs">-</span>
                                 {% endif %}
                             </div>
+
                             <div>
-                                <span class="text-gray-500 text-xs font-bold uppercase block mb-1">Mã giao dịch phát hành (TxHash)</span>
+                                <span class="text-slate-400 text-[11px] font-bold uppercase tracking-wider block mb-1">Mã giao dịch phát hành (TxHash)</span>
                                 {% if degree.tx_hash %}
-                                    <button type="button" class="apple-hash-pill w-full justify-between" data-copy-text="{{ degree.tx_hash }}" title="Nhấn để copy TxHash">
-                                        <span class="break-all text-left">{{ degree.tx_hash }}</span>
-                                        <span class="material-symbols-outlined text-sm shrink-0">content_copy</span>
-                                    </button>
+                                    <div class="bg-slate-950/80 rounded-xl p-3 border border-slate-800 font-mono text-xs text-sky-300 break-all select-all flex items-center justify-between gap-2">
+                                        <span class="truncate">{{ degree.tx_hash }}</span>
+                                        <div class="flex items-center gap-1.5 shrink-0">
+                                            <button type="button" class="taste-btn px-2.5 py-1 bg-sky-900/60 hover:bg-sky-800/80 text-sky-200 rounded-lg text-xs font-bold inline-flex items-center gap-1 transition-all border border-sky-700/60 cursor-pointer" onclick="navigator.clipboard.writeText('{{ degree.tx_hash }}'); alert('Đã chép TxHash!');">
+                                                <span class="material-symbols-outlined text-[14px]">content_copy</span> Chép
+                                            </button>
+                                            <a href="https://sepolia.etherscan.io/tx/{{ degree.tx_hash }}" target="_blank" class="taste-btn px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold inline-flex items-center gap-1 border border-slate-700">
+                                                <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+                                            </a>
+                                        </div>
+                                    </div>
                                 {% else %}
-                                    <span class="text-gray-400 font-mono text-xs">-</span>
+                                    <span class="text-slate-500 font-mono text-xs">-</span>
                                 {% endif %}
                             </div>
+
                             {% if degree.ipfs_cid %}
                             <div>
-                                <span class="text-gray-500 text-xs font-bold uppercase block mb-1">Lưu trữ phi tập trung (IPFS CID)</span>
-                                <a href="{% url 'blockchain:ipfs_viewer' degree.ipfs_cid %}" target="_blank" class="apple-hash-pill w-full justify-between text-teal-700 bg-teal-50 border-teal-200 hover:bg-teal-100 transition-all flex items-center" title="Xem văn bằng gốc trên mạng phi tập trung IPFS">
-                                    <span class="break-all text-left font-mono text-xs">ipfs://{{ degree.ipfs_cid }}</span>
-                                    <span class="material-symbols-outlined text-sm shrink-0">open_in_new</span>
-                                </a>
-                            </div>
-                            {% endif %}
-                            {% if verification_state == 'VALID' %}
-                                <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 mt-2 border-t border-blue-200/60">
-                                    <div class="flex items-center gap-2 text-green-700 font-bold text-xs uppercase">
-                                        <span class="material-symbols-outlined text-[18px] text-green-600">verified_user</span> Dữ liệu toàn vẹn, khớp 100% với Smart Contract (Sepolia)
-                                    </div>
-                                    <a href="{% url 'verification:download_verification_cert_pdf' degree.id %}" target="_blank" class="animate-btn px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider inline-flex items-center gap-2 shadow-sm transition-all shrink-0">
-                                        <span class="material-symbols-outlined text-[16px]">file_download</span> Tải Giấy Chứng Thực Điện Tử (PDF)
+                                <span class="text-slate-400 text-[11px] font-bold uppercase tracking-wider block mb-1">Lưu trữ phi tập trung (IPFS CID)</span>
+                                <div class="bg-teal-950/40 rounded-xl p-3 border border-teal-800/60 font-mono text-xs text-teal-300 break-all select-all flex items-center justify-between gap-2">
+                                    <span class="truncate">ipfs://{{ degree.ipfs_cid }}</span>
+                                    <a href="{% url 'blockchain:ipfs_viewer' degree.ipfs_cid %}" target="_blank" class="taste-btn px-2.5 py-1 bg-teal-900/60 hover:bg-teal-800/80 text-teal-200 rounded-lg text-xs font-bold inline-flex items-center gap-1 border border-teal-700/60 shrink-0">
+                                        <span class="material-symbols-outlined text-[14px]">visibility</span> Mở IPFS
                                     </a>
                                 </div>
-                            {% elif verification_state == 'REVOKED' %}
-                                <div class="flex items-center gap-2 text-red-600 font-bold text-xs uppercase pt-2">
-                                    <span class="material-symbols-outlined text-[16px]">gpp_bad</span> Dữ liệu đã bị thu hồi trên Smart Contract
-                                </div>
+                            </div>
                             {% endif %}
                         </div>
+
+                        <!-- Footer Blockchain Verification Action -->
+                        {% if verification_state == 'VALID' %}
+                            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-800">
+                                <div class="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-subtle"></span>
+                                    <span class="material-symbols-outlined text-[18px]">verified_user</span> Dữ liệu toàn vẹn, khớp 100% với Smart Contract (Sepolia)
+                                </div>
+                                <a href="{% url 'verification:download_verification_cert_pdf' degree.id %}" target="_blank" class="taste-btn px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider inline-flex items-center gap-2 shadow-sm transition-all shrink-0">
+                                    <span class="material-symbols-outlined text-[16px]">file_download</span> Tải Giấy Chứng Thực Điện Tử (PDF)
+                                </a>
+                            </div>
+                        {% elif verification_state == 'REVOKED' %}
+                            <div class="flex items-center gap-2 text-rose-400 font-bold text-xs uppercase pt-2">
+                                <span class="material-symbols-outlined text-[16px]">gpp_bad</span> Dữ liệu đã bị thu hồi trên Smart Contract
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             {% endif %}

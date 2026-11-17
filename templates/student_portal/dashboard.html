@@ -6,34 +6,38 @@
 <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 space-y-8">
     
     <!-- Banner Profile Sinh viên -->
-    <div class="bg-gradient-to-r from-ntt-dark via-blue-900 to-ntt-light rounded-[24px] shadow-soft p-8 md:p-10 flex flex-col md:flex-row items-center justify-between text-white relative overflow-hidden border border-blue-950">
+    <div class="taste-card bg-gradient-to-r from-ntt-dark via-slate-900 to-blue-900 rounded-[28px] shadow-soft p-8 md:p-10 flex flex-col md:flex-row items-center justify-between text-white relative overflow-hidden border border-slate-800">
         <!-- Icon chìm trang trí -->
         <div class="absolute right-0 top-0 opacity-10 transform translate-x-1/4 -translate-y-1/4 pointer-events-none">
             <span class="material-symbols-outlined text-[260px]">workspace_premium</span>
         </div>
         
         <div class="relative z-10 flex flex-col md:flex-row items-center gap-6 md:gap-8 text-center md:text-left">
-            <div class="w-24 h-24 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border-2 border-white/30 shadow-inner overflow-hidden">
+            <div class="w-24 h-24 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border-2 border-white/20 shadow-inner overflow-hidden">
                 {% if student and student.avatar %}
                     <img src="{{ student.avatar.url }}" alt="Avatar" class="w-full h-full object-cover">
                 {% else %}
-                    <span class="material-symbols-outlined text-5xl text-white">person</span>
+                    <span class="material-symbols-outlined text-5xl text-blue-300">person</span>
                 {% endif %}
             </div>
             <div>
-                <div class="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-1">
-                    <h1 class="text-2xl md:text-3xl font-extrabold text-white uppercase tracking-wide">
+                <div class="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-1.5">
+                    <h1 class="text-2xl md:text-3xl font-black text-white uppercase tracking-wide">
                         {{ student.full_name|default:"CHƯA CẬP NHẬT HỒ SƠ" }}
                     </h1>
                 </div>
-                <p class="text-blue-200 text-sm font-medium tracking-wide mb-3 flex items-center justify-center md:justify-start gap-1.5">
-                    <span class="material-symbols-outlined text-[16px]">mail</span> {{ student.email|default:user.email }}
-                </p>
+                <div class="flex flex-wrap items-center justify-center md:justify-start gap-3 text-xs text-blue-200 mb-3 font-medium">
+                    <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[15px]">mail</span> {{ student.email|default:user.email }}</span>
+                    {% if student.date_of_birth %}
+                    <span class="text-slate-400">•</span>
+                    <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[15px]">cake</span> {{ student.date_of_birth|date:"d/m/Y" }}</span>
+                    {% endif %}
+                </div>
                 
-                <div class="flex flex-wrap gap-2 text-xs md:text-sm bg-black/20 w-fit px-4 py-2 rounded-xl backdrop-blur-sm border border-white/10 mx-auto md:mx-0">
+                <div class="flex flex-wrap gap-2 text-xs md:text-sm bg-black/30 w-fit px-4 py-2 rounded-xl backdrop-blur-sm border border-white/10 mx-auto md:mx-0">
                     <span class="flex items-center gap-1.5 text-blue-200">
                         <span class="material-symbols-outlined text-[16px] text-blue-300">badge</span> MSSV: 
-                        <strong class="text-white">{{ student.student_code|default:"Chưa có" }}</strong>
+                        <strong class="text-white font-mono">{{ student.student_code|default:"Chưa có" }}</strong>
                     </span>
                     <span class="text-blue-400">|</span>
                     <span class="flex items-center gap-1.5 text-blue-200">
@@ -50,11 +54,13 @@
         </div>
 
         <div class="relative z-10 mt-6 md:mt-0 flex flex-col items-center md:items-end gap-3">
-            <span class="px-4 py-2 bg-green-500/20 text-green-300 rounded-xl font-bold text-xs border border-green-500/30 flex items-center gap-1.5 backdrop-blur-md shadow-sm">
-                <span class="material-symbols-outlined text-green-400 text-[16px]">verified_user</span>
-                Tài khoản Sinh viên xác thực
-            </span>
-            <button type="button" id="btn-open-share-modal" onclick="openShareModal()" class="animate-btn px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95 cursor-pointer">
+            <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-[11px] font-mono text-emerald-300">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-subtle"></span>
+                <span class="font-bold">Sepolia Verified</span>
+                <span class="text-emerald-600">|</span>
+                <span class="text-[10px] text-emerald-200">Smart Contract v2</span>
+            </div>
+            <button type="button" id="btn-open-share-modal" onclick="openShareModal()" class="taste-btn px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95 cursor-pointer">
                 <span class="material-symbols-outlined text-[18px]">share</span> Tạo Link Chia Sẻ CV
             </button>
             <span class="text-xs text-blue-200 font-medium">Tổng số văn bằng/chứng chỉ: <strong class="text-white text-sm">{{ counts.all }}</strong></span>
@@ -74,25 +80,25 @@
         </div>
         <div id="active-share-list" class="space-y-2">
             {% for sl in share_links %}
-            <div id="share-link-item-{{ sl.id }}" class="bg-white rounded-xl p-3 border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+            <div id="share-link-item-{{ sl.id }}" class="taste-card bg-white rounded-xl p-3.5 border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
                 <div class="flex items-center gap-3">
-                    <span class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-                        <span class="material-symbols-outlined text-[18px]">verified</span>
+                    <span class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[19px]">verified</span>
                     </span>
                     <div>
-                        <p class="text-xs font-extrabold text-slate-800">{{ sl.label|default:"Link nộp CV xin việc" }}</p>
-                        <p class="text-[11px] text-slate-500">
-                            Hạn đến: <strong class="text-slate-700">{{ sl.expires_at|date:"d/m/Y" }}</strong> 
-                            (Còn <span class="text-amber-600 font-bold">{{ sl.remaining_days }}</span> ngày) • 
-                            Lượt xem: <strong class="text-blue-600">{{ sl.view_count }}</strong>
+                        <p class="text-xs font-black text-slate-800">{{ sl.label|default:"Link nộp CV xin việc" }}</p>
+                        <p class="text-[11px] text-slate-500 font-medium">
+                            Hạn đến: <strong class="text-slate-800 font-bold">{{ sl.expires_at|date:"d/m/Y" }}</strong> 
+                            (Còn <span class="text-amber-600 font-extrabold">{{ sl.remaining_days }}</span> ngày) • 
+                            Lượt xem: <strong class="text-blue-600 font-bold">{{ sl.view_count }}</strong>
                         </p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button type="button" onclick="copyShareUrl('{% url 'student_portal:public_shared_profile' sl.token %}')" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-lg transition-colors border border-blue-200 flex items-center gap-1 cursor-pointer">
+                    <button type="button" onclick="copyShareUrl('{% url 'student_portal:public_shared_profile' sl.token %}')" class="taste-btn px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-lg transition-colors border border-blue-200 flex items-center gap-1 cursor-pointer">
                         <span class="material-symbols-outlined text-[14px]">content_copy</span> Copy Link
                     </button>
-                    <a href="{% url 'student_portal:public_shared_profile' sl.token %}" target="_blank" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition-colors flex items-center gap-1">
+                    <a href="{% url 'student_portal:public_shared_profile' sl.token %}" target="_blank" class="taste-btn px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition-colors flex items-center gap-1">
                         <span class="material-symbols-outlined text-[14px]">open_in_new</span> Xem
                     </a>
                     <button type="button" onclick="revokeShareLink('{{ sl.id }}')" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors" title="Hủy kích hoạt sớm">
@@ -146,7 +152,7 @@
         <div class="space-y-8" id="credentials-container">
             {% for item in degrees %}
                 {% with deg=item.obj %}
-                <div class="credential-card bg-white rounded-[24px] shadow-soft border border-gray-100 overflow-hidden hover:shadow-hover transition-all duration-300"
+                <div class="credential-card taste-card bg-white rounded-[24px] shadow-soft border border-slate-200/80 overflow-hidden hover:shadow-hover transition-all duration-300"
                      data-category="{{ item.category }}">
                     
                     <!-- Header Card theo từng danh mục -->
@@ -237,12 +243,13 @@
                             <div class="flex items-center justify-between pb-3 border-b border-gray-100">
                                 <span class="text-xs font-bold uppercase text-gray-500">Trạng thái phát hành</span>
                                 {% if deg.status == 'ISSUED' %}
-                                    <span class="px-3.5 py-1.5 rounded-full text-xs font-bold uppercase bg-green-50 text-green-700 border border-green-200 flex items-center gap-1.5 shadow-sm">
-                                        <span class="material-symbols-outlined text-[16px] text-green-600">verified</span> Đã xác thực Blockchain
+                                    <span class="px-3.5 py-1.5 rounded-full text-xs font-bold uppercase bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-2 shadow-xs">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse-subtle"></span>
+                                        <span class="material-symbols-outlined text-[16px] text-emerald-600">verified</span> Đã xác thực Blockchain
                                     </span>
                                 {% elif deg.status == 'REVOKED' %}
-                                    <span class="px-3.5 py-1.5 rounded-full text-xs font-bold uppercase bg-red-50 text-red-700 border border-red-200 flex items-center gap-1.5">
-                                        <span class="material-symbols-outlined text-[16px] text-red-600">cancel</span> Đã thu hồi
+                                    <span class="px-3.5 py-1.5 rounded-full text-xs font-bold uppercase bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-[16px] text-rose-600">cancel</span> Đã thu hồi
                                     </span>
                                 {% else %}
                                     <span class="px-3.5 py-1.5 rounded-full text-xs font-bold uppercase bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1.5">
@@ -251,22 +258,30 @@
                                 {% endif %}
                             </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                                    <span class="text-xs font-bold text-gray-500 uppercase block mb-1">Tên văn bằng / chứng chỉ</span>
-                                    <span class="font-extrabold text-gray-900 text-base">{{ deg.degree_type.name }}</span>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                                <div class="bg-slate-50/80 rounded-xl p-3.5 border border-slate-100">
+                                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Tên văn bằng / chứng chỉ</span>
+                                    <span class="font-extrabold text-slate-900 text-sm leading-snug">{{ deg.degree_type.name }}</span>
                                 </div>
-                                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                                    <span class="text-xs font-bold text-gray-500 uppercase block mb-1">Xếp loại tốt nghiệp / Kết quả</span>
-                                    <span class="font-extrabold text-blue-700 text-base uppercase">{{ deg.classification|default:"ĐẠT YÊU CẦU" }}</span>
+                                <div class="bg-slate-50/80 rounded-xl p-3.5 border border-slate-100">
+                                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Xếp loại tốt nghiệp / Kết quả</span>
+                                    <span class="font-extrabold text-blue-700 text-sm uppercase">{{ deg.classification|default:"ĐẠT YÊU CẦU" }}</span>
                                 </div>
-                                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                                    <span class="text-xs font-bold text-gray-500 uppercase block mb-1">Đợt cấp phát</span>
-                                    <span class="font-semibold text-gray-800 text-sm">{{ deg.batch.name }}</span>
+                                <div class="bg-slate-50/80 rounded-xl p-3.5 border border-slate-100">
+                                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Số hiệu văn bằng</span>
+                                    <span class="font-black text-slate-900 font-mono text-xs">{{ deg.degree_number|default:deg.serial_number }}</span>
                                 </div>
-                                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                                    <span class="text-xs font-bold text-gray-500 uppercase block mb-1">Năm tốt nghiệp / Cấp bằng</span>
-                                    <span class="font-semibold text-gray-800 text-sm">{{ deg.graduation_year|default:deg.issue_date|default:"2026" }}</span>
+                                <div class="bg-slate-50/80 rounded-xl p-3.5 border border-slate-100">
+                                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Số vào sổ cấp bằng</span>
+                                    <span class="font-black text-slate-900 font-mono text-xs">{{ deg.reg_number|default:"Đang cập nhật" }}</span>
+                                </div>
+                                <div class="bg-slate-50/80 rounded-xl p-3.5 border border-slate-100">
+                                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Ngày ký phát hành / Cấp bằng</span>
+                                    <span class="font-bold text-slate-800 text-xs">{{ deg.effective_issue_date|date:"d/m/Y"|default:deg.graduation_year|default:"2026" }}</span>
+                                </div>
+                                <div class="bg-slate-50/80 rounded-xl p-3.5 border border-slate-100">
+                                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Đợt tốt nghiệp / Quyết định</span>
+                                    <span class="font-bold text-slate-800 text-xs truncate block" title="{{ deg.batch.name }}">{{ deg.batch.name }}</span>
                                 </div>
                             </div>
 
@@ -280,7 +295,7 @@
                                 </div>
                                 <div class="font-mono text-xs text-blue-950 bg-white p-3 rounded-lg border border-blue-200/60 break-all select-all flex items-center justify-between gap-2">
                                     <span>{{ deg.credential_public_id }}</span>
-                                    <button type="button" class="animate-copy-btn px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-bold inline-flex items-center gap-1 transition-all border border-blue-200 shrink-0" data-copy-text="{{ deg.credential_public_id }}">
+                                    <button type="button" class="taste-btn px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-bold inline-flex items-center gap-1 transition-all border border-blue-200 shrink-0 cursor-pointer" onclick="navigator.clipboard.writeText('{{ deg.credential_public_id }}'); alert('Đã sao chép Public ID!');">
                                         <span class="material-symbols-outlined text-[14px]">content_copy</span> Chép
                                     </button>
                                 </div>
@@ -288,14 +303,14 @@
                         </div>
 
                         <!-- Cột QR Code & Hành Động -->
-                        <div class="flex flex-col items-center justify-between bg-gray-50/70 rounded-2xl p-6 border border-gray-100 text-center space-y-4">
+                        <div class="flex flex-col items-center justify-between bg-slate-50/70 rounded-2xl p-6 border border-slate-100 text-center space-y-4">
                             <div>
-                                <h3 class="font-bold text-xs uppercase tracking-widest text-gray-700 mb-3">Mã QR Tra cứu xác thực</h3>
-                                <div class="w-40 h-40 bg-white border-2 border-gray-200 rounded-2xl p-2 mx-auto shadow-sm flex items-center justify-center">
+                                <h3 class="font-bold text-xs uppercase tracking-widest text-slate-700 mb-3">Mã QR Tra cứu xác thực</h3>
+                                <div class="w-40 h-40 bg-white border-2 border-slate-200 rounded-2xl p-2 mx-auto shadow-sm flex items-center justify-center">
                                     {% if item.qr_code_base64 %}
                                         <img src="data:image/png;base64,{{ item.qr_code_base64 }}" alt="QR Văn bằng" class="w-full h-full object-contain">
                                     {% else %}
-                                        <span class="material-symbols-outlined text-6xl text-gray-300">qr_code_2</span>
+                                        <span class="material-symbols-outlined text-6xl text-slate-300">qr_code_2</span>
                                     {% endif %}
                                 </div>
                                 <a href="{{ item.verify_url }}" target="_blank" class="mt-2 text-xs text-blue-600 hover:text-blue-800 hover:underline font-bold inline-flex items-center gap-1">
@@ -308,19 +323,19 @@
                                     <!-- Nút Xem trước PDF -->
                                     <a href="{% url 'student_portal:preview_pdf' degree_id=deg.id %}" 
                                        target="_blank"
-                                       class="animate-btn w-full bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 py-2.5 rounded-xl font-bold uppercase text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                                       class="taste-btn w-full bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 py-2.5 rounded-xl font-bold uppercase text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm">
                                         <span class="material-symbols-outlined text-[18px]">visibility</span>
                                         Xem trước PDF
                                     </a>
                                     <!-- Nút Tải PDF -->
                                     <a href="{% url 'student_portal:download_pdf_by_id' degree_id=deg.id %}" 
-                                       class="animate-btn w-full bg-ntt-dark hover:bg-ntt-light text-white py-2.5 rounded-xl font-bold uppercase text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm hover:shadow">
+                                       class="taste-btn w-full bg-ntt-dark hover:bg-slate-800 text-white py-2.5 rounded-xl font-bold uppercase text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm hover:shadow">
                                         <span class="material-symbols-outlined text-[18px]">download</span>
                                         Tải bản PDF
                                     </a>
                                     <!-- Nút Tải Gói JSON Xác Minh Độc Lập (N5) -->
                                     <a href="{% url 'student_portal:download_verification_package' degree_id=deg.id %}" 
-                                       class="w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 py-2.5 rounded-xl font-bold uppercase text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                                       class="taste-btn w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 py-2.5 rounded-xl font-bold uppercase text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm">
                                         <span class="material-symbols-outlined text-[18px]">verified</span>
                                         Tải gói JSON xác minh
                                     </a>

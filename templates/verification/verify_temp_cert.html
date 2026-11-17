@@ -13,8 +13,8 @@
         <div class="absolute inset-0 opacity-[0.06] bg-center bg-no-repeat bg-contain pointer-events-none" style="background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'white\'><path d=\'M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72l5 2.73 5-2.73v3.72z\'/></svg>');"></div>
         
         <div class="relative z-10 max-w-3xl">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider text-sky-400 bg-sky-950/60 border border-sky-800/60 mb-3 shadow-xs">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider text-sky-400 bg-sky-950/60 border border-sky-800/60 mb-3 shadow-xs font-mono">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-subtle"></span>
                 Xác Thực Chứng Nhận Số On-Chain
             </span>
             <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-white uppercase tracking-tight text-shadow-md">
@@ -33,7 +33,7 @@
     <div class="max-w-4xl w-full mx-auto px-4 sm:px-6 -mt-24 relative z-20 space-y-6">
         
         <!-- Khung Form Tra Cứu -->
-        <div class="bg-white rounded-3xl shadow-xl border border-slate-200/80 p-6 sm:p-10 relative overflow-hidden backdrop-blur-md">
+        <div class="taste-card bg-white rounded-3xl shadow-xl border border-slate-200/80 p-6 sm:p-10 relative overflow-hidden backdrop-blur-md">
             
             <!-- Watermark Logo chìm -->
             <div class="absolute inset-0 flex items-center justify-center opacity-[0.025] pointer-events-none z-0">
@@ -113,10 +113,10 @@
 
                     <!-- Nút Bấm -->
                     <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-                        <button type="submit" class="animate-btn w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-extrabold rounded-xl px-8 py-3 flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95 text-xs sm:text-sm uppercase tracking-wider">
+                        <button type="submit" class="taste-btn w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-extrabold rounded-xl px-8 py-3 flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95 text-xs sm:text-sm uppercase tracking-wider cursor-pointer">
                             <span class="material-symbols-outlined text-[20px]">search</span> Tra cứu xác minh
                         </button>
-                        <a href="{% url 'verification:verify_temp_cert' %}" class="animate-btn w-full sm:w-auto bg-white text-slate-600 border border-slate-300 hover:bg-slate-50 hover:text-slate-900 font-extrabold rounded-xl px-6 py-3 flex items-center justify-center gap-2 transition-all active:scale-95 text-xs sm:text-sm uppercase tracking-wider">
+                        <a href="{% url 'verification:verify_temp_cert' %}" class="taste-btn w-full sm:w-auto bg-white text-slate-600 border border-slate-300 hover:bg-slate-50 hover:text-slate-900 font-extrabold rounded-xl px-6 py-3 flex items-center justify-center gap-2 transition-all active:scale-95 text-xs sm:text-sm uppercase tracking-wider">
                             <span class="material-symbols-outlined text-[20px]">refresh</span> Nhập lại
                         </a>
                     </div>
@@ -136,7 +136,7 @@
 
         <!-- KHỐI HIỂN THỊ KẾT QUẢ XÁC MINH (KHI ĐÃ TRA CỨU) -->
         {% if searched %}
-            <div class="bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden">
+            <div class="taste-card bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden">
                 <!-- Banner Trạng Thái -->
                 <div class="p-6 sm:p-8 text-center text-white relative overflow-hidden
                     {% if verification_state == 'VALID' %} bg-gradient-to-r from-emerald-600 to-emerald-700
@@ -219,8 +219,8 @@
         <!-- 3 Bước Hướng dẫn dưới Form -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
             <!-- Bước 1 -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 flex items-start gap-4 hover:shadow-md transition-shadow">
-                <div class="w-9 h-9 rounded-xl bg-blue-600 text-white font-black flex items-center justify-center shrink-0 text-sm shadow-xs">1</div>
+            <div class="taste-card bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 flex items-start gap-4">
+                <div class="w-9 h-9 rounded-xl bg-blue-600 text-white font-black flex items-center justify-center shrink-0 text-sm shadow-xs font-mono">1</div>
                 <div>
                     <h4 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider mb-1">Mã xác minh</h4>
                     <p class="text-xs text-slate-500 leading-relaxed font-medium">
@@ -230,8 +230,8 @@
             </div>
             
             <!-- Bước 2 -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 flex items-start gap-4 hover:shadow-md transition-shadow">
-                <div class="w-9 h-9 rounded-xl bg-blue-700 text-white font-black flex items-center justify-center shrink-0 text-sm shadow-xs">2</div>
+            <div class="taste-card bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 flex items-start gap-4">
+                <div class="w-9 h-9 rounded-xl bg-blue-700 text-white font-black flex items-center justify-center shrink-0 text-sm shadow-xs font-mono">2</div>
                 <div>
                     <h4 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider mb-1">Tra cứu hệ thống</h4>
                     <p class="text-xs text-slate-500 leading-relaxed font-medium">
@@ -241,8 +241,8 @@
             </div>
             
             <!-- Bước 3 -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 flex items-start gap-4 hover:shadow-md transition-shadow">
-                <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white font-black flex items-center justify-center shrink-0 text-sm shadow-xs">3</div>
+            <div class="taste-card bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 flex items-start gap-4">
+                <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white font-black flex items-center justify-center shrink-0 text-sm shadow-xs font-mono">3</div>
                 <div>
                     <h4 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider mb-1">Tải file PDF</h4>
                     <p class="text-xs text-slate-500 leading-relaxed font-medium">

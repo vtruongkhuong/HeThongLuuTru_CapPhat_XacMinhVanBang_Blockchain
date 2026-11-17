@@ -11,120 +11,124 @@
             <p class="text-sm text-gray-500 mt-1.5 font-medium">Số liệu thống kê & Giám sát hoạt động</p>
         </div>
         
-        <div class="flex items-center gap-3">
-            <div class="text-sm text-gray-600 flex items-center gap-2 bg-white px-4 py-2.5 rounded-xl border border-slate-200 shadow-sm font-medium">
-                <i class="material-symbols-outlined text-[18px] text-gray-400">schedule</i>
+        <div class="flex flex-wrap items-center gap-2.5">
+            <div class="text-xs text-slate-600 flex items-center gap-1.5 bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-2xs font-mono font-semibold">
+                <i class="material-symbols-outlined text-[16px] text-slate-400">schedule</i>
                 {% now "H:i, d/m/Y" %}
             </div>
-            <a href="{% url 'reporting:export_csv' %}" class="animate-btn text-sm flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-xl shadow-md transition-all font-medium">
-                <i class="material-symbols-outlined text-[18px]">download</i>
+            <a href="{% url 'reporting:export_csv' %}" class="taste-btn text-xs flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl shadow-xs transition-all font-bold uppercase tracking-wider">
+                <i class="material-symbols-outlined text-[16px]">download</i>
                 Báo Cáo CSV
             </a>
-            <a href="{% url 'reporting:so_goc_excel' %}" class="animate-btn text-sm flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl shadow-md transition-all font-medium" title="Xuất file Excel Sổ gốc cấp bằng theo Thông tư 21/2019/TT-BGDĐT">
-                <i class="material-symbols-outlined text-[18px]">table_view</i>
+            <a href="{% url 'reporting:so_goc_excel' %}" class="taste-btn text-xs flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl shadow-xs transition-all font-bold uppercase tracking-wider" title="Xuất file Excel Sổ gốc cấp bằng theo Thông tư 21/2019/TT-BGDĐT">
+                <i class="material-symbols-outlined text-[16px]">table_view</i>
                 Sổ Gốc Excel
             </a>
-            <a href="{% url 'reporting:so_goc_pdf' %}" target="_blank" class="animate-btn text-sm flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white px-4 py-2.5 rounded-xl shadow-md transition-all font-medium" title="In file PDF Sổ gốc cấp bằng theo Thông tư 21/2019/TT-BGDĐT">
-                <i class="material-symbols-outlined text-[18px]">picture_as_pdf</i>
+            <a href="{% url 'reporting:so_goc_pdf' %}" target="_blank" class="taste-btn text-xs flex items-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-2 rounded-xl shadow-xs transition-all font-bold uppercase tracking-wider" title="In file PDF Sổ gốc cấp bằng theo Thông tư 21/2019/TT-BGDĐT">
+                <i class="material-symbols-outlined text-[16px]">picture_as_pdf</i>
                 Sổ Gốc PDF
             </a>
-            <a href="{% url 'landing' %}" class="animate-btn text-sm flex items-center gap-2 bg-ntt-dark hover:bg-ntt-light text-white px-4 py-2.5 rounded-xl shadow-md shadow-blue-900/20 transition-all font-medium">
-                <i class="material-symbols-outlined text-[18px]">public</i>
+            <a href="{% url 'landing' %}" class="taste-btn text-xs flex items-center gap-1.5 bg-slate-900 hover:bg-blue-600 text-white px-3.5 py-2 rounded-xl shadow-xs transition-all font-bold uppercase tracking-wider">
+                <i class="material-symbols-outlined text-[16px]">public</i>
                 Cổng công khai
-                <i class="material-symbols-outlined text-[16px]">arrow_outward</i>
+                <i class="material-symbols-outlined text-[14px]">arrow_outward</i>
             </a>
         </div>
     </div>
 
     <!-- 4 THẺ THỐNG KÊ CƠ BẢN -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-4">
-        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-5">
+        <div class="taste-card bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm hover:border-blue-300">
             <div class="flex justify-between items-start mb-6">
-                <div class="bg-blue-50 text-ntt-light w-12 h-12 flex items-center justify-center rounded-xl">
+                <div class="bg-blue-50 text-blue-600 w-12 h-12 flex items-center justify-center rounded-xl">
                     <i class="material-symbols-outlined text-[24px]">groups</i>
                 </div>
             </div>
             <div>
-                <h3 class="text-4xl font-extrabold text-gray-900 tracking-tight">{{ stats.total_students }}</h3>
-                <p class="text-sm text-gray-500 font-medium mt-1">Tổng hồ sơ sinh viên</p>
+                <h3 class="text-4xl font-black text-slate-900 tracking-tight">{{ stats.total_students }}</h3>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1.5">Tổng hồ sơ sinh viên</p>
             </div>
         </div>
         
-        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+        <div class="taste-card bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm hover:border-slate-400">
             <div class="flex justify-between items-start mb-6">
-                <div class="bg-slate-50 text-ntt-dark w-12 h-12 flex items-center justify-center rounded-xl">
+                <div class="bg-slate-100 text-slate-700 w-12 h-12 flex items-center justify-center rounded-xl">
                     <i class="material-symbols-outlined text-[24px]">corporate_fare</i>
                 </div>
             </div>
             <div>
-                <h3 class="text-4xl font-extrabold text-gray-900 tracking-tight">{{ stats.total_faculties }}</h3>
-                <p class="text-sm text-gray-500 font-medium mt-1">Khoa trực thuộc</p>
+                <h3 class="text-4xl font-black text-slate-900 tracking-tight">{{ stats.total_faculties }}</h3>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1.5">Khoa trực thuộc</p>
             </div>
         </div>
         
-        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+        <div class="taste-card bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm hover:border-slate-400">
             <div class="flex justify-between items-start mb-6">
-                <div class="bg-slate-50 text-ntt-dark w-12 h-12 flex items-center justify-center rounded-xl">
+                <div class="bg-slate-100 text-slate-700 w-12 h-12 flex items-center justify-center rounded-xl">
                     <i class="material-symbols-outlined text-[24px]">school</i>
                 </div>
             </div>
             <div>
-                <h3 class="text-4xl font-extrabold text-gray-900 tracking-tight">{{ stats.total_majors }}</h3>
-                <p class="text-sm text-gray-500 font-medium mt-1">Chương trình đào tạo</p>
+                <h3 class="text-4xl font-black text-slate-900 tracking-tight">{{ stats.total_majors }}</h3>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1.5">Chương trình đào tạo</p>
             </div>
         </div>
         
-        <div class="bg-ntt-dark rounded-2xl p-6 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group">
+        <div class="taste-card bg-gradient-to-br from-slate-900 via-slate-950 to-blue-950 rounded-2xl p-6 shadow-md border border-slate-800 text-white relative overflow-hidden group">
             <div class="flex justify-between items-start mb-6 relative z-10">
-                <div class="bg-white/10 text-ntt-gold w-12 h-12 flex items-center justify-center rounded-xl backdrop-blur-sm">
+                <div class="bg-white/10 text-amber-300 w-12 h-12 flex items-center justify-center rounded-xl backdrop-blur-sm border border-white/10">
                     <i class="material-symbols-outlined text-[24px]">workspace_premium</i>
+                </div>
+                <div class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-mono border border-emerald-500/30">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse-subtle"></span>
+                    <span>Sepolia v2</span>
                 </div>
             </div>
             <div class="relative z-10">
-                <h3 class="text-4xl font-extrabold text-white tracking-tight">{{ stats.total_issued_degrees }}</h3>
-                <p class="text-sm text-blue-100/80 font-medium mt-1">Văn bằng trên chuỗi (ISSUED)</p>
+                <h3 class="text-4xl font-black text-white tracking-tight">{{ stats.total_issued_degrees }}</h3>
+                <p class="text-xs font-bold text-sky-200 uppercase tracking-wider mt-1.5">Văn bằng trên chuỗi (ISSUED)</p>
             </div>
-            <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-ntt-light opacity-30 rounded-full blur-3xl z-0 transition-transform group-hover:scale-125"></div>
+            <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-600 opacity-20 rounded-full blur-3xl z-0 transition-transform group-hover:scale-125"></div>
         </div>
     </div>
 
     <!-- 3 THẺ CHỈ SỐ SỨC KHỎE HỆ THỐNG -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
-            <div class="bg-green-50 text-green-600 p-3 rounded-lg">
-                <i class="material-symbols-outlined">fact_check</i>
+        <div class="taste-card bg-white rounded-2xl p-4 border border-slate-200/90 shadow-2xs flex items-center gap-4">
+            <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl border border-emerald-100">
+                <i class="material-symbols-outlined text-[22px]">fact_check</i>
             </div>
             <div>
-                <p class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Tra cứu & Xác minh</p>
+                <p class="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">Tra cứu & Xác minh</p>
                 <div class="flex items-end gap-2 mt-0.5">
-                    <p class="text-xl font-extrabold text-gray-900 leading-none">{{ stats.total_verifications }}</p>
-                    <span class="text-xs text-gray-400 font-medium leading-none mb-0.5">lượt</span>
+                    <p class="text-xl font-black text-slate-900 leading-none">{{ stats.total_verifications }}</p>
+                    <span class="text-xs text-slate-400 font-medium leading-none mb-0.5">lượt</span>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
-            <div class="bg-red-50 text-red-600 p-3 rounded-lg">
-                <i class="material-symbols-outlined">link_off</i>
+        <div class="taste-card bg-white rounded-2xl p-4 border border-slate-200/90 shadow-2xs flex items-center gap-4">
+            <div class="bg-rose-50 text-rose-600 p-3 rounded-xl border border-rose-100">
+                <i class="material-symbols-outlined text-[22px]">link_off</i>
             </div>
             <div>
-                <p class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Blockchain lỗi</p>
+                <p class="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">Blockchain lỗi</p>
                 <div class="flex items-end gap-2 mt-0.5">
-                    <p class="text-xl font-extrabold text-gray-900 leading-none">{{ stats.failed_transactions }}</p>
-                    <span class="text-xs text-red-500 font-medium leading-none mb-0.5">giao dịch</span>
+                    <p class="text-xl font-black text-slate-900 leading-none">{{ stats.failed_transactions }}</p>
+                    <span class="text-xs text-rose-500 font-medium leading-none mb-0.5">giao dịch</span>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl p-4 border border-slate-200 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
-            <div class="bg-orange-50 text-orange-600 p-3 rounded-lg">
-                <i class="material-symbols-outlined">warning</i>
+        <div class="taste-card bg-white rounded-2xl p-4 border border-slate-200/90 shadow-2xs flex items-center gap-4">
+            <div class="bg-amber-50 text-amber-600 p-3 rounded-xl border border-amber-100">
+                <i class="material-symbols-outlined text-[22px]">warning</i>
             </div>
             <div>
-                <p class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">Tỷ lệ Import lỗi</p>
+                <p class="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">Tỷ lệ Import lỗi</p>
                 <div class="flex items-end gap-2 mt-0.5">
-                    <p class="text-xl font-extrabold text-gray-900 leading-none">{{ stats.import_error_rate }}%</p>
-                    <span class="text-xs text-gray-400 font-medium leading-none mb-0.5">trên tổng Batch</span>
+                    <p class="text-xl font-black text-slate-900 leading-none">{{ stats.import_error_rate }}%</p>
+                    <span class="text-xs text-slate-400 font-medium leading-none mb-0.5">trên tổng Batch</span>
                 </div>
             </div>
         </div>
@@ -132,20 +136,20 @@
 
     <!-- KHU VỰC BIỂU ĐỒ & LỊCH SỬ -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div class="col-span-1 lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-md p-6 flex flex-col min-h-[350px]">
+        <div class="taste-card col-span-1 lg:col-span-2 bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col min-h-[350px]">
             <div class="mb-4">
-                <h2 class="text-lg font-bold text-gray-900">Phân bố Loại Văn Bằng</h2>
-                <p class="text-sm text-gray-500 font-medium">Tổng số hồ sơ văn bằng khởi tạo theo hệ đào tạo / chứng chỉ</p>
+                <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wide">Phân bố Loại Văn Bằng</h2>
+                <p class="text-xs text-slate-500 font-medium mt-0.5">Tổng số hồ sơ văn bằng khởi tạo theo hệ đào tạo / chứng chỉ</p>
             </div>
             <div class="relative w-full flex-1 min-h-[260px]">
                 <canvas id="importChart"></canvas>
             </div>
         </div>
 
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-md flex flex-col max-h-[350px]">
-            <div class="p-5 border-b border-gray-50 flex items-center justify-between">
-                <h2 class="text-lg font-bold text-gray-900">Import gần đây</h2>
-                <a href="/admin/students/importbatch/" class="text-xs text-ntt-light hover:underline font-semibold">Xem tất cả</a>
+        <div class="taste-card bg-white rounded-2xl border border-slate-200/90 shadow-sm flex flex-col max-h-[350px]">
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wide">Import gần đây</h2>
+                <a href="/admin/students/importbatch/" class="text-xs text-blue-600 hover:text-blue-800 font-bold uppercase tracking-wider">Xem tất cả &rarr;</a>
             </div>
             
             <div class="flex-1 overflow-y-auto p-3">
@@ -154,17 +158,17 @@
                     <div class="flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors">
                         <div class="mt-0.5">
                             {% if batch.errors > 0 %}
-                                <div class="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center text-red-600" title="Có {{ batch.errors }} dòng lỗi">
+                                <div class="w-8 h-8 rounded-full bg-rose-50 flex items-center justify-center text-rose-600" title="Có {{ batch.errors }} dòng lỗi">
                                     <i class="material-symbols-outlined text-[18px]">error</i>
                                 </div>
                             {% else %}
-                                <div class="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center text-green-600" title="Thành công">
+                                <div class="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600" title="Thành công">
                                     <i class="material-symbols-outlined text-[18px]">check_circle</i>
                                 </div>
                             {% endif %}
                         </div>
                         <div class="flex-1 min-w-0">
-                            <p class="text-sm font-bold text-gray-900 truncate" title="{{ batch.file_name }}">
+                            <p class="text-xs font-bold text-slate-900 truncate" title="{{ batch.file_name }}">
                                 {% if batch.file_name|length > 20 %}
                                     {{ batch.file_name|slice:":20" }}...
                                 {% else %}
@@ -172,16 +176,16 @@
                                 {% endif %}
                             </p>
                             <div class="flex items-center gap-2 mt-0.5">
-                                <span class="text-[11px] text-gray-500 font-medium">{{ batch.imported_by.username|default:"Hệ thống" }}</span>
-                                <span class="w-1 h-1 rounded-full bg-gray-300"></span>
-                                <span class="text-[11px] text-gray-400">{{ batch.created_at|date:"d/m H:i" }}</span>
+                                <span class="text-[11px] text-slate-500 font-medium">{{ batch.imported_by.username|default:"Hệ thống" }}</span>
+                                <span class="w-1 h-1 rounded-full bg-slate-300"></span>
+                                <span class="text-[11px] text-slate-400 font-mono">{{ batch.created_at|date:"d/m H:i" }}</span>
                             </div>
                         </div>
                     </div>
                     {% empty %}
                     <div class="text-center py-6">
-                        <i class="material-symbols-outlined text-gray-200 text-4xl mb-2 block">inbox</i>
-                        <p class="text-xs text-gray-500 font-medium">Chưa có dữ liệu</p>
+                        <i class="material-symbols-outlined text-slate-200 text-4xl mb-2 block">inbox</i>
+                        <p class="text-xs text-slate-500 font-medium">Chưa có dữ liệu</p>
                     </div>
                     {% endfor %}
                 </div>
@@ -191,20 +195,20 @@
 
     <!-- TẦNG 2: BIỂU ĐỒ DOUGHNUT TRẠNG THÁI -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-md p-6 flex flex-col items-center">
+        <div class="taste-card bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col items-center">
             <div class="w-full mb-4 text-center">
-                <h2 class="text-lg font-bold text-gray-900">Trạng thái Văn Bằng</h2>
-                <p class="text-sm text-gray-500 font-medium">Tỷ lệ các văn bằng Hợp lệ, Nháp, Thu hồi...</p>
+                <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wide">Trạng thái Văn Bằng</h2>
+                <p class="text-xs text-slate-500 font-medium mt-0.5">Tỷ lệ các văn bằng Hợp lệ, Nháp, Thu hồi...</p>
             </div>
             <div class="relative w-full h-[280px] flex justify-center">
                 <canvas id="facultyChart"></canvas>
             </div>
         </div>
 
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-md p-6 flex flex-col items-center">
+        <div class="taste-card bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col items-center">
             <div class="w-full mb-4 text-center">
-                <h2 class="text-lg font-bold text-gray-900">Tỷ lệ Tra cứu / Xác minh</h2>
-                <p class="text-sm text-gray-500 font-medium">Kết quả đối soát trên cổng công khai</p>
+                <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wide">Tỷ lệ Tra cứu / Xác minh</h2>
+                <p class="text-xs text-slate-500 font-medium mt-0.5">Kết quả đối soát trên cổng công khai</p>
             </div>
             <div class="relative w-full h-[280px] flex justify-center">
                 <canvas id="degreeChart"></canvas>
@@ -214,20 +218,20 @@
 
     <!-- TẦNG 3: BIỂU ĐỒ XẾP LOẠI TỐT NGHIỆP & TRA CỨU THEO NGÀY (Nghĩa - Task 4) -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-md p-6 flex flex-col items-center">
+        <div class="taste-card bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col items-center">
             <div class="w-full mb-4 text-center">
-                <h2 class="text-lg font-bold text-gray-900">Tỷ Lệ Xếp Loại Tốt Nghiệp</h2>
-                <p class="text-sm text-gray-500 font-medium">Phân bố thứ hạng văn bằng (Xuất sắc, Giỏi, Khá, TB)</p>
+                <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wide">Tỷ Lệ Xếp Loại Tốt Nghiệp</h2>
+                <p class="text-xs text-slate-500 font-medium mt-0.5">Phân bố thứ hạng văn bằng (Xuất sắc, Giỏi, Khá, TB)</p>
             </div>
             <div class="relative w-full h-[280px] flex justify-center">
                 <canvas id="classificationChart"></canvas>
             </div>
         </div>
 
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-md p-6 flex flex-col items-center">
+        <div class="taste-card bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col items-center">
             <div class="w-full mb-4 text-center">
-                <h2 class="text-lg font-bold text-gray-900">Xu Hướng Tra Cứu Theo Ngày</h2>
-                <p class="text-sm text-gray-500 font-medium">Lưu lượng truy cập đối soát xác minh 7 ngày qua</p>
+                <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wide">Xu Hướng Tra Cứu Theo Ngày</h2>
+                <p class="text-xs text-slate-500 font-medium mt-0.5">Lưu lượng truy cập đối soát xác minh 7 ngày qua</p>
             </div>
             <div class="relative w-full h-[280px] flex justify-center">
                 <canvas id="dailyVerificationChart"></canvas>

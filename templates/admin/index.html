@@ -7,76 +7,82 @@
     <!-- =========================================================================
          1. APPLE-STYLED WORKFLOW STEPPER (Trung tâm điều phối quy trình 4 bước)
          ========================================================================= -->
-    <div class="apple-admin-card p-6 relative overflow-hidden">
+    <div class="apple-admin-card taste-card p-6 relative overflow-hidden">
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-5 border-b border-gray-200 dark:border-gray-800 pb-4">
             <div>
-                <span class="text-[11px] font-black uppercase tracking-wider text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Workflow Hub
+                <span class="text-[11px] font-black uppercase tracking-wider text-blue-600 dark:text-blue-400 flex items-center gap-1.5 font-mono">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse-subtle"></span>
+                    Governance Workflow Hub
                 </span>
                 <h2 class="text-xl apple-text-title tracking-tight mt-1">
                     Quy Trình Nghiệp Vụ Cấp Phát Văn Bằng
                 </h2>
             </div>
-            <div class="text-xs font-bold apple-text-desc bg-blue-50/80 dark:bg-[#141e33] px-4 py-2 rounded-full border border-blue-200/80 dark:border-blue-900/40 flex items-center gap-2">
-                <span class="material-symbols-outlined text-[18px] text-blue-500">verified</span>
-                Chuẩn Smart Contract v2 & Cơ chế 4-Mắt
+            <div class="flex flex-wrap items-center gap-2.5">
+                <span class="text-[11px] font-mono px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5 font-bold shadow-2xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse-subtle"></span>
+                    Sepolia Live
+                </span>
+                <div class="text-xs font-bold apple-text-desc bg-blue-50/80 dark:bg-[#141e33] px-3.5 py-1.5 rounded-full border border-blue-200/80 dark:border-blue-900/40 flex items-center gap-2 shadow-2xs">
+                    <span class="material-symbols-outlined text-[17px] text-blue-500">verified</span>
+                    Smart Contract v2 & 4-Mắt
+                </div>
             </div>
         </div>
 
         <!-- 4 Bước Quy trình chuẩn mực (Tương phản cao tuyệt đối, không bị mờ đục) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Bước 1 -->
-            <a href="{% url 'admin:students_student_changelist' %}" class="apple-step-item p-4.5 block group active:scale-[0.98]">
+            <a href="{% url 'admin:students_student_changelist' %}" class="apple-step-item taste-card taste-btn p-4.5 block group">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-sm shadow-sm">
+                    <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-sm shadow-sm font-mono">
                         1
                     </div>
                     <div class="min-w-0">
-                        <span class="apple-text-muted text-[10px] block">Bước 1</span>
-                        <h4 class="text-sm apple-text-title truncate">Hồ sơ Sinh viên</h4>
+                        <span class="apple-text-muted text-[10px] block font-bold uppercase tracking-wider">Bước 1</span>
+                        <h4 class="text-sm apple-text-title truncate font-bold">Hồ sơ Sinh viên</h4>
                     </div>
                 </div>
                 <p class="apple-text-desc mt-3">Quản lý & Import Excel danh sách SV</p>
             </a>
 
             <!-- Bước 2 -->
-            <a href="{% url 'admin:graduation_graduationbatch_changelist' %}" class="apple-step-item p-4.5 block group active:scale-[0.98]">
+            <a href="{% url 'admin:graduation_graduationbatch_changelist' %}" class="apple-step-item taste-card taste-btn p-4.5 block group">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black text-sm shadow-sm">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black text-sm shadow-sm font-mono">
                         2
                     </div>
                     <div class="min-w-0">
-                        <span class="apple-text-muted text-[10px] block">Bước 2</span>
-                        <h4 class="text-sm apple-text-title truncate">Xét Tốt Nghiệp</h4>
+                        <span class="apple-text-muted text-[10px] block font-bold uppercase tracking-wider">Bước 2</span>
+                        <h4 class="text-sm apple-text-title truncate font-bold">Xét Tốt Nghiệp</h4>
                     </div>
                 </div>
                 <p class="apple-text-desc mt-3">Kiểm duyệt 4-mắt & chốt danh sách đợt</p>
             </a>
 
             <!-- Bước 3 -->
-            <a href="{% url 'admin:blockchain_issuancebatch_changelist' %}" class="apple-step-item p-4.5 block group active:scale-[0.98]">
+            <a href="{% url 'admin:blockchain_issuancebatch_changelist' %}" class="apple-step-item taste-card taste-btn p-4.5 block group">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-black text-sm shadow-sm">
+                    <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-black text-sm shadow-sm font-mono">
                         3
                     </div>
                     <div class="min-w-0">
-                        <span class="apple-text-muted text-[10px] block">Bước 3</span>
-                        <h4 class="text-sm apple-text-title truncate">Ký Phát Hành On-Chain</h4>
+                        <span class="apple-text-muted text-[10px] block font-bold uppercase tracking-wider">Bước 3</span>
+                        <h4 class="text-sm apple-text-title truncate font-bold">Ký Phát Hành On-Chain</h4>
                     </div>
                 </div>
                 <p class="apple-text-desc mt-3">Ký ví MetaMask & ghim Merkle Root</p>
             </a>
 
             <!-- Bước 4 -->
-            <a href="{% url 'admin:degrees_degree_changelist' %}" class="apple-step-item p-4.5 block group active:scale-[0.98]">
+            <a href="{% url 'admin:degrees_degree_changelist' %}" class="apple-step-item taste-card taste-btn p-4.5 block group">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-sm shadow-sm">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-sm shadow-sm font-mono">
                         4
                     </div>
                     <div class="min-w-0">
-                        <span class="apple-text-muted text-[10px] block">Bước 4</span>
-                        <h4 class="text-sm apple-text-title truncate">Sổ Cái Văn Bằng</h4>
+                        <span class="apple-text-muted text-[10px] block font-bold uppercase tracking-wider">Bước 4</span>
+                        <h4 class="text-sm apple-text-title truncate font-bold">Sổ Cái Văn Bằng</h4>
                     </div>
                 </div>
                 <p class="apple-text-desc mt-3">Quản lý văn bằng số & tải PDF chuẩn</p>
@@ -89,7 +95,7 @@
          ========================================================================= -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {% for item in kpis %}
-            <a href="{{ item.link }}" class="apple-kpi-item stagger-item p-5 flex flex-col justify-between group active:scale-[0.98]">
+            <a href="{{ item.link }}" class="apple-kpi-item taste-card taste-btn stagger-item p-5 flex flex-col justify-between group">
                 <div class="flex items-start justify-between mb-4">
                     <div class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-950/70 text-blue-600 dark:text-blue-400 flex items-center justify-center border border-blue-200 dark:border-blue-800">
                         <span class="material-symbols-outlined text-[24px]">{{ item.icon }}</span>
@@ -110,7 +116,7 @@
          3. RECENT GRADUATION BATCHES (Các đợt tốt nghiệp gần nhất)
          ========================================================================= -->
     {% if recent_batches %}
-    <div class="apple-admin-card p-6">
+    <div class="apple-admin-card taste-card p-6">
         <div class="flex items-center justify-between mb-4">
             <div>
                 <h3 class="text-sm font-bold uppercase tracking-wider apple-text-title flex items-center gap-2">
@@ -167,7 +173,7 @@
                         </td>
                         <td class="py-3.5 px-3">
                             {% if batch.merkle_root %}
-                                <button type="button" class="merkle-hash-badge apple-hash-pill" data-copy-text="{{ batch.merkle_root }}" title="Nhấn để chép Merkle Root đầy đủ: {{ batch.merkle_root }}">
+                                <button type="button" class="merkle-hash-badge apple-hash-pill taste-btn" data-copy-text="{{ batch.merkle_root }}" title="Nhấn để chép Merkle Root đầy đủ: {{ batch.merkle_root }}">
                                     <span class="material-symbols-outlined text-[13px]">tag</span>
                                     <span>{{ batch.merkle_root|slice:":8" }}...{{ batch.merkle_root|slice:"-8:" }}</span>
                                 </button>
@@ -176,7 +182,7 @@
                             {% endif %}
                         </td>
                         <td class="py-3.5 px-3 text-right">
-                            <a href="{% url 'admin:graduation_graduationbatch_change' batch.pk %}" class="apple-action-btn-primary" style="padding: 4px 10px; font-size: 11px;">
+                            <a href="{% url 'admin:graduation_graduationbatch_change' batch.pk %}" class="apple-action-btn-primary taste-btn" style="padding: 4px 10px; font-size: 11px;">
                                 Chi tiết
                             </a>
                         </td>

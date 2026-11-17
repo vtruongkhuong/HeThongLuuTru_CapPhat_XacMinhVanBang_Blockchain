@@ -866,3 +866,29 @@ body.dark .apple-filter-drawer,
     font-weight: 800 !important;
     border-left: 3.5px solid #38bdf8 !important;
 }
+
+/* ==========================================================================
+   TASTE-SKILL MOTION & QUIET MICRO-INTERACTIONS (ANTI-SLOP ARCHITECTURE)
+   ========================================================================== */
+.taste-card {
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), 
+                box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), 
+                border-color 0.2s ease !important;
+}
+.taste-card:hover {
+    transform: translateY(-2px) !important;
+}
+.taste-btn {
+    transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), 
+                box-shadow 0.12s ease !important;
+}
+.taste-btn:active {
+    transform: scale(0.98) !important;
+}
+@keyframes pulse-subtle {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.45; transform: scale(0.9); }
+}
+.animate-pulse-subtle {
+    animation: pulse-subtle 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+}

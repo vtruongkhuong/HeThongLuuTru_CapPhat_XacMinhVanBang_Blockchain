@@ -87,7 +87,7 @@
             <div class="grid grid-cols-1 gap-5">
                 {% for item in degrees %}
                 {% with deg=item.obj %}
-                <div class="bg-white rounded-3xl p-6 sm:p-7 shadow-lg border border-slate-200/90 hover:border-blue-400 transition-all duration-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div class="bg-white rounded-3xl p-6 sm:p-7 shadow-lg border border-slate-200/90 hover:border-blue-400 taste-card flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                     
                     <div class="space-y-3 flex-1">
                         <div class="flex flex-wrap items-center gap-2">
@@ -107,6 +107,7 @@
                             <p class="text-xs text-slate-500 font-medium mt-1">
                                 Số hiệu: <strong class="font-mono text-slate-700">{{ deg.degree_number }}</strong> | 
                                 Số vào sổ: <strong class="font-mono text-slate-700">{{ deg.reg_number|default:"---" }}</strong> | 
+                                Ngày cấp: <strong class="font-mono text-slate-700">{{ deg.effective_issue_date|date:"d/m/Y" }}</strong> | 
                                 Xếp loại: <strong class="text-blue-700">{{ deg.classification|default:"Khá" }}</strong>
                             </p>
                         </div>

@@ -30,7 +30,29 @@
             }
         }
     </script>
-    <style>html { scroll-behavior: smooth; }</style>
+    <style>
+        html { scroll-behavior: smooth; }
+        /* Taste-Skill Motion & Micro-interactions (Anti-slop) */
+        .taste-card {
+            transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+        }
+        .taste-card:hover {
+            transform: translateY(-2px);
+        }
+        .taste-btn {
+            transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.12s ease;
+        }
+        .taste-btn:active {
+            transform: scale(0.98);
+        }
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.45; transform: scale(0.9); }
+        }
+        .animate-pulse-subtle {
+            animation: pulse-subtle 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
     {% block extra_head %}{% endblock %}
     <!-- Animate UI Core Styles & Interaction Engine -->
     <link rel="stylesheet" href="{% static 'css/animate-ui.css' %}">
@@ -41,14 +63,23 @@
 
     <!-- Navbar -->
     <nav class="bg-white/90 backdrop-blur-md px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50 border-b border-gray-100">
-        <a href="{% url 'landing' %}" class="flex items-center gap-3.5 group">
-            <div class="w-11 h-11 border-2 border-blue-600 rounded-2xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-xs">
-                <span class="material-symbols-outlined text-2xl transition-transform group-hover:scale-110">school</span>
+        <div class="flex items-center gap-4">
+            <a href="{% url 'landing' %}" class="flex items-center gap-3.5 group">
+                <div class="w-11 h-11 border-2 border-blue-600 rounded-2xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-xs">
+                    <span class="material-symbols-outlined text-2xl transition-transform group-hover:scale-110">school</span>
+                </div>
+                <div>
+                    <h1 class="font-black text-slate-900 uppercase tracking-wider text-xs leading-tight">BLOCKCHAIN<br><span class="text-blue-600">DEGREE PORTAL</span></h1>
+                </div>
+            </a>
+            
+            <div class="hidden xl:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100/90 border border-slate-200/90 text-[11px] font-mono text-slate-600">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="font-bold text-slate-800">Ethereum Sepolia</span>
+                <span class="text-slate-300">|</span>
+                <span class="text-slate-500 text-[10px]">Smart Contract v2</span>
             </div>
-            <div>
-                <h1 class="font-black text-slate-900 uppercase tracking-wider text-xs leading-tight">BLOCKCHAIN<br><span class="text-blue-600">DEGREE PORTAL</span></h1>
-            </div>
-        </a>
+        </div>
         
         <div class="flex items-center gap-5 text-sm font-semibold">
             <a href="{% url 'landing' %}" class="text-gray-600 hover:text-ntt-light transition-colors flex items-center gap-1.5 text-xs uppercase tracking-wider font-bold">

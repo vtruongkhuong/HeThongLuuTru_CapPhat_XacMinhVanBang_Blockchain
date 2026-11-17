@@ -5,48 +5,58 @@
 
 {% block content %}
 <!-- Banner xanh -->
-<div class="bg-gradient-to-br from-[#090d16] via-[#0d162a] to-[#024b9c] py-16 -mx-4 sm:-mx-6 lg:-mx-8 px-4 relative overflow-hidden flex flex-col items-center pt-[100px]">
+<div class="bg-gradient-to-br from-[#090d16] via-[#0d162a] to-[#024b9c] py-16 -mx-4 sm:-mx-6 lg:-mx-8 px-4 relative overflow-hidden flex flex-col items-center pt-[90px]">
     <div class="absolute inset-0 pointer-events-none opacity-40 bg-[radial-gradient(circle_at_50%_20%,#38bdf8_0%,transparent_60%)]"></div>
     <div class="absolute inset-0 opacity-10 bg-center bg-no-repeat bg-contain pointer-events-none" style="background-image: url('data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'white\'><path d=\'M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72l5 2.73 5-2.73v3.72z\'/></svg>');"></div>
-    <h1 class="text-3xl md:text-4xl font-bold text-white uppercase text-center relative z-10 tracking-wide mb-12">
-        CỔNG TRA CỨU VĂN BẰNG, CHỨNG CHỈ
+    
+    <!-- Status Pill (taste-skill anti-slop) -->
+    <div class="relative z-10 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/85 border border-sky-400/30 text-sky-200 text-xs font-mono font-bold mb-4 backdrop-blur-md shadow-lg">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="tracking-wide">ETHEREUM SEPOLIA • MERKLE TREE RFC 6962 • SMART CONTRACT V2</span>
+    </div>
+
+    <h1 class="text-3xl md:text-4xl lg:text-5xl font-black text-white uppercase text-center relative z-10 tracking-tight mb-2">
+        CỔNG TRA CỨU VĂN BẰNG & CHỨNG CHỈ
     </h1>
+    <p class="text-sky-100/80 text-xs sm:text-sm font-medium text-center relative z-10 max-w-xl mb-8">
+        Hệ thống lưu trữ phi tập trung IPFS, bảo chứng tính toàn vẹn và chống giả mạo trên Smart Contract Sepolia.
+    </p>
     
     <!-- Box tra cứu -->
-    <div class="bg-white rounded-[30px] shadow-2xl p-8 md:p-12 w-full max-w-4xl relative z-10 mt-4 mx-auto border-4 border-white/20 backdrop-blur-sm">
+    <div class="bg-white rounded-[32px] shadow-2xl p-6 sm:p-10 md:p-12 w-full max-w-4xl relative z-10 mx-auto border-4 border-white/20 backdrop-blur-md taste-card">
         
         <!-- Tab selector -->
-        <div class="flex justify-center mb-10 overflow-x-auto pb-1">
-            <div class="bg-slate-100 p-1.5 rounded-full flex gap-1 border border-slate-200 shadow-inner min-w-max">
-                <button class="animate-btn px-5 py-2.5 bg-blue-600 text-white rounded-full font-bold text-sm flex items-center gap-2 shadow-md">
+        <div class="flex justify-center mb-8 overflow-x-auto pb-1">
+            <div class="bg-slate-100/90 p-1.5 rounded-2xl flex gap-1 border border-slate-200/90 shadow-inner min-w-max">
+                <button class="taste-btn px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm">
                     <span class="material-symbols-outlined text-[18px]">school</span> Tra cứu văn bằng
                 </button>
-                <a href="{% url 'verification:verify_temp_cert' %}" class="animate-btn px-5 py-2.5 text-slate-600 hover:text-blue-600 rounded-full font-bold text-sm flex items-center gap-2 transition-colors">
+                <a href="{% url 'verification:verify_temp_cert' %}" class="taste-btn px-5 py-2.5 text-slate-600 hover:text-blue-600 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-colors">
                     <span class="material-symbols-outlined text-[18px]">workspace_premium</span> Chứng nhận tạm thời
                 </a>
-                <a href="{% url 'verification:employer_batch_verify' %}" class="animate-btn px-5 py-2.5 text-slate-600 hover:text-indigo-600 rounded-full font-bold text-sm flex items-center gap-2 transition-colors">
+                <a href="{% url 'verification:employer_batch_verify' %}" class="taste-btn px-5 py-2.5 text-slate-600 hover:text-indigo-600 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-colors">
                     <span class="material-symbols-outlined text-[18px]">domain</span> Doanh nghiệp thẩm định
                 </a>
             </div>
         </div>
 
-        <form id="search-form" action="{% url 'verification:public_verify' %}" method="POST" enctype="multipart/form-data" class="space-y-6">
+        <form id="search-form" action="{% url 'verification:public_verify' %}" method="POST" enctype="multipart/form-data" class="space-y-5">
             {% csrf_token %}
             
             <!-- Ô nhập mã tra cứu (Tra cứu bằng mã thay vì họ tên) -->
             <div class="space-y-2">
-                <label class="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[18px] text-ntt-light">qr_code_2</span>
-                    Mã tra cứu văn bằng
+                <label class="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center justify-between">
+                    <span class="flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[18px] text-ntt-light">qr_code_2</span>
+                        Mã tra cứu văn bằng
+                    </span>
+                    <span class="text-[11px] text-slate-400 lowercase font-normal">mssv, số hiệu, uuid hoặc mã băm</span>
                 </label>
                 <div class="relative">
                     <input type="text" id="search-input" name="search_query"
                         placeholder="Nhập Mã số sinh viên (MSSV), Số hiệu bằng, Mã UUID, CCCD hoặc Mã băm..." 
-                        class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-semibold text-ntt-dark focus:bg-white focus:border-ntt-light focus:ring-2 focus:ring-ntt-light/20 outline-none transition-all placeholder-gray-400">
+                        class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3.5 text-sm font-semibold text-slate-900 focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-100 outline-none transition-all placeholder-slate-400">
                 </div>
-                <p class="text-xs text-gray-500 font-medium">
-                    Hệ thống xác thực qua <strong>Mã số sinh viên (MSSV)</strong>, <strong>Số hiệu bằng</strong>, <strong>Mã định danh UUID</strong> hoặc <strong>CCCD</strong> để đảm bảo định danh duy nhất và bảo mật thông tin cá nhân.
-                </p>
             </div>
 
             <!-- Tải file PDF văn bằng -->
@@ -117,6 +127,91 @@
                     <p><strong>Tra cứu bằng QR:</strong> Bấm nút "Tra cứu bằng QR" để bật Camera quét trực tiếp mã QR trên phôi bằng vật lý.</p>
                 </li>
             </ul>
+        </div>
+    </div>
+</div>
+
+<!-- KHỐI KIẾN TRÚC MẬT MÃ 4 LỚP (taste-skill authentic tech proof) -->
+<div class="max-w-6xl mx-auto px-4 py-16 w-full space-y-10">
+    <div class="text-center max-w-2xl mx-auto space-y-2">
+        <span class="text-xs font-mono font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+            CRYPTOGRAPHIC VERIFICATION PROTOCOL
+        </span>
+        <h2 class="text-2xl sm:text-3xl font-black text-slate-900 uppercase tracking-tight">
+            Kiến Trúc Bảo Chứng Bất Biến 4 Tầng
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-500 font-medium">
+            Mỗi văn bằng được số hóa thành bằng chứng mật mã học, đối soát toàn vẹn không thể làm giả hay can thiệp.
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <!-- Tầng 1: Canonical Hash -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:border-blue-400 taste-card flex flex-col justify-between">
+            <div class="space-y-3">
+                <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg border border-blue-100">
+                    <span class="material-symbols-outlined text-2xl">fingerprint</span>
+                </div>
+                <div class="text-[11px] font-mono font-bold text-blue-600 uppercase tracking-wider">Tầng 1 • Hashing</div>
+                <h3 class="text-base font-extrabold text-slate-900">Băm Chuẩn Hóa</h3>
+                <p class="text-xs text-slate-500 leading-relaxed font-medium">
+                    Thuật toán Keccak-256 và SHA-256 tính toán định danh dữ liệu gốc của từng văn bằng và tệp PDF.
+                </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 text-[11px] font-mono text-slate-400">
+                Algorithm: SHA-256
+            </div>
+        </div>
+
+        <!-- Tầng 2: IPFS Pinning -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:border-teal-400 taste-card flex flex-col justify-between">
+            <div class="space-y-3">
+                <div class="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center font-bold text-lg border border-teal-100">
+                    <span class="material-symbols-outlined text-2xl">share</span>
+                </div>
+                <div class="text-[11px] font-mono font-bold text-teal-600 uppercase tracking-wider">Tầng 2 • Storage</div>
+                <h3 class="text-base font-extrabold text-slate-900">Lưu Trữ IPFS</h3>
+                <p class="text-xs text-slate-500 leading-relaxed font-medium">
+                    Tệp PDF văn bằng gốc được ghim phi tập trung (Pinata), truy cập qua CID nội dung độc bản toàn cầu.
+                </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 text-[11px] font-mono text-slate-400">
+                Protocol: InterPlanetary FS
+            </div>
+        </div>
+
+        <!-- Tầng 3: Merkle Tree -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:border-indigo-400 taste-card flex flex-col justify-between">
+            <div class="space-y-3">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-lg border border-indigo-100">
+                    <span class="material-symbols-outlined text-2xl">account_tree</span>
+                </div>
+                <div class="text-[11px] font-mono font-bold text-indigo-600 uppercase tracking-wider">Tầng 3 • Aggregation</div>
+                <h3 class="text-base font-extrabold text-slate-900">Cây Merkle Tree</h3>
+                <p class="text-xs text-slate-500 leading-relaxed font-medium">
+                    Gộp hàng trăm văn bằng theo đợt thành Merkle Root duy nhất (RFC 6962) để tối ưu hóa chi phí gas On-chain.
+                </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 text-[11px] font-mono text-slate-400">
+                Standard: RFC 6962 Proof
+            </div>
+        </div>
+
+        <!-- Tầng 4: Smart Contract Sepolia -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm hover:border-emerald-400 taste-card flex flex-col justify-between">
+            <div class="space-y-3">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg border border-emerald-100">
+                    <span class="material-symbols-outlined text-2xl">smart_toy</span>
+                </div>
+                <div class="text-[11px] font-mono font-bold text-emerald-600 uppercase tracking-wider">Tầng 4 • On-chain</div>
+                <h3 class="text-base font-extrabold text-slate-900">Smart Contract v2</h3>
+                <p class="text-xs text-slate-500 leading-relaxed font-medium">
+                    Xác thực tính hợp lệ, kiểm tra thu hồi và bảo chứng dữ liệu bất biến trên mạng Ethereum Sepolia Testnet.
+                </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 text-[11px] font-mono text-slate-400">
+                Chain ID: 11155111
+            </div>
         </div>
     </div>
 </div>
