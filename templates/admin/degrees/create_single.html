@@ -244,6 +244,30 @@
                         <p class="form-help">{{ form.degree_type.help_text }}</p>
                     </div>
 
+                    <!-- Trường Số hiệu văn bằng (Tự động sinh theo quy chuẩn bảo mật) -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="form-label mb-0">Số hiệu văn bằng (Dự kiến)</label>
+                            <span class="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                <span class="material-symbols-outlined text-[13px]">lock</span> Tự động sinh
+                            </span>
+                        </div>
+                        <input type="text" value="{{ preview_serial }}" readonly class="form-input font-mono font-bold text-indigo-600 dark:text-indigo-400 bg-gray-50 dark:bg-gray-800/80 cursor-not-allowed">
+                        <p class="form-help">Hệ thống tự động cấp phát theo mẫu <code>CTUT-[Năm]-[ID]</code> để đảm bảo duy nhất, chống trùng lặp và phục vụ tính Leaf Hash Blockchain.</p>
+                    </div>
+
+                    <!-- Trường Số vào sổ gốc (Tự động sinh theo chuẩn TT21) -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="form-label mb-0">Số vào sổ gốc cấp bằng (Dự kiến)</label>
+                            <span class="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
+                                <span class="material-symbols-outlined text-[13px]">menu_book</span> Chuẩn TT 21
+                            </span>
+                        </div>
+                        <input type="text" value="{{ preview_so_vao_so }}" readonly class="form-input font-mono font-bold text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/80 cursor-not-allowed">
+                        <p class="form-help">Tự động đánh số vào Sổ gốc cấp phát văn bằng theo quy định Thông tư 21/2019/TT-BGDĐT.</p>
+                    </div>
+
                     <div>
                         <label for="{{ form.issue_date.id_for_label }}" class="form-label">
                             {{ form.issue_date.label }}

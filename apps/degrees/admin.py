@@ -284,6 +284,7 @@ class DegreeAdmin(BaseRoleAdmin):
     def create_single_degree_view(self, request):
         """View xử lý Form cấp phát văn bằng đơn lẻ cho Cán bộ nhập trực tiếp"""
         from .forms import SingleDegreeForm
+        from django.utils import timezone
 
         if request.method == 'POST':
             form = SingleDegreeForm(request.POST)
@@ -292,7 +293,7 @@ class DegreeAdmin(BaseRoleAdmin):
                     degree = form.save(request.user)
                     self.message_user(
                         request,
-                        f"🎉 Đã khởi tạo thành công văn bằng cho sinh viên {degree.student.full_name} ({degree.student.student_code})! Trạng thái: {degree.get_status_display()}.",
+                        f"🎉 Đã khởi tạo thành công văn bằng cho sinh viên {degree.student.full_name} ({degree.student.student_code})! Số hiệu: {degree.serial_number}. Trạng thái: {degree.get_status_display()}.",
                         level=messages.SUCCESS
                     )
                     return redirect('admin:degrees_degree_changelist')
@@ -301,10 +302,18 @@ class DegreeAdmin(BaseRoleAdmin):
         else:
             form = SingleDegreeForm()
 
+        last_degree = Degree.objects.order_by('-id').first()
+        next_id = (last_degree.id + 1) if last_degree else 1
+        current_year = timezone.now().year
+        preview_serial = f"CTUT-{current_year}-{next_id:06d}"
+        preview_so_vao_so = f"{next_id:03d}/{current_year}/SGCB-CTUT"
+
         context = dict(
             self.admin_site.each_context(request),
             title="➕ Cấp phát Văn bằng Đơn lẻ",
             form=form,
+            preview_serial=preview_serial,
+            preview_so_vao_so=preview_so_vao_so,
         )
         return render(request, "admin/degrees/create_single.html", context)
 
