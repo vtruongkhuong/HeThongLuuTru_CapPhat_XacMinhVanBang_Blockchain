@@ -39,8 +39,8 @@ INTERNAL_IPS = ['127.0.0.1']
 # Chế độ chạy Celery Eager (Local): Tự động thực thi ngay lập tức mà không cần bật Redis server
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
-CELERY_RESULT_BACKEND = None
-CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'memory://')
+CELERY_RESULT_BACKEND = 'disabled'
+CELERY_BROKER_URL = 'memory://'
 CELERY_TASK_IGNORE_RESULT = True
 
 # Cấu hình gửi Email (mặc định Console backend an toàn trong dev, hỗ trợ SMTP qua .env)
