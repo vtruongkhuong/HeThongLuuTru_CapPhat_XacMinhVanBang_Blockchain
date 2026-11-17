@@ -39,3 +39,7 @@ INTERNAL_IPS = ['127.0.0.1']
 # Chế độ chạy Celery Eager (Local): Tự động thực thi ngay lập tức mà không cần bật Redis server
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
+
+# Cấu hình gửi Email (mặc định Console backend an toàn trong dev, hỗ trợ SMTP qua .env)
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'Trường ĐH Kỹ thuật - Công nghệ Cần Thơ <daotao@ctuet.edu.vn>')

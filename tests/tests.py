@@ -221,3 +221,135 @@ class H10SystemTestSuite(TestCase):
         self.assertEqual(res_tampered['tampered_batches'], 1)
         self.assertEqual(res_tampered['details'][0]['status'], 'TAMPERED')
         self.assertIn('BÁO ĐỘNG GIAN LẬN', res_tampered['details'][0]['message'])
+
+    def test_7_single_degree_form_creation(self):
+        """Kiểm thử Phần 2: Form tạo văn bằng đơn lẻ trực tiếp cho Cán bộ nhập (không qua Excel)"""
+        from apps.degrees.forms import SingleDegreeForm
+
+        # 1. Thử tạo với sinh viên mới trực tiếp
+        form_data_new = {
+            'student_mode': 'new',
+            'student_code': 'BSINGLE01',
+            'full_name': 'Sinh Viên Cấp Lẻ 1',
+            'email': 'single1@student.ctuet.edu.vn',
+            'date_of_birth': '2003-08-15',
+            'gender': 'M',
+            'major': self.major.id,
+            'gpa_score': 3.65,
+            'batch': self.grad_batch.id,
+            'degree_type': self.deg_type.id,
+            'auto_submit': True
+        }
+        form = SingleDegreeForm(data=form_data_new)
+        self.assertTrue(form.is_valid(), f"Form hợp lệ nhưng báo lỗi: {form.errors}")
+        deg = form.save(self.maker)
+        self.assertIsNotNone(deg.id)
+        self.assertEqual(deg.student.student_code, 'BSINGLE01')
+        self.assertIn(deg.classification.upper(), ['XUẤT SẮC', 'XUAT SAC'])
+        self.assertEqual(deg.status, 'REVIEWED')
+        self.assertTrue(len(deg.canonical_hash) == 64)
+
+        # 2. Thử tạo với sinh viên có sẵn trong hệ thống
+        existing_sv = Student.objects.create(
+            student_code='BSINGLE02',
+            full_name='Sinh Viên Cấp Lẻ 2',
+            email='single2@student.ctuet.edu.vn',
+            faculty=self.faculty,
+            major=self.major,
+            gpa_score=3.15,
+            status='approved'
+        )
+        batch2 = GraduationBatch.objects.create(name='Đợt 2 - 2026', maker=self.maker, status='DRAFT')
+        form_data_exist = {
+            'student_mode': 'existing',
+            'existing_student': existing_sv.id,
+            'batch': batch2.id,
+            'auto_submit': False
+        }
+        form2 = SingleDegreeForm(data=form_data_exist)
+        self.assertTrue(form2.is_valid(), f"Form sinh viên có sẵn báo lỗi: {form2.errors}")
+        deg2 = form2.save(self.maker)
+        self.assertEqual(deg2.student.id, existing_sv.id)
+        self.assertEqual(deg2.status, 'DRAFT')
+
+    def test_8_so_goc_excel_and_pdf_generation(self):
+        """Kiểm thử Phần 2: Xuất Sổ gốc Bộ GD&ĐT chuẩn Thông tư 21/2019/TT-BGDĐT (Excel & PDF)"""
+        from apps.reporting.so_goc_service import generate_so_goc_excel, generate_so_goc_pdf
+
+        # Tạo 1 Degree mẫu
+        sv = Student.objects.create(
+            student_code='BSOGOC01',
+            full_name='Nguyễn Văn Sổ Gốc',
+            email='sogoc@student.ctuet.edu.vn',
+            faculty=self.faculty,
+            major=self.major,
+            gpa_score=3.45,
+            status='approved'
+        )
+        degree = Degree.objects.create(
+            student=sv,
+            batch=self.grad_batch,
+            degree_type=self.deg_type,
+            classification='Giỏi',
+            canonical_hash='a' * 64,
+            status='ISSUED'
+        )
+
+        # 1. Kiểm tra xuất Excel
+        excel_bytes = generate_so_goc_excel(batch=self.grad_batch)
+        self.assertIsInstance(excel_bytes, bytes)
+        self.assertGreater(len(excel_bytes), 1000)
+        # Kiểm tra file excel đọc được bằng openpyxl
+        import openpyxl
+        import io
+        wb = openpyxl.load_workbook(io.BytesIO(excel_bytes))
+        ws = wb.active
+        self.assertIn("SỔ GỐC CẤP PHÁT VĂN BẰNG", ws["A4"].value)
+
+        # 2. Kiểm tra xuất PDF
+        pdf_bytes = generate_so_goc_pdf(batch=self.grad_batch)
+        self.assertIsInstance(pdf_bytes, bytes)
+        self.assertTrue(pdf_bytes.startswith(b'%PDF'), "Nội dung PDF phải bắt đầu bằng %PDF header")
+
+    def test_9_congratulation_email_celery_task(self):
+        """Kiểm thử Phần 2: Celery tự động gửi email chúc mừng kèm PDF & QR cho sinh viên khi duyệt On-Chain"""
+        from apps.degrees.tasks import send_degree_congratulation_email
+        from django.core import mail
+
+        sv = Student.objects.create(
+            student_code='BMAIL01',
+            full_name='Trần Email Tân Cử Nhân',
+            email='tancunhan@student.ctuet.edu.vn',
+            faculty=self.faculty,
+            major=self.major,
+            gpa_score=3.70,
+            status='approved'
+        )
+        degree = Degree.objects.create(
+            student=sv,
+            batch=self.grad_batch,
+            degree_type=self.deg_type,
+            classification='Xuất sắc',
+            canonical_hash='b' * 64,
+            status='ISSUED'
+        )
+
+        mail.outbox.clear()
+        res = send_degree_congratulation_email(degree.id)
+        self.assertEqual(res['status'], 'success')
+        self.assertEqual(res['recipient'], 'tancunhan@student.ctuet.edu.vn')
+
+        # Kiểm tra hòm thư Django outbox
+        self.assertEqual(len(mail.outbox), 1)
+        sent_email = mail.outbox[0]
+        self.assertIn('Chúc mừng tốt nghiệp', sent_email.subject)
+        self.assertIn('tancunhan@student.ctuet.edu.vn', sent_email.to)
+        # Kiểm tra có đính kèm file PDF
+        has_pdf = False
+        for att in sent_email.attachments:
+            if isinstance(att, tuple) and att[0].endswith('.pdf'):
+                has_pdf = True
+            elif hasattr(att, 'get_filename') and att.get_filename() and att.get_filename().endswith('.pdf'):
+                has_pdf = True
+        self.assertTrue(has_pdf, "Email phải có đính kèm file văn bằng PDF!")
+

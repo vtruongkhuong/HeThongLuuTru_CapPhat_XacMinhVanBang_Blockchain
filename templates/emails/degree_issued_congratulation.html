@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chúc Mừng Tốt Nghiệp - Cấp Phát Văn Bằng Số CTUT</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f1f5f9;
+            margin: 0;
+            padding: 20px;
+            color: #1e293b;
+        }
+        .email-container {
+            max-width: 620px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
+        }
+        .email-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);
+            padding: 32px 24px;
+            text-align: center;
+            color: #ffffff;
+        }
+        .header-org {
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #93c5fd;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .header-title {
+            font-size: 20px;
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+        .header-badge {
+            display: inline-block;
+            margin-top: 12px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 9999px;
+            padding: 4px 14px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .email-body {
+            padding: 32px 28px;
+        }
+        .greeting {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 12px;
+        }
+        .intro-text {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #475569;
+            margin-bottom: 24px;
+        }
+        .info-card {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 13.5px;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            color: #64748b;
+            font-weight: 500;
+        }
+        .info-val {
+            color: #0f172a;
+            font-weight: 700;
+            text-align: right;
+        }
+        .blockchain-card {
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+            border: 1px solid #a7f3d0;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 24px;
+        }
+        .chain-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #065f46;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .chain-hash {
+            font-family: monospace;
+            font-size: 11px;
+            background: #ffffff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #d1fae5;
+            color: #047857;
+            word-break: break-all;
+        }
+        .qr-section {
+            text-align: center;
+            padding: 20px 0;
+            border-top: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 24px;
+        }
+        .qr-img {
+            width: 160px;
+            height: 160px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            padding: 8px;
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .qr-note {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 10px;
+        }
+        .btn-verify {
+            display: inline-block;
+            background: #1e3a8a;
+            color: #ffffff !important;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            padding: 12px 28px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25);
+            margin-top: 8px;
+        }
+        .attachment-note {
+            background-color: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 10px;
+            padding: 14px;
+            font-size: 12.5px;
+            color: #92400e;
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+        .email-footer {
+            background-color: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            padding: 20px;
+            text-align: center;
+            font-size: 11.5px;
+            color: #64748b;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- HEADER -->
+        <div class="email-header">
+            <div class="header-org">TRƯỜNG ĐẠI HỌC KỸ THUẬT - CÔNG NGHỆ CẦN THƠ</div>
+            <h1 class="header-title">CHÚC MỪNG TỐT NGHIỆP</h1>
+            <div class="header-badge">Văn Bằng Số Đã Được Xác Thực Blockchain</div>
+        </div>
+
+        <!-- BODY -->
+        <div class="email-body">
+            <div class="greeting">Kính gửi Tân Cử nhân/Kỹ sư {{ student.full_name }},</div>
+            <div class="intro-text">
+                Nhà trường xin trân trọng chúc mừng bạn đã hoàn thành xuất sắc chương trình đào tạo tại Trường Đại học Kỹ thuật - Công nghệ Cần Thơ! Văn bằng tốt nghiệp của bạn đã chính thức được <strong>phát hành và đồng bộ bảo chứng vĩnh viễn trên mạng lưới Blockchain (Ethereum Sepolia)</strong>.
+            </div>
+
+            <!-- THÔNG TIN VĂN BẰNG -->
+            <div class="info-card">
+                <div class="info-row">
+                    <span class="info-label">Mã số sinh viên (MSSV):</span>
+                    <span class="info-val">{{ student.student_code }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Họ và tên:</span>
+                    <span class="info-val">{{ student.full_name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Loại văn bằng:</span>
+                    <span class="info-val">{{ degree.degree_type.name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Ngành đào tạo:</span>
+                    <span class="info-val">{{ student.major.name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Xếp loại tốt nghiệp:</span>
+                    <span class="info-val" style="color: #047857;">{{ degree.classification }}</span>
+                </div>
+                {% if student.gpa_score %}
+                <div class="info-row">
+                    <span class="info-label">Điểm trung bình (GPA):</span>
+                    <span class="info-val">{{ student.gpa_score|floatformat:2 }} / 4.0</span>
+                </div>
+                {% endif %}
+                <div class="info-row">
+                    <span class="info-label">Số hiệu văn bằng:</span>
+                    <span class="info-val">{{ degree.serial_number }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Ngày cấp bằng:</span>
+                    <span class="info-val">{{ degree.issue_date|date:"d/m/Y" }}</span>
+                </div>
+            </div>
+
+            <!-- THÔNG TIN BLOCKCHAIN -->
+            <div class="blockchain-card">
+                <div class="chain-title">
+                    <span>🛡️ DẤU ẤN BẢO CHỨNG TRÊN BLOCKCHAIN (ON-CHAIN)</span>
+                </div>
+                <div style="font-size: 12px; color: #047857; margin-bottom: 6px;">
+                    Mã băm dữ liệu chuẩn hóa (Canonical Hash) đã được lưu vĩnh viễn trên Smart Contract:
+                </div>
+                <div class="chain-hash">{{ degree.canonical_hash }}</div>
+                {% if degree.ipfs_cid %}
+                <div style="font-size: 11.5px; color: #065f46; margin-top: 8px;">
+                    Lưu trữ phân tán IPFS: <strong>{{ degree.ipfs_cid }}</strong>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- QR CODE TRA CỨU -->
+            <div class="qr-section">
+                {% if qr_base64 %}
+                <img src="data:image/png;base64,{{ qr_base64 }}" alt="Mã QR tra cứu văn bằng" class="qr-img">
+                {% else %}
+                <img src="cid:degree_qr_code" alt="Mã QR tra cứu văn bằng" class="qr-img">
+                {% endif %}
+                <div class="qr-note">
+                    Quét mã QR bằng điện thoại để xem chứng thực văn bằng trực tiếp trên Cổng công khai.
+                </div>
+                <div style="margin-top: 14px;">
+                    <a href="{{ verify_url }}" target="_blank" class="btn-verify">
+                        Tra Cứu Văn Bằng Trực Tuyến
+                    </a>
+                </div>
+            </div>
+
+            <!-- GHI CHÚ FILE ĐÍNH KÈM -->
+            <div class="attachment-note">
+                📎 <strong>Tệp đính kèm:</strong> File văn bằng số chính thức (định dạng PDF chuẩn Bộ Giáo dục & Đào tạo, tích hợp mã QR và mã băm mã hóa) được đính kèm trực tiếp trong email này. Bạn có thể lưu trữ, gửi nộp cho nhà tuyển dụng hoặc in ấn khi cần thiết.
+            </div>
+
+            <div style="font-size: 13.5px; line-height: 1.6; color: #334155;">
+                Chúc bạn luôn tự tin, vững bước và gặt hái được nhiều thành công rực rỡ trên con đường sự nghiệp tương lai!<br><br>
+                Trân trọng,<br>
+                <strong>Hội đồng Tốt nghiệp & Phòng Đào tạo</strong><br>
+                Trường Đại học Kỹ thuật - Công nghệ Cần Thơ (CTUT)
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="email-footer">
+            256 Nguyễn Văn Cừ, P. An Hòa, Q. Ninh Kiều, TP. Cần Thơ<br>
+            Email: daotao@ctuet.edu.vn | Website: https://ctuet.edu.vn<br>
+            Hệ thống cấp phát & xác minh văn bằng số phi tập trung trên nền tảng Blockchain.
+        </div>
+    </div>
+</body>
+</html>

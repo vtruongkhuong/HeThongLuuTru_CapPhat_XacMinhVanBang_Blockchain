@@ -8,10 +8,13 @@ class AuditLog(models.Model):
         ('LOGIN', 'Đăng nhập'),
         ('IMPORT_EXCEL', 'Import Excel'),
         ('ROLLBACK', 'Hoàn tác Import'),
+        ('CREATE_SINGLE_DEGREE', 'Cấp bằng đơn lẻ'),
         ('RENDER_PDF', 'Kết xuất PDF'),
         ('APPROVE_BATCH', 'Ký duyệt đợt'),
         ('ISSUE_DEGREE', 'Ký phát hành'),
         ('REVOKE_DEGREE', 'Thu hồi văn bằng'),
+        ('SEND_EMAIL', 'Gửi email văn bằng'),
+        ('EXPORT_SO_GOC', 'Xuất sổ gốc'),
         ('OTHER', 'Khác'),
     ]
 

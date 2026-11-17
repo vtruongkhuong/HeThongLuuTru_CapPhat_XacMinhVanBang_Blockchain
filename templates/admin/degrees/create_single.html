@@ -1,0 +1,331 @@
+{% extends "unfold/layouts/base.html" %}
+
+{% block content %}
+<style>
+    /* Styling tương thích chuẩn Unfold Admin cả Sáng & Tối */
+    .form-card { background-color: #ffffff; border: 1px solid #e2e8f0; }
+    .form-header { border-bottom: 1px solid #e2e8f0; }
+    .form-title { color: #0f172a; }
+    .form-subtitle { color: #64748b; }
+    .form-label { color: #334155; font-weight: 500; font-size: 0.875rem; margin-bottom: 0.375rem; display: block; }
+    .form-input, .form-select {
+        background-color: #f8fafc;
+        border: 1px solid #cbd5e1;
+        color: #0f172a;
+        border-radius: 0.5rem;
+        padding: 0.625rem 0.875rem;
+        width: 100%;
+        outline: none;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+    .form-input:focus, .form-select:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+        background-color: #ffffff;
+    }
+    .form-help { font-size: 0.75rem; color: #64748b; margin-top: 0.25rem; }
+    .form-error { font-size: 0.75rem; color: #ef4444; margin-top: 0.25rem; font-weight: 500; }
+    .badge-info-box { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; border-radius: 0.5rem; padding: 1rem; }
+
+    /* Dark mode */
+    html.dark .form-card { background-color: #1e293b; border-color: #334155; }
+    html.dark .form-header { border-color: #334155; }
+    html.dark .form-title { color: #f8fafc; }
+    html.dark .form-subtitle { color: #94a3b8; }
+    html.dark .form-label { color: #e2e8f0; }
+    html.dark .form-input, html.dark .form-select {
+        background-color: #0f172a;
+        border-color: #334155;
+        color: #f8fafc;
+    }
+    html.dark .form-input:focus, html.dark .form-select:focus {
+        border-color: #818cf8;
+        box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.2);
+    }
+    html.dark .form-help { color: #94a3b8; }
+    html.dark .badge-info-box { background: #1e293b; border-color: #3b82f6; color: #93c5fd; }
+</style>
+
+<div class="px-4 py-6 md:px-8 max-w-5xl mx-auto">
+    <!-- Nút quay lại -->
+    <div class="mb-4">
+        <a href="{% url 'admin:degrees_degree_changelist' %}" class="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-indigo-600 transition-colors">
+            <span class="material-symbols-outlined text-base">arrow_back</span>
+            <span>Quay lại Danh sách Sổ cái Văn bằng</span>
+        </a>
+    </div>
+
+    <div class="form-card rounded-xl shadow-sm overflow-hidden">
+        <!-- Header -->
+        <div class="px-6 py-5 form-header flex items-center justify-between">
+            <div>
+                <h2 class="text-xl font-bold form-title flex items-center gap-2">
+                    <span class="material-symbols-outlined text-indigo-500 text-2xl">verified</span>
+                    <span>Cấp phát Văn bằng Đơn lẻ</span>
+                </h2>
+                <p class="form-subtitle text-xs mt-1">
+                    Nhập trực tiếp thông tin sinh viên để cấp bằng riêng lẻ trên hệ thống Blockchain mà không cần thông qua file Excel.
+                </p>
+            </div>
+            <span class="inline-flex items-center gap-1 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 text-xs font-semibold px-3 py-1.5 rounded-full border border-indigo-200 dark:border-indigo-800">
+                <span class="material-symbols-outlined text-sm">bolt</span>
+                Quy trình Cấp lẻ
+            </span>
+        </div>
+
+        <form method="POST" class="p-6 md:p-8 space-y-8">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="p-4 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm">
+                {% for err in form.non_field_errors %}
+                <p class="flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-base">error</span>
+                    <span>{{ err }}</span>
+                </p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- SECTION 1: NGUỒN DỮ LIỆU SINH VIÊN -->
+            <div class="space-y-4">
+                <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-800">
+                    <span class="material-symbols-outlined text-indigo-600 dark:text-indigo-400 text-lg">person</span>
+                    <h3 class="font-semibold text-sm uppercase tracking-wide text-gray-800 dark:text-gray-200">1. Thông tin Sinh viên được cấp bằng</h3>
+                </div>
+
+                <!-- Radio chọn chế độ -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <label class="relative flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer hover:border-indigo-500 transition-colors">
+                        <input type="radio" name="student_mode" value="existing" id="mode_existing" {% if form.student_mode.value == 'existing' or not form.student_mode.value %}checked{% endif %} class="text-indigo-600 focus:ring-indigo-500">
+                        <span class="ml-3 text-sm font-medium text-gray-800 dark:text-gray-200">Chọn sinh viên đã có trong hệ thống</span>
+                    </label>
+                    <label class="relative flex items-center p-3 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer hover:border-indigo-500 transition-colors">
+                        <input type="radio" name="student_mode" value="new" id="mode_new" {% if form.student_mode.value == 'new' %}checked{% endif %} class="text-indigo-600 focus:ring-indigo-500">
+                        <span class="ml-3 text-sm font-medium text-gray-800 dark:text-gray-200">Nhập trực tiếp sinh viên mới</span>
+                    </label>
+                </div>
+
+                <!-- Khối: Chọn sinh viên có sẵn -->
+                <div id="block_existing_student" class="space-y-2 pt-2">
+                    <label for="{{ form.existing_student.id_for_label }}" class="form-label">
+                        {{ form.existing_student.label }} <span class="text-red-500">*</span>
+                    </label>
+                    <select name="{{ form.existing_student.name }}" id="{{ form.existing_student.id_for_label }}" class="form-select">
+                        <option value="">-- Chọn sinh viên cần cấp bằng --</option>
+                        {% for s in form.existing_student.field.queryset %}
+                        <option value="{{ s.id }}" data-gpa="{{ s.gpa_score|default:'' }}" data-major="{{ s.major.id|default:'' }}" {% if form.existing_student.value|stringformat:"s" == s.id|stringformat:"s" %}selected{% endif %}>
+                            {{ s.student_code }} - {{ s.full_name }} ({{ s.major.name|default:"Chưa có ngành" }} - GPA: {{ s.gpa_score|default:"N/A" }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                    {% if form.existing_student.errors %}
+                    <p class="form-error">{{ form.existing_student.errors.0 }}</p>
+                    {% endif %}
+                    <p class="form-help">{{ form.existing_student.help_text }}</p>
+                </div>
+
+                <!-- Khối: Nhập sinh viên mới -->
+                <div id="block_new_student" class="space-y-4 pt-2 hidden">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="{{ form.student_code.id_for_label }}" class="form-label">
+                                {{ form.student_code.label }} <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="{{ form.student_code.name }}" id="{{ form.student_code.id_for_label }}" value="{{ form.student_code.value|default:'' }}" class="form-input" placeholder="VD: B2200123">
+                            {% if form.student_code.errors %}<p class="form-error">{{ form.student_code.errors.0 }}</p>{% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.full_name.id_for_label }}" class="form-label">
+                                {{ form.full_name.label }} <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="{{ form.full_name.name }}" id="{{ form.full_name.id_for_label }}" value="{{ form.full_name.value|default:'' }}" class="form-input" placeholder="VD: Nguyễn Văn An">
+                            {% if form.full_name.errors %}<p class="form-error">{{ form.full_name.errors.0 }}</p>{% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.email.id_for_label }}" class="form-label">
+                                {{ form.email.label }} <span class="text-red-500">*</span>
+                            </label>
+                            <input type="email" name="{{ form.email.name }}" id="{{ form.email.id_for_label }}" value="{{ form.email.value|default:'' }}" class="form-input" placeholder="VD: an.b2200123@student.ctuet.edu.vn">
+                            {% if form.email.errors %}<p class="form-error">{{ form.email.errors.0 }}</p>{% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">
+                                {{ form.date_of_birth.label }}
+                            </label>
+                            <input type="date" name="{{ form.date_of_birth.name }}" id="{{ form.date_of_birth.id_for_label }}" value="{{ form.date_of_birth.value|default:'' }}" class="form-input">
+                            {% if form.date_of_birth.errors %}<p class="form-error">{{ form.date_of_birth.errors.0 }}</p>{% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.gender.id_for_label }}" class="form-label">
+                                {{ form.gender.label }}
+                            </label>
+                            <select name="{{ form.gender.name }}" id="{{ form.gender.id_for_label }}" class="form-select">
+                                <option value="M" {% if form.gender.value == 'M' %}selected{% endif %}>Nam</option>
+                                <option value="F" {% if form.gender.value == 'F' %}selected{% endif %}>Nữ</option>
+                                <option value="O" {% if form.gender.value == 'O' %}selected{% endif %}>Khác</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="{{ form.national_id.id_for_label }}" class="form-label">
+                                {{ form.national_id.label }}
+                            </label>
+                            <input type="text" name="{{ form.national_id.name }}" id="{{ form.national_id.id_for_label }}" value="{{ form.national_id.value|default:'' }}" class="form-input" placeholder="Số CCCD 12 số">
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label for="{{ form.major.id_for_label }}" class="form-label">
+                                {{ form.major.label }} <span class="text-red-500">*</span>
+                            </label>
+                            <select name="{{ form.major.name }}" id="{{ form.major.id_for_label }}" class="form-select">
+                                <option value="">-- Chọn ngành đào tạo --</option>
+                                {% for m in form.major.field.queryset %}
+                                <option value="{{ m.id }}" {% if form.major.value|stringformat:"s" == m.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ m.code }} - {{ m.name }} ({{ m.faculty.name }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                            {% if form.major.errors %}<p class="form-error">{{ form.major.errors.0 }}</p>{% endif %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.gpa_score.id_for_label }}" class="form-label">
+                                {{ form.gpa_score.label }} <span class="text-red-500">*</span>
+                            </label>
+                            <input type="number" step="0.01" min="0" max="4" name="{{ form.gpa_score.name }}" id="{{ form.gpa_score.id_for_label }}" value="{{ form.gpa_score.value|default:'' }}" class="form-input" placeholder="VD: 3.52">
+                            {% if form.gpa_score.errors %}<p class="form-error">{{ form.gpa_score.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: THÔNG TIN VĂN BẰNG & ĐỢT CẤP -->
+            <div class="space-y-4">
+                <div class="flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-gray-800">
+                    <span class="material-symbols-outlined text-indigo-600 dark:text-indigo-400 text-lg">school</span>
+                    <h3 class="font-semibold text-sm uppercase tracking-wide text-gray-800 dark:text-gray-200">2. Cấu hình Văn bằng & Đợt Cấp Phát</h3>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="{{ form.batch.id_for_label }}" class="form-label">
+                            {{ form.batch.label }} <span class="text-red-500">*</span>
+                        </label>
+                        <select name="{{ form.batch.name }}" id="{{ form.batch.id_for_label }}" required class="form-select">
+                            <option value="">-- Chọn đợt tốt nghiệp / cấp chứng chỉ --</option>
+                            {% for b in form.batch.field.queryset %}
+                            <option value="{{ b.id }}" {% if form.batch.value|stringformat:"s" == b.id|stringformat:"s" %}selected{% endif %}>
+                                {{ b.name }} ({{ b.get_status_display }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        {% if form.batch.errors %}<p class="form-error">{{ form.batch.errors.0 }}</p>{% endif %}
+                        <p class="form-help">{{ form.batch.help_text }}</p>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.degree_type.id_for_label }}" class="form-label">
+                            {{ form.degree_type.label }}
+                        </label>
+                        <select name="{{ form.degree_type.name }}" id="{{ form.degree_type.id_for_label }}" class="form-select">
+                            <option value="">-- Mặc định theo Ngành học --</option>
+                            {% for dt in form.degree_type.field.queryset %}
+                            <option value="{{ dt.id }}" {% if form.degree_type.value|stringformat:"s" == dt.id|stringformat:"s" %}selected{% endif %}>
+                                [{{ dt.code }}] {{ dt.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <p class="form-help">{{ form.degree_type.help_text }}</p>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.issue_date.id_for_label }}" class="form-label">
+                            {{ form.issue_date.label }}
+                        </label>
+                        <input type="date" name="{{ form.issue_date.name }}" id="{{ form.issue_date.id_for_label }}" value="{{ form.issue_date.value|default:'' }}" class="form-input">
+                        <p class="form-help">{{ form.issue_date.help_text }}</p>
+                    </div>
+
+                    <div>
+                        <label for="{{ form.classification.id_for_label }}" class="form-label">
+                            {{ form.classification.label }}
+                        </label>
+                        <select name="{{ form.classification.name }}" id="{{ form.classification.id_for_label }}" class="form-select">
+                            {% for val, label in form.classification.field.choices %}
+                            <option value="{{ val }}" {% if form.classification.value == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3: TÙY CHỌN QUY TRÌNH 4 MẮT -->
+            <div class="p-4 rounded-xl border border-indigo-100 dark:border-indigo-950 bg-indigo-50/50 dark:bg-indigo-950/20 space-y-2">
+                <label class="flex items-start gap-3 cursor-pointer">
+                    <input type="checkbox" name="{{ form.auto_submit.name }}" id="{{ form.auto_submit.id_for_label }}" {% if form.auto_submit.value %}checked{% endif %} class="mt-1 rounded text-indigo-600 focus:ring-indigo-500">
+                    <div>
+                        <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ form.auto_submit.label }}</span>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ form.auto_submit.help_text }}</p>
+                    </div>
+                </label>
+            </div>
+
+            <!-- Submit buttons -->
+            <div class="pt-4 flex items-center justify-end gap-3 border-t border-gray-100 dark:border-gray-800">
+                <a href="{% url 'admin:degrees_degree_changelist' %}" class="px-5 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                    Hủy bỏ
+                </a>
+                <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-sm transition-all hover:shadow">
+                    <span class="material-symbols-outlined text-base">save</span>
+                    <span>Khởi tạo & Cấp bằng số</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Xử lý chuyển đổi qua lại giữa Sinh viên có sẵn và Nhập mới
+    const radioExisting = document.getElementById('mode_existing');
+    const radioNew = document.getElementById('mode_new');
+    const blockExisting = document.getElementById('block_existing_student');
+    const blockNew = document.getElementById('block_new_student');
+
+    function toggleStudentMode() {
+        if (radioNew && radioNew.checked) {
+            blockExisting.classList.add('hidden');
+            blockNew.classList.remove('hidden');
+        } else {
+            blockExisting.classList.remove('hidden');
+            blockNew.classList.add('hidden');
+        }
+    }
+
+    if (radioExisting && radioNew) {
+        radioExisting.addEventListener('change', toggleStudentMode);
+        radioNew.addEventListener('change', toggleStudentMode);
+        toggleStudentMode();
+    }
+
+    // Tự động gợi ý xếp loại tốt nghiệp khi nhập GPA
+    const gpaInput = document.getElementById('id_gpa_score');
+    const classSelect = document.getElementById('id_classification');
+    if (gpaInput && classSelect) {
+        gpaInput.addEventListener('input', function() {
+            const val = parseFloat(this.value);
+            if (!isNaN(val)) {
+                if (val >= 3.60) classSelect.value = 'Xuất sắc';
+                else if (val >= 3.20) classSelect.value = 'Giỏi';
+                else if (val >= 2.50) classSelect.value = 'Khá';
+                else if (val >= 2.00) classSelect.value = 'Trung bình';
+            }
+        });
+    }
+</script>
+{% endblock %}

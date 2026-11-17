@@ -125,15 +125,34 @@ def _handle_issue_confirmed(tx_record, receipt, client):
         tx_record.degree.save(update_fields=['status', 'generated_at'])
         count = 1
         logger.info(f"[sync_transaction] Degree đơn lẻ #{tx_record.degree.pk} đã chuyển sang ISSUED.")
+        
+        # TỰ ĐỘNG GỬI EMAIL CHÚC MỪNG BẰNG CELERY (KÈM PDF & QR CODE)
+        try:
+            from apps.degrees.tasks import send_degree_congratulation_email
+            send_degree_congratulation_email.delay(tx_record.degree.id)
+            logger.info(f"[sync_transaction] Đã kích hoạt Celery gửi email cho Degree đơn lẻ #{tx_record.degree.pk}")
+        except Exception as mail_err:
+            logger.warning(f"[sync_transaction] Lỗi kích hoạt gửi email: {mail_err}")
     else:
-        count = Degree.objects.filter(
+        pending_degrees = Degree.objects.filter(
             batch=issuance_batch.graduation_batch,
             status='ISSUANCE_PENDING'
-        ).update(status='ISSUED', generated_at=timezone.now())
+        )
+        degree_ids = list(pending_degrees.values_list('id', flat=True))
+        count = pending_degrees.update(status='ISSUED', generated_at=timezone.now())
         logger.info(
             f"[sync_transaction] IssuanceBatch #{issuance_batch.pk} CONFIRMED. "
             f"Đã chuyển {count} Degree sang ISSUED."
         )
+
+        # TỰ ĐỘNG GỬI EMAIL CHÚC MỪNG BẰNG CELERY CHO TẤT CẢ SINH VIÊN TRONG ĐỢT
+        try:
+            from apps.degrees.tasks import send_degree_congratulation_email
+            for deg_id in degree_ids:
+                send_degree_congratulation_email.delay(deg_id)
+            logger.info(f"[sync_transaction] Đã kích hoạt Celery gửi email cho {len(degree_ids)} sinh viên trong đợt.")
+        except Exception as mail_err:
+            logger.warning(f"[sync_transaction] Lỗi kích hoạt gửi email hàng loạt: {mail_err}")
 
     try:
         from apps.audit.services import log_action

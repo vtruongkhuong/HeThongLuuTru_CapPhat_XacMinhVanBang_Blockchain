@@ -2,7 +2,9 @@ from django.contrib import admin, messages
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
+from django.urls import path
 from django.utils.html import format_html
+from unfold.decorators import action
 from apps.core.admin import BaseRoleAdmin, format_crypto_hash_badge
 from .models import Degree
 from .pdf_generator import get_degree_pdf
@@ -40,11 +42,21 @@ class DegreeAdmin(BaseRoleAdmin):
     list_filter_submit = True
     search_fields = ['student__full_name', 'student__student_code', 'canonical_hash']
     
+    # Nút bấm hành động trên thanh công cụ Unfold Admin
+    actions_list = ["create_single_degree_button"]
+
+    @action(description="➕ Cấp bằng đơn lẻ")
+    def create_single_degree_button(self, request):
+        return redirect('admin:degrees_create_single')
+
     # Bổ sung các action Đơn lẻ và Hàng loạt
     actions = [
         'submit_single_for_approval',
         'approve_single_degree',
         'issue_single_metamask',
+        'send_congratulation_email_action',
+        'export_selected_so_goc_excel',
+        'export_selected_so_goc_pdf',
         'preview_pdf',
         'generate_bulk_pdfs',
         'reset_to_draft',
@@ -219,3 +231,80 @@ class DegreeAdmin(BaseRoleAdmin):
                 except Exception as e:
                     self.message_user(request, f"Không thể đồng bộ {degree.student.student_code}: {e}", level=messages.WARNING)
         self.message_user(request, f"🚀 Đã hoàn tất đồng bộ dữ liệu On-Chain cho {count} văn bằng.", level=messages.SUCCESS)
+
+    # --- 8. ACTION GỬI EMAIL CHÚC MỪNG TỰ ĐỘNG BẰNG CELERY (KÈM PDF & QR CODE) ---
+    @admin.action(description="📧 Gửi email chúc mừng & PDF văn bằng (Celery)")
+    def send_congratulation_email_action(self, request, queryset):
+        from .tasks import send_degree_congratulation_email
+        count = 0
+        for degree in queryset:
+            send_degree_congratulation_email.delay(degree.id)
+            count += 1
+        self.message_user(
+            request,
+            f"🚀 Đã đưa yêu cầu gửi email chúc mừng kèm file PDF văn bằng và mã QR của {count} sinh viên vào hàng đợi Celery.",
+            level=messages.SUCCESS
+        )
+
+    # --- 9. ACTION XUẤT SỔ GỐC BỘ GD&ĐT (EXCEL & PDF) ---
+    @admin.action(description="📋 Xuất Sổ gốc Bộ GD&ĐT (Excel) cho các bằng đã chọn")
+    def export_selected_so_goc_excel(self, request, queryset):
+        from apps.reporting.so_goc_service import generate_so_goc_excel
+        excel_bytes = generate_so_goc_excel(degrees=queryset)
+        response = HttpResponse(
+            excel_bytes,
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename="SoGoc_BoGDDT_Selected.xlsx"'
+        return response
+
+    @admin.action(description="📕 Xuất Sổ gốc Bộ GD&ĐT (PDF) cho các bằng đã chọn")
+    def export_selected_so_goc_pdf(self, request, queryset):
+        from apps.reporting.so_goc_service import generate_so_goc_pdf
+        pdf_bytes = generate_so_goc_pdf(degrees=queryset)
+        if not pdf_bytes:
+            self.message_user(request, "Lỗi kết xuất PDF Sổ gốc.", level=messages.ERROR)
+            return
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = 'inline; filename="SoGoc_BoGDDT_Selected.pdf"'
+        return response
+
+    # --- CẤU HÌNH ROUTE & VIEW FORM CẤP BẰNG ĐƠN LẺ ---
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('create-single/', self.admin_site.admin_view(self.create_single_degree_view), name='degrees_create_single'),
+        ]
+        return custom_urls + urls
+
+    def add_view(self, request, form_url='', extra_context=None):
+        """Bấm '+ Thêm Văn bằng số' sẽ tự động chuyển hướng đến Form cấp bằng đơn lẻ"""
+        return redirect('admin:degrees_create_single')
+
+    def create_single_degree_view(self, request):
+        """View xử lý Form cấp phát văn bằng đơn lẻ cho Cán bộ nhập trực tiếp"""
+        from .forms import SingleDegreeForm
+
+        if request.method == 'POST':
+            form = SingleDegreeForm(request.POST)
+            if form.is_valid():
+                try:
+                    degree = form.save(request.user)
+                    self.message_user(
+                        request,
+                        f"🎉 Đã khởi tạo thành công văn bằng cho sinh viên {degree.student.full_name} ({degree.student.student_code})! Trạng thái: {degree.get_status_display()}.",
+                        level=messages.SUCCESS
+                    )
+                    return redirect('admin:degrees_degree_changelist')
+                except Exception as e:
+                    messages.error(request, f"Lỗi tạo văn bằng: {str(e)}")
+        else:
+            form = SingleDegreeForm()
+
+        context = dict(
+            self.admin_site.each_context(request),
+            title="➕ Cấp phát Văn bằng Đơn lẻ",
+            form=form,
+        )
+        return render(request, "admin/degrees/create_single.html", context)
+

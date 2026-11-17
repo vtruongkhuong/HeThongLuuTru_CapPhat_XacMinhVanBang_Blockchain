@@ -16,11 +16,19 @@
                 <i class="material-symbols-outlined text-[18px] text-gray-400">schedule</i>
                 {% now "H:i, d/m/Y" %}
             </div>
-            <a href="{% url 'reporting:export_csv' %}" class="animate-btn text-sm flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl shadow-md transition-all font-medium">
+            <a href="{% url 'reporting:export_csv' %}" class="animate-btn text-sm flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-xl shadow-md transition-all font-medium">
                 <i class="material-symbols-outlined text-[18px]">download</i>
-                Xuất Báo Cáo
+                Báo Cáo CSV
             </a>
-            <a href="{% url 'landing' %}" class="animate-btn text-sm flex items-center gap-2 bg-ntt-dark hover:bg-ntt-light text-white px-5 py-2.5 rounded-xl shadow-md shadow-blue-900/20 transition-all font-medium">
+            <a href="{% url 'reporting:so_goc_excel' %}" class="animate-btn text-sm flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl shadow-md transition-all font-medium" title="Xuất file Excel Sổ gốc cấp bằng theo Thông tư 21/2019/TT-BGDĐT">
+                <i class="material-symbols-outlined text-[18px]">table_view</i>
+                Sổ Gốc Excel
+            </a>
+            <a href="{% url 'reporting:so_goc_pdf' %}" target="_blank" class="animate-btn text-sm flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white px-4 py-2.5 rounded-xl shadow-md transition-all font-medium" title="In file PDF Sổ gốc cấp bằng theo Thông tư 21/2019/TT-BGDĐT">
+                <i class="material-symbols-outlined text-[18px]">picture_as_pdf</i>
+                Sổ Gốc PDF
+            </a>
+            <a href="{% url 'landing' %}" class="animate-btn text-sm flex items-center gap-2 bg-ntt-dark hover:bg-ntt-light text-white px-4 py-2.5 rounded-xl shadow-md shadow-blue-900/20 transition-all font-medium">
                 <i class="material-symbols-outlined text-[18px]">public</i>
                 Cổng công khai
                 <i class="material-symbols-outlined text-[16px]">arrow_outward</i>

@@ -49,3 +49,70 @@ def export_degrees_csv(request):
             str(d.credential_public_id)
         ])
     return response
+
+
+@staff_member_required
+def export_so_goc_excel_view(request):
+    """Xuất file Excel Sổ gốc cấp phát văn bằng chuẩn Thông tư 21/2019/TT-BGDĐT"""
+    from .so_goc_service import generate_so_goc_excel
+    from apps.graduation.models import GraduationBatch
+    from apps.audit.services import log_action
+
+    batch_id = request.GET.get('batch_id')
+    batch = GraduationBatch.objects.filter(id=batch_id).first() if batch_id else None
+
+    excel_bytes = generate_so_goc_excel(batch=batch, batch_id=batch_id)
+
+    batch_slug = f"_{batch.id}" if batch else "_ToanTruong"
+    filename = f"SoGoc_CapPhat_VanBang{batch_slug}.xlsx"
+
+    try:
+        log_action(
+            actor=request.user,
+            action='EXPORT_SO_GOC',
+            entity_type='GraduationBatch',
+            entity_id=str(batch.id) if batch else 'ALL',
+            new={'format': 'EXCEL', 'filename': filename}
+        )
+    except Exception:
+        pass
+
+    response = HttpResponse(
+        excel_bytes,
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+@staff_member_required
+def export_so_goc_pdf_view(request):
+    """Xuất file PDF Sổ gốc cấp phát văn bằng chuẩn Thông tư 21/2019/TT-BGDĐT"""
+    from .so_goc_service import generate_so_goc_pdf
+    from apps.graduation.models import GraduationBatch
+    from apps.audit.services import log_action
+
+    batch_id = request.GET.get('batch_id')
+    batch = GraduationBatch.objects.filter(id=batch_id).first() if batch_id else None
+
+    pdf_bytes = generate_so_goc_pdf(batch=batch, batch_id=batch_id)
+    if not pdf_bytes:
+        return HttpResponse("Lỗi khi kết xuất file PDF Sổ gốc.", status=500)
+
+    batch_slug = f"_{batch.id}" if batch else "_ToanTruong"
+    filename = f"SoGoc_CapPhat_VanBang{batch_slug}.pdf"
+
+    try:
+        log_action(
+            actor=request.user,
+            action='EXPORT_SO_GOC',
+            entity_type='GraduationBatch',
+            entity_id=str(batch.id) if batch else 'ALL',
+            new={'format': 'PDF', 'filename': filename}
+        )
+    except Exception:
+        pass
+
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+    return response

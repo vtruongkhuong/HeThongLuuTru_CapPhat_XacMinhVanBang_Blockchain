@@ -1,0 +1,234 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Sổ Gốc Cấp Phát Văn Bằng - TT 21/2019/TT-BGDĐT</title>
+    <style>
+        @font-face {
+            font-family: "Tinos";
+            src: url("{% static 'fonts/Tinos-Regular.ttf' %}");
+        }
+        @font-face {
+            font-family: "Tinos";
+            font-weight: bold;
+            src: url("{% static 'fonts/Tinos-Bold.ttf' %}");
+        }
+        @page {
+            size: a4 landscape;
+            margin: 8mm 8mm 10mm 8mm;
+            @bottom-right {
+                content: "Trang " counter(page) " / " counter(pages);
+                font-family: "Tinos", Arial, sans-serif;
+                font-size: 7.5pt;
+                color: #666666;
+            }
+        }
+        body {
+            font-family: "Tinos", "Times New Roman", serif;
+            color: #111827;
+            margin: 0;
+            padding: 0;
+            font-size: 8pt;
+        }
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 6px;
+        }
+        .header-table td {
+            vertical-align: top;
+            text-align: center;
+        }
+        .org-name {
+            font-size: 8.5pt;
+            text-transform: uppercase;
+        }
+        .school-name {
+            font-size: 9pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #1F4E78;
+        }
+        .motto-title {
+            font-size: 9pt;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .motto-sub {
+            font-size: 8.5pt;
+            font-weight: bold;
+        }
+        .main-title {
+            text-align: center;
+            margin: 8px 0 2px 0;
+            font-size: 13pt;
+            font-weight: bold;
+            color: #1F4E78;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .sub-title {
+            text-align: center;
+            font-size: 7.5pt;
+            font-style: italic;
+            color: #4b5563;
+            margin-bottom: 4px;
+        }
+        .batch-info {
+            text-align: center;
+            font-size: 8.5pt;
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        .data-table th, .data-table td {
+            border: 0.5pt solid #777777;
+            padding: 3.5px 2px;
+            font-size: 7pt;
+            line-height: 1.15;
+        }
+        .data-table th {
+            background-color: #1F4E78;
+            color: #ffffff;
+            font-weight: bold;
+            text-align: center;
+        }
+        .center {
+            text-align: center;
+        }
+        .signatures-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+        }
+        .signatures-table td {
+            text-align: center;
+            font-size: 8pt;
+            vertical-align: top;
+        }
+        .sign-title {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 8.5pt;
+        }
+        .sign-note {
+            font-style: italic;
+            font-size: 7.5pt;
+            color: #555555;
+        }
+        .date-line {
+            text-align: right;
+            font-style: italic;
+            font-size: 8pt;
+            margin-bottom: 4px;
+            padding-right: 30px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 1. QUỐC HIỆU VÀ CƠ QUAN -->
+    <table class="header-table">
+        <tr>
+            <td style="width: 45%;">
+                <div class="org-name">BỘ GIÁO DỤC VÀ ĐÀO TẠO</div>
+                <div class="school-name">TRƯỜNG ĐẠI HỌC KỸ THUẬT - CÔNG NGHỆ CẦN THƠ</div>
+                <div style="font-size: 7pt; color: #555;">HỆ THỐNG XÁC THỰC VĂN BẰNG BLOCKCHAIN</div>
+            </td>
+            <td style="width: 10%;"></td>
+            <td style="width: 45%;">
+                <div class="motto-title">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+                <div class="motto-sub">Độc lập - Tự do - Hạnh phúc</div>
+                <div style="font-size: 8pt;">---------***---------</div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- 2. TIÊU ĐỀ SỔ GỐC -->
+    <div class="main-title">SỔ GỐC CẤP PHÁT VĂN BẰNG, CHỨNG CHỈ</div>
+    <div class="sub-title">(Ban hành theo Thông tư số 21/2019/TT-BGDĐT ngày 29 tháng 11 năm 2019 của Bộ trưởng Bộ Giáo dục và Đào tạo)</div>
+    <div class="batch-info">
+        Đợt tốt nghiệp: {{ batch_name|upper }} &nbsp;|&nbsp; 
+        Theo QĐ số: {{ decision_no }} ngày {{ decision_date_str }} của Hiệu trưởng
+    </div>
+
+    <!-- 3. BẢNG DỮ LIỆU CÁC CỘT CHUẨN THÔNG TƯ 21 -->
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 3%;">STT</th>
+                <th style="width: 8%;">Số vào sổ</th>
+                <th style="width: 8%;">Số hiệu bằng</th>
+                <th style="width: 13%;">Họ và tên</th>
+                <th style="width: 6%;">Mã SV</th>
+                <th style="width: 6%;">Ngày sinh</th>
+                <th style="width: 4%;">Giới tính</th>
+                <th style="width: 7%;">Nơi sinh</th>
+                <th style="width: 12%;">Ngành đào tạo</th>
+                <th style="width: 6%;">Xếp loại</th>
+                <th style="width: 4%;">GPA</th>
+                <th style="width: 4%;">Năm TN</th>
+                <th style="width: 9%;">Mã băm On-Chain</th>
+                <th style="width: 5%;">Trạng thái</th>
+                <th style="width: 5%;">Ký nhận</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in rows %}
+            <tr>
+                <td class="center">{{ r.stt }}</td>
+                <td class="center">{{ r.so_vao_so }}</td>
+                <td class="center" style="font-weight: bold;">{{ r.so_hieu }}</td>
+                <td style="font-weight: bold;">{{ r.ho_ten }}</td>
+                <td class="center">{{ r.mssv }}</td>
+                <td class="center">{{ r.ngay_sinh }}</td>
+                <td class="center">{{ r.gioi_tinh }}</td>
+                <td class="center">{{ r.noi_sinh }}</td>
+                <td>{{ r.nganh }}</td>
+                <td class="center">{{ r.xep_loai }}</td>
+                <td class="center" style="font-weight: bold;">{{ r.gpa }}</td>
+                <td class="center">{{ r.nam_tn }}</td>
+                <td class="center" style="font-family: monospace; font-size: 6.5pt;">{{ r.hash_short }}</td>
+                <td class="center" style="color: #047857; font-weight: bold;">{{ r.chain_status }}</td>
+                <td class="center">{{ r.receiver_sign }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="15" class="center" style="padding: 10px;">Không có dữ liệu văn bằng nào.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- 4. NGÀY THÁNG VÀ CHỮ KÝ -->
+    <div class="date-line">{{ today_str }}</div>
+
+    <table class="signatures-table">
+        <tr>
+            <td style="width: 33%;">
+                <div class="sign-title">NGƯỜI LẬP SỔ</div>
+                <div class="sign-note">(Ký, ghi rõ họ tên)</div>
+                <div style="height: 45px;"></div>
+                <div style="font-size: 8pt; font-weight: bold;">Cán bộ Giáo vụ</div>
+            </td>
+            <td style="width: 34%;">
+                <div class="sign-title">TRƯỞNG PHÒNG ĐÀO TẠO</div>
+                <div class="sign-note">(Ký, ghi rõ họ tên)</div>
+                <div style="height: 45px;"></div>
+                <div style="font-size: 8pt; font-weight: bold;">Trưởng phòng Đào tạo</div>
+            </td>
+            <td style="width: 33%;">
+                <div class="sign-title">HIỆU TRƯỞNG</div>
+                <div class="sign-note">(Ký tên và đóng dấu)</div>
+                <div style="height: 45px;"></div>
+                <div style="font-size: 8pt; font-weight: bold;">TS. Hiệu trưởng</div>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

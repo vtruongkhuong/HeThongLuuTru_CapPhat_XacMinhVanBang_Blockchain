@@ -3,6 +3,7 @@ import json
 from django.urls import path
 from django.utils.html import format_html
 from django.shortcuts import render
+from django.http import HttpResponse
 from django.contrib import admin, messages
 from django.utils import timezone
 from apps.students.utils import get_classification_from_gpa
@@ -27,7 +28,7 @@ class GraduationBatchAdmin(BaseRoleAdmin):
     list_filter = ('status', 'degree_type')
     list_filter_submit = True
     search_fields = ['name']
-    actions = ['submit_for_approval', 'approve_batch', 'reject_batch', 'generate_batch_pdfs']
+    actions = ['submit_for_approval', 'approve_batch', 'reject_batch', 'generate_batch_pdfs', 'export_batch_so_goc_excel', 'export_batch_so_goc_pdf']
 
     # Khai báo nút này để hiển thị trong trang CHỈNH SỬA CHI TIẾT
     readonly_fields = ['view_students_btn']
@@ -346,3 +347,33 @@ class GraduationBatchAdmin(BaseRoleAdmin):
             
         if count > 0:
             self.message_user(request, f"🚀 Đã đẩy {count} đợt vào hàng đợi. Hệ thống đang tự động kết xuất PDF ở chế độ chạy nền.", level=messages.SUCCESS)
+
+    @admin.action(description="📋 5. Xuất Sổ gốc Bộ GD&ĐT (Excel)")
+    def export_batch_so_goc_excel(self, request, queryset):
+        batch = queryset.first()
+        if not batch:
+            self.message_user(request, "Vui lòng chọn 1 đợt tốt nghiệp.", level=messages.WARNING)
+            return
+        from apps.reporting.so_goc_service import generate_so_goc_excel
+        excel_bytes = generate_so_goc_excel(batch=batch)
+        response = HttpResponse(
+            excel_bytes,
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="SoGoc_BoGDDT_Dot_{batch.id}.xlsx"'
+        return response
+
+    @admin.action(description="📕 6. Xuất Sổ gốc Bộ GD&ĐT (PDF)")
+    def export_batch_so_goc_pdf(self, request, queryset):
+        batch = queryset.first()
+        if not batch:
+            self.message_user(request, "Vui lòng chọn 1 đợt tốt nghiệp.", level=messages.WARNING)
+            return
+        from apps.reporting.so_goc_service import generate_so_goc_pdf
+        pdf_bytes = generate_so_goc_pdf(batch=batch)
+        if not pdf_bytes:
+            self.message_user(request, "Lỗi kết xuất PDF Sổ gốc.", level=messages.ERROR)
+            return
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="SoGoc_BoGDDT_Dot_{batch.id}.pdf"'
+        return response

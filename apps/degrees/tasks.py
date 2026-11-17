@@ -3,11 +3,18 @@ Celery Background Job - Render PDF hàng loạt cho hệ thống phát hành vă
 (Task H6)
 """
 import os
+import io
+import base64
 import hashlib
 from datetime import datetime
+from email.mime.image import MIMEImage
+import qrcode
 from celery import shared_task
 from django.conf import settings
 from django.db import transaction
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
 
 # Gọi model từ các app tương ứng
 from .models import Degree
@@ -115,3 +122,126 @@ def render_degree_pdfs(self, batch_id, actor_id=None):
         'success': success_count,
         'errors': error_count,
     }
+
+
+@shared_task(bind=True)
+def send_degree_congratulation_email(self, degree_id):
+    """
+    Task Celery tự động gửi email chúc mừng kèm file PDF văn bằng và mã QR
+    cho sinh viên ngay khi văn bằng được duyệt On-Chain.
+    """
+    try:
+        degree = Degree.objects.select_related('student', 'batch', 'degree_type', 'student__major').get(id=degree_id)
+    except Degree.DoesNotExist:
+        return {'status': 'error', 'message': f'Degree #{degree_id} không tồn tại'}
+
+    student = degree.student
+    if not student or not student.email:
+        return {'status': 'skipped', 'message': f'Sinh viên {getattr(student, "student_code", "N/A")} chưa có email'}
+
+    site_url = getattr(settings, 'SITE_URL', 'http://127.0.0.1:8000').rstrip('/')
+    verify_url = f"{site_url}/tracuu/?q={degree.credential_public_id}"
+
+    # 1. Sinh mã QR code tra cứu (PNG bytes)
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=8,
+        border=2
+    )
+    qr.add_data(verify_url)
+    qr.make(fit=True)
+    qr_img = qr.make_image(fill_color="#1E3A8A", back_color="white")
+    qr_buf = io.BytesIO()
+    qr_img.save(qr_buf, format="PNG")
+    qr_bytes = qr_buf.getvalue()
+    qr_base64 = base64.b64encode(qr_bytes).decode('ascii')
+
+    # 2. Lấy nội dung file PDF văn bằng
+    pdf_bytes = None
+    media_root = getattr(settings, 'MEDIA_ROOT', os.path.join(settings.BASE_DIR, 'media'))
+    if degree.pdf_path:
+        full_pdf_path = os.path.join(media_root, degree.pdf_path.replace('/', os.sep))
+        if os.path.exists(full_pdf_path):
+            with open(full_pdf_path, 'rb') as f:
+                pdf_bytes = f.read()
+
+    if not pdf_bytes:
+        pdf_bytes = get_degree_pdf(degree)
+
+    # 3. Render HTML Email
+    context = {
+        'student': student,
+        'degree': degree,
+        'verify_url': verify_url,
+        'qr_base64': qr_base64,
+    }
+    html_content = render_to_string('emails/degree_issued_congratulation.html', context)
+    text_content = strip_tags(html_content)
+
+    subject = f"[CTUT] Chúc mừng tốt nghiệp - Văn bằng số đã được cấp phát & xác thực Blockchain ({student.student_code})"
+    from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'Phòng Đào Tạo CTUT <daotao@ctuet.edu.vn>')
+
+    msg = EmailMultiAlternatives(
+        subject=subject,
+        body=text_content,
+        from_email=from_email,
+        to=[student.email]
+    )
+    msg.attach_alternative(html_content, "text/html")
+
+    # 4. Đính kèm mã QR dạng CID Image
+    try:
+        qr_part = MIMEImage(qr_bytes, _subtype="png")
+        qr_part.add_header('Content-ID', '<degree_qr_code>')
+        qr_part.add_header('Content-Disposition', 'inline', filename='qr_code.png')
+        msg.attach(qr_part)
+    except Exception as qr_err:
+        print(f"[Email QR Attach Warning] {qr_err}")
+
+    # 5. Đính kèm file PDF văn bằng
+    if pdf_bytes:
+        type_code = degree.degree_type.code if degree.degree_type else 'DEG'
+        pdf_filename = f"VanBang_{student.student_code}_{type_code}.pdf"
+        msg.attach(pdf_filename, pdf_bytes, "application/pdf")
+
+    # 6. Gửi email
+    try:
+        msg.send(fail_silently=False)
+    except Exception as send_err:
+        print(f"[Email Send Error] {send_err}")
+        return {'status': 'error', 'message': str(send_err)}
+
+    # 7. Ghi AuditLog
+    try:
+        from apps.audit.services import log_action
+        log_action(
+            actor=None,
+            action='SEND_EMAIL',
+            entity_type='Degree',
+            entity_id=str(degree.id),
+            new={'recipient': student.email, 'status': 'SENT', 'student_code': student.student_code}
+        )
+    except Exception:
+        pass
+
+    return {
+        'status': 'success',
+        'degree_id': degree.id,
+        'recipient': student.email,
+        'student_code': student.student_code
+    }
+
+
+@shared_task
+def send_batch_congratulation_emails(batch_id):
+    """
+    Task gửi email hàng loạt cho toàn bộ văn bằng ISSUED trong 1 đợt tốt nghiệp.
+    """
+    degrees = Degree.objects.filter(batch_id=batch_id, status='ISSUED')
+    sent_count = 0
+    for d in degrees:
+        send_degree_congratulation_email.delay(d.id)
+        sent_count += 1
+    return {'batch_id': batch_id, 'sent_count': sent_count}
+
