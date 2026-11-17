@@ -237,14 +237,20 @@ class DegreeAdmin(BaseRoleAdmin):
     def send_congratulation_email_action(self, request, queryset):
         from .tasks import send_degree_congratulation_email
         count = 0
+        errors = 0
         for degree in queryset:
-            send_degree_congratulation_email.delay(degree.id)
-            count += 1
-        self.message_user(
-            request,
-            f"🚀 Đã đưa yêu cầu gửi email chúc mừng kèm file PDF văn bằng và mã QR của {count} sinh viên vào hàng đợi Celery.",
-            level=messages.SUCCESS
-        )
+            try:
+                send_degree_congratulation_email.delay(degree.id)
+                count += 1
+            except Exception as e:
+                errors += 1
+                self.message_user(request, f"Lỗi gửi email cho {degree.student.full_name}: {str(e)}", level=messages.ERROR)
+        if count > 0:
+            self.message_user(
+                request,
+                f"🚀 Đã gửi email chúc mừng kèm file PDF văn bằng và mã QR cho {count} sinh viên thành công!",
+                level=messages.SUCCESS
+            )
 
     # --- 9. ACTION XUẤT SỔ GỐC BỘ GD&ĐT (EXCEL & PDF) ---
     @admin.action(description="📋 Xuất Sổ gốc Bộ GD&ĐT (Excel) cho các bằng đã chọn")
