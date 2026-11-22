@@ -4,7 +4,8 @@ from . import views
 app_name = 'student_portal'
 
 urlpatterns = [
-    # Trang Dashboard Cổng Sinh viên
+    # Trang Dashboard Cổng Sinh viên (hỗ trợ cả /portal/ và /portal/dashboard/)
+    path('', views.student_dashboard, name='index'),
     path('dashboard/', views.student_dashboard, name='dashboard'),
 
     # Trang cập nhật thông tin hồ sơ

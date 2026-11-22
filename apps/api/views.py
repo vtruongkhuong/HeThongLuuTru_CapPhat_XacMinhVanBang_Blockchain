@@ -1,5 +1,7 @@
+import json as json_lib
 import logging
 from uuid import UUID
+from django.http import HttpResponse
 from django.utils import timezone
 from django.apps import apps
 
@@ -16,7 +18,9 @@ from .serializers import (
     BatchVerifyRequestSerializer,
 )
 from .authentication import APIKeyAuthentication
-from rest_framework.permissions import IsAuthenticated
+from .vc_generator import generate_verifiable_credential
+from apps.blockchain.ipfs import pin_file_to_ipfs
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 logger = logging.getLogger(__name__)
 
@@ -176,4 +180,130 @@ class VerifyBatchView(APIView):
         return Response({
             'results': DegreeVerifyResponseSerializer(results, many=True).data,
             'summary': summary,
+        })
+
+
+class DownloadVerifiableCredentialView(APIView):
+    """GET /api/v1/degrees/<uuid>/credential.json — Task 7: W3C Verifiable Credential"""
+    authentication_classes = []  # Công khai: sinh viên trên web hoặc NTD đều tải được
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        summary="Tải W3C Verifiable Credential JSON",
+        description="Trả về file JSON chuẩn W3C VC Data Model v1.1 cho văn bằng, dùng để xác minh độc lập.",
+        parameters=[OpenApiParameter('uuid', str, description='credential_public_id của văn bằng')],
+        responses={
+            200: OpenApiResponse(description='JSON file — W3C Verifiable Credential'),
+            400: OpenApiResponse(description='Văn bằng chưa phát hành on-chain'),
+            404: OpenApiResponse(description='Không tìm thấy văn bằng'),
+        },
+    )
+    def get(self, request, uuid):
+        try:
+            degree = Degree.objects.select_related(
+                'student', 'student__major', 'student__faculty',
+                'degree_type', 'batch',
+            ).get(credential_public_id=UUID(str(uuid)))
+        except (Degree.DoesNotExist, ValueError):
+            return Response({'detail': 'Không tìm thấy văn bằng.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if degree.status != 'ISSUED':
+            return Response(
+                {'detail': 'Chỉ văn bằng đã phát hành on-chain (ISSUED) mới có Verifiable Credential.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            vc = generate_verifiable_credential(degree)
+        except Exception as e:
+            logger.error(f"[VC] Lỗi tạo VC cho degree {uuid}: {e}", exc_info=True)
+            return Response({'detail': 'Lỗi khi tạo Verifiable Credential.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        file_name = f"credential-{degree.serial_number}.json"
+        response = HttpResponse(
+            json_lib.dumps(vc, ensure_ascii=False, indent=2),
+            content_type='application/json',
+        )
+        response['Content-Disposition'] = f'attachment; filename="{file_name}"'
+        return response
+
+
+class IPFSUploadView(APIView):
+    """POST /api/v1/degrees/<uuid>/ipfs-upload/ — Task 8: IPFS Upload"""
+    authentication_classes = [APIKeyAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        summary="Upload PDF văn bằng lên IPFS",
+        description=(
+            "Tải file PDF của văn bằng lên IPFS (Pinata nếu có key, fallback tính CID offline). "
+            "Cập nhật ipfs_cid và ipfs_url vào DB."
+        ),
+        parameters=[OpenApiParameter('uuid', str, description='credential_public_id của văn bằng')],
+        responses={
+            200: OpenApiResponse(description='{"cid": "Qm...", "ipfs_url": "...", "student_name": "..."}'),
+            404: OpenApiResponse(description='Không tìm thấy văn bằng'),
+            400: OpenApiResponse(description='File PDF không tồn tại hoặc lỗi upload'),
+        },
+    )
+    def post(self, request, uuid):
+        try:
+            degree = Degree.objects.select_related('student', 'degree_type').get(
+                credential_public_id=UUID(str(uuid))
+            )
+        except (Degree.DoesNotExist, ValueError):
+            return Response({'detail': 'Không tìm thấy văn bằng.'}, status=status.HTTP_404_NOT_FOUND)
+
+        import os
+        from django.conf import settings as django_settings
+
+        # Nếu đã có CID rồi thì trả về luôn
+        if degree.ipfs_cid:
+            return Response({
+                'cid': degree.ipfs_cid,
+                'ipfs_url': degree.ipfs_url,
+                'student_name': degree.student.full_name if degree.student else '',
+                'degree_number': degree.serial_number,
+                'already_uploaded': True,
+            })
+
+        # Tìm PDF
+        pdf_path = None
+        if degree.pdf_path:
+            candidate = degree.pdf_path
+            if not os.path.isabs(candidate):
+                candidate = os.path.join(django_settings.MEDIA_ROOT, candidate)
+            if os.path.exists(candidate):
+                pdf_path = candidate
+
+        if not pdf_path:
+            # Fallback: tính CID từ canonical_hash bytes (đại diện cho nội dung văn bằng)
+            content = degree.canonical_hash.encode('utf-8') if degree.canonical_hash else b''
+        else:
+            with open(pdf_path, 'rb') as f:
+                content = f.read()
+
+        try:
+            file_name = f"degree-{degree.serial_number}.pdf"
+            metadata = {
+                'student_code': degree.student.student_code if degree.student else '',
+                'serial_number': degree.serial_number,
+                'canonical_hash': degree.canonical_hash or '',
+            }
+            cid, ipfs_url = pin_file_to_ipfs(content, file_name=file_name, metadata=metadata)
+        except Exception as e:
+            logger.error(f"[IPFS] Lỗi upload degree {uuid}: {e}", exc_info=True)
+            return Response({'detail': f'Lỗi khi upload IPFS: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Lưu vào DB
+        degree.ipfs_cid = cid
+        degree.ipfs_url = ipfs_url
+        degree.save(update_fields=['ipfs_cid', 'ipfs_url'])
+
+        return Response({
+            'cid': cid,
+            'ipfs_url': ipfs_url,
+            'student_name': degree.student.full_name if degree.student else '',
+            'degree_number': degree.serial_number,
+            'already_uploaded': False,
         })
