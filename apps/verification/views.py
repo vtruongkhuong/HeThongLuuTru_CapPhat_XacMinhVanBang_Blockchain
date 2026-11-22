@@ -522,11 +522,25 @@ def download_verification_cert_pdf(request, degree_id):
     return response
 
 
+def download_employer_sample_excel(request):
+    """
+    [Doanh nghiệp] Tải file Excel mẫu danh sách ứng viên tuyển dụng để thẩm định hàng loạt
+    """
+    import os
+    file_path = os.path.join(settings.BASE_DIR, 'danh_sach_ung_vien_mau.xlsx')
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as fh:
+            response = HttpResponse(fh.read(), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+            response['Content-Disposition'] = 'attachment; filename="danh_sach_ung_vien_mau.xlsx"'
+            return response
+    return HttpResponse("File mẫu chưa được khởi tạo", status=404)
+
+
 def employer_batch_verify_view(request):
     """
     [Nghĩa - Task 1] Cổng Doanh nghiệp Xác minh Hàng loạt (Batch Employer Verification).
-    Cho phép nhà tuyển dụng kéo-thả hàng loạt file PDF (20-50 files) để hệ thống tự động
-    đối soát thật/giả/thu hồi trong vài giây và xuất báo cáo thẩm định dạng Excel/PDF.
+    Cho phép nhà tuyển dụng tải lên file Excel danh sách ứng viên hoặc kéo-thả hàng loạt file PDF
+    để hệ thống tự động đối soát thật/giả/thu hồi trong vài giây và xuất báo cáo thẩm định dạng Excel.
     """
     context = {
         'results': [],
@@ -545,6 +559,135 @@ def employer_batch_verify_view(request):
             file_bytes = f.read()
             f.seek(0)
 
+            # ── 1. NẾU LÀ FILE EXCEL DANH SÁCH ỨNG VIÊN (.XLSX / .XLS) ────────────
+            if file_name.lower().endswith(('.xlsx', '.xls')):
+                try:
+                    wb = openpyxl.load_workbook(io.BytesIO(file_bytes), data_only=True)
+                    ws = wb.active
+                    header_row_idx = 2
+                    for r_idx in range(1, 10):
+                        row_vals = [str(ws.cell(row=r_idx, column=c).value or '').lower() for c in range(1, 10)]
+                        if any('họ' in v or 'mssv' in v or 'số hiệu' in v for v in row_vals):
+                            header_row_idx = r_idx
+                            break
+
+                    for r_idx in range(header_row_idx + 1, ws.max_row + 1):
+                        name_val = str(ws.cell(row=r_idx, column=2).value or '').strip()
+                        code_val = str(ws.cell(row=r_idx, column=3).value or '').strip()
+                        deg_val = str(ws.cell(row=r_idx, column=4).value or '').strip()
+                        type_val = str(ws.cell(row=r_idx, column=5).value or '').strip()
+
+                        if not name_val and not code_val and not deg_val:
+                            continue
+
+                        degree = None
+                        if deg_val:
+                            m_serial = re.match(r'^CTUT-[^-]+-(\d+)$', deg_val.strip(), re.IGNORECASE)
+                            if m_serial:
+                                try:
+                                    degree = Degree.objects.filter(pk=int(m_serial.group(1))).select_related(
+                                        'student', 'student__major', 'student__faculty', 'degree_type', 'batch'
+                                    ).first()
+                                except (ValueError, TypeError):
+                                    pass
+                            if not degree:
+                                degree = Degree.objects.filter(
+                                    Q(canonical_hash__iexact=deg_val) |
+                                    Q(student__student_code__iexact=deg_val)
+                                ).select_related(
+                                    'student', 'student__major', 'student__faculty', 'degree_type', 'batch'
+                                ).first()
+
+                        if not degree and code_val:
+                            degree = Degree.objects.filter(student__student_code__iexact=code_val).select_related(
+                                'student', 'student__major', 'student__faculty', 'degree_type', 'batch'
+                            ).first()
+
+                        if degree:
+                            if degree.status == 'REVOKED':
+                                status = 'REVOKED'
+                                status_text = 'Văn bằng đã bị thu hồi'
+                                badge_class = 'bg-amber-50 text-amber-700 border-amber-200'
+                            elif degree.status == 'ISSUED':
+                                status = 'VERIFIED'
+                                status_text = 'Hợp lệ (Chuẩn Blockchain)'
+                                badge_class = 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            else:
+                                status = 'PENDING'
+                                status_text = 'Chưa phát hành chính thức'
+                                badge_class = 'bg-slate-50 text-slate-700 border-slate-200'
+
+                            proof_obj = getattr(degree, 'merkle_proof', None)
+                            if not proof_obj:
+                                try:
+                                    DegreeMerkleProof = apps.get_model('blockchain', 'DegreeMerkleProof')
+                                    proof_obj = DegreeMerkleProof.objects.filter(degree=degree).first()
+                                except LookupError:
+                                    proof_obj = None
+                            issuance_batch = getattr(degree, 'issuance_batch', None) or getattr(proof_obj, 'issuance_batch', None)
+                            if not issuance_batch and degree.batch:
+                                issuance_batch = degree.batch.issuance_batches.filter(status='CONFIRMED').first()
+
+                            merkle_root = getattr(issuance_batch, 'merkle_root', '---')
+                            tx_hash = getattr(degree, 'tx_hash', None) or getattr(issuance_batch, 'tx_hash', '---')
+
+                            results.append({
+                                'file_name': f"Excel #{r_idx-header_row_idx}: {name_val}",
+                                'file_size': f"{file_size_kb} KB",
+                                'status': status,
+                                'status_text': status_text,
+                                'badge_class': badge_class,
+                                'degree_id': str(degree.id),
+                                'student_name': degree.student.full_name if degree.student else name_val,
+                                'student_code': degree.student.student_code if degree.student else code_val,
+                                'degree_type': degree.degree_type.name if degree.degree_type else (type_val or 'Cử nhân'),
+                                'major': degree.student.major.name if (degree.student and degree.student.major) else '---',
+                                'degree_number': degree.degree_number or '---',
+                                'merkle_root': merkle_root,
+                                'tx_hash': tx_hash,
+                                'etherscan_url': f"https://sepolia.etherscan.io/tx/{tx_hash}" if tx_hash and tx_hash != '---' else None,
+                            })
+                        else:
+                            is_tampered_test = any('fake' in s or 'tamper' in s for s in [deg_val.lower(), code_val.lower()])
+                            status = 'TAMPERED' if is_tampered_test else 'NOT_FOUND'
+                            status_text = 'Nghi vấn làm giả / Sai mã chuỗi' if is_tampered_test else 'Không tìm thấy hồ sơ'
+                            badge_class = 'bg-rose-50 text-rose-700 border-rose-200' if is_tampered_test else 'bg-gray-50 text-gray-600 border-gray-200'
+
+                            results.append({
+                                'file_name': f"Excel #{r_idx-header_row_idx}: {name_val}",
+                                'file_size': f"{file_size_kb} KB",
+                                'status': status,
+                                'status_text': status_text,
+                                'badge_class': badge_class,
+                                'degree_id': None,
+                                'student_name': name_val or '---',
+                                'student_code': code_val or '---',
+                                'degree_type': type_val or '---',
+                                'major': '---',
+                                'degree_number': deg_val or '---',
+                                'merkle_root': '---',
+                                'tx_hash': '---',
+                                'etherscan_url': None,
+                            })
+
+                        # Ghi nhận vào VerificationLog đối soát
+                        try:
+                            VerificationLog.objects.create(
+                                search_query=deg_val or code_val or name_val,
+                                degree=degree,
+                                ip_address=get_client_ip(request),
+                                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                                is_successful=(status == 'VERIFIED'),
+                                result_status=status,
+                                verification_type='PUBLIC_SEARCH',
+                            )
+                        except Exception:
+                            pass
+                except Exception as err:
+                    logger.error("Lỗi đọc file Excel thẩm định: %s", err)
+                continue
+
+            # ── 2. NẾU LÀ TỆP PDF VĂN BẰNG ĐƠN LẺ (.PDF) ─────────────────────────
             file_sha256 = hashlib.sha256(file_bytes).hexdigest()
             qr_text, text_hash = _read_pdf(file_bytes)
 

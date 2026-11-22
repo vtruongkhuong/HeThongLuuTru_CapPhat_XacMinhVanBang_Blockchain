@@ -35,23 +35,26 @@
 
                 <!-- Dropzone Area -->
                 <div id="drop-zone" class="border-2 border-dashed border-blue-300 hover:border-blue-500 rounded-3xl p-8 sm:p-12 text-center bg-blue-50/40 hover:bg-blue-50/70 transition-all cursor-pointer group flex flex-col items-center justify-center">
-                    <input type="file" id="file-input" name="pdf_files" multiple accept=".pdf,application/pdf" class="hidden">
+                    <input type="file" id="file-input" name="pdf_files" multiple accept=".pdf,application/pdf,.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" class="hidden">
                     
                     <div class="w-16 h-16 rounded-2xl bg-blue-100 group-hover:bg-blue-600 text-blue-600 group-hover:text-white flex items-center justify-center transition-all duration-300 shadow-sm group-hover:scale-110 mb-4">
                         <span class="material-symbols-outlined text-4xl">cloud_upload</span>
                     </div>
 
                     <h3 class="text-lg sm:text-xl font-black text-slate-800 group-hover:text-blue-700 transition-colors">
-                        Kéo & Thả các file PDF văn bằng vào đây
+                        Kéo & Thả file Excel hoặc các file PDF văn bằng vào đây
                     </h3>
                     <p class="text-xs sm:text-sm text-slate-500 mt-1 font-medium">
-                        Hoặc <span class="text-blue-600 font-bold underline">bấm vào đây để chọn nhiều file</span> từ máy tính (Hỗ trợ định dạng .PDF)
+                        Hoặc <span class="text-blue-600 font-bold underline">bấm vào đây để chọn file</span> từ máy tính (Hỗ trợ định dạng .XLSX, .XLS, .PDF)
                     </p>
 
-                    <div class="mt-4 flex flex-wrap items-center justify-center gap-2 text-xs text-slate-500 font-medium">
-                        <span class="px-2.5 py-1 rounded-lg bg-white border border-slate-200">Hỗ trợ tối đa 50 file/lần</span>
-                        <span class="px-2.5 py-1 rounded-lg bg-white border border-slate-200">Tốc độ đối soát ~3 giây</span>
-                        <span class="px-2.5 py-1 rounded-lg bg-white border border-slate-200">Xác thực Chuỗi Sepolia</span>
+                    <div class="mt-5 flex flex-wrap items-center justify-center gap-2.5 text-xs">
+                        <a href="{% url 'verification:employer_sample_excel' %}" download class="taste-btn px-4 py-2 rounded-xl bg-white hover:bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-xs font-bold flex items-center gap-1.5 transition-all" onclick="event.stopPropagation();">
+                            <span class="material-symbols-outlined text-[18px]">download</span>
+                            Tải file Excel mẫu danh sách ứng viên (.xlsx)
+                        </a>
+                        <span class="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-500 font-medium">Tối đa 50 ứng viên/lần</span>
+                        <span class="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-500 font-medium">Tốc độ đối soát ~3 giây</span>
                     </div>
                 </div>
 
@@ -251,10 +254,11 @@ document.addEventListener("DOMContentLoaded", function() {
         fileChips.innerHTML = '';
 
         files.forEach((f, idx) => {
+            const isExcel = f.name.toLowerCase().endsWith('.xlsx') || f.name.toLowerCase().endsWith('.xls');
             const chip = document.createElement('div');
             chip.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-medium text-slate-700 shadow-2xs';
             chip.innerHTML = `
-                <span class="material-symbols-outlined text-[15px] text-rose-500">picture_as_pdf</span>
+                <span class="material-symbols-outlined text-[15px] ${isExcel ? 'text-emerald-600' : 'text-rose-500'}">${isExcel ? 'table_view' : 'picture_as_pdf'}</span>
                 <span class="truncate max-w-[150px]">${f.name}</span>
                 <span class="text-[10px] text-slate-400">(${Math.round(f.size/1024)}KB)</span>
             `;
