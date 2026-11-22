@@ -2,7 +2,7 @@ import unicodedata
 from datetime import timedelta
 from django.utils import timezone
 from django.db.models import Count
-from django.db.models.functions import TruncDate
+from django.db.models.functions import TruncDate, ExtractYear
 from apps.students.models import Student, ImportBatch
 from apps.academic.models import Faculty, Major
 from apps.degrees.models import Degree
@@ -36,24 +36,90 @@ def get_dashboard_stats():
 
 
 def get_chart_data():
-    """Trích xuất dữ liệu cho 3 biểu đồ Chart.js"""
-    # 1. Phân bố theo Loại văn bằng (Chuẩn hóa Unicode & khoảng trắng để gộp trùng tuyệt đối)
-    dt_stats = Degree.objects.values('degree_type__name').annotate(count=Count('id'))
-    merged_dt = {}
-    display_names = {}
-    
-    for item in dt_stats:
-        raw_name = (item['degree_type__name'] or 'Chưa phân loại').strip()
-        norm_key = unicodedata.normalize('NFC', " ".join(raw_name.split())).lower()
-        
-        merged_dt[norm_key] = merged_dt.get(norm_key, 0) + item['count']
-        if norm_key not in display_names or item['count'] > 5:
-            display_names[norm_key] = raw_name
+    """
+    [BƯỚC 1] Trích xuất dữ liệu cho 3 biểu đồ Chart.js thực tế và các biểu đồ bổ trợ:
+    - degrees_by_year: Số lượng văn bằng cấp phát (ISSUED) qua các năm
+    - degrees_by_type: Phân bố số lượng văn bằng theo 4 nhóm loại chính
+    - verify_by_day: Tần suất tra cứu/xác minh trong 30 ngày gần nhất
+    """
+    # ── 1. degrees_by_year: Số VB cấp mỗi năm (Bar Chart) ─────────────────────
+    # Query: Degree.objects.filter(status='ISSUED').values(year=ExtractYear('issue_date')).annotate(c=Count('id'))
+    year_stats = Degree.objects.filter(status='ISSUED')\
+        .values(year=ExtractYear('issue_date'))\
+        .annotate(c=Count('id'))
+    year_map = {item['year']: item['c'] for item in year_stats if item['year']}
 
-    degree_type_labels = [display_names[k] for k in merged_dt.keys()]
-    degree_type_data = list(merged_dt.values())
+    current_year = timezone.now().year
+    year_labels = [str(y) for y in range(current_year - 4, current_year + 1)] # ['2022', '2023', '2024', '2025', '2026']
+    degrees_by_year_data = [year_map.get(int(y), 0) for y in year_labels]
 
-    # 2. Trạng thái Văn bằng
+    degrees_by_year = {
+        'labels': year_labels,
+        'data': degrees_by_year_data,
+    }
+
+    # ── 2. degrees_by_type: Số lượng mỗi loại VB (Doughnut / Pie Chart) ───────
+    # Query: Degree.objects.filter(status='ISSUED').values('degree_type__code').annotate(c=Count('id'))
+    type_stats = Degree.objects.filter(status='ISSUED')\
+        .values('degree_type__code', 'degree_type__name')\
+        .annotate(c=Count('id'))
+
+    type_counts = {'Kỹ sư': 0, 'Cử nhân': 0, 'TH Văn phòng': 0, 'CNTT': 0}
+    type_code_map = {
+        'KS': 'Kỹ sư',
+        'CN': 'Cử nhân',
+        'THVP': 'TH Văn phòng',
+        'CC_THVP': 'TH Văn phòng',
+        'CNTT': 'CNTT',
+        'CC_CNTT': 'CNTT',
+    }
+    for item in type_stats:
+        code = (item.get('degree_type__code') or '').strip()
+        name = (item.get('degree_type__name') or '').strip()
+        label = type_code_map.get(code)
+        if not label:
+            if 'Kỹ sư' in name or 'KS' in code:
+                label = 'Kỹ sư'
+            elif 'Cử nhân' in name or 'CN' in code:
+                label = 'Cử nhân'
+            elif 'Văn phòng' in name or 'THVP' in code:
+                label = 'TH Văn phòng'
+            elif 'CNTT' in code or 'Công nghệ thông tin' in name:
+                label = 'CNTT'
+            else:
+                label = name or 'Khác'
+        type_counts[label] = type_counts.get(label, 0) + item['c']
+
+    standard_types = ['Kỹ sư', 'Cử nhân', 'TH Văn phòng', 'CNTT']
+    degrees_by_type = {
+        'labels': standard_types,
+        'data': [type_counts.get(k, 0) for k in standard_types],
+    }
+
+    # ── 3. verify_by_day: Số lần verify mỗi ngày trong 30 ngày (Line Chart) ───
+    # Query: VerificationLog.objects.filter(created_at__gte=30 ngày trước).values(day=TruncDate('created_at')).annotate(c=Count('id'))
+    today = timezone.now().date()
+    start_date_30 = today - timedelta(days=29)
+    daily_stats = VerificationLog.objects.filter(created_at__date__gte=start_date_30)\
+        .annotate(day=TruncDate('created_at'))\
+        .values('day')\
+        .annotate(c=Count('id'))
+    daily_map_30 = {item['day']: item['c'] for item in daily_stats if item['day']}
+
+    verify_labels = []
+    verify_data = []
+    for i in range(30):
+        d = start_date_30 + timedelta(days=i)
+        verify_labels.append(d.strftime('%d/%m'))
+        verify_data.append(daily_map_30.get(d, 0))
+
+    verify_by_day = {
+        'labels': verify_labels,
+        'data': verify_data,
+    }
+
+    # ── Dữ liệu bổ trợ & tương thích ngược ──────────────────────────────────
+    # Phân bố trạng thái văn bằng
     degree_stats = Degree.objects.values('status').annotate(count=Count('id'))
     status_map = {
         'DRAFT': 'Nháp',
@@ -68,98 +134,12 @@ def get_chart_data():
     degree_labels = [status_map.get(item['status'], item['status']) for item in degree_stats]
     degree_data = [item['count'] for item in degree_stats]
 
-    # 3. Kết quả Tra cứu / Xác minh (Cố định thứ tự: Hợp lệ [Xanh] -> Không hợp lệ [Đỏ])
-    ver_labels, ver_data = [], []
-    try:
-        excluded = {
-            'id', 'uuid', 'ip_address', 'user_agent', 'created_at', 
-            'updated_at', 'timestamp', 'verified_at', 'query', 
-            'search_query', 'public_id', 'credential_public_id'
-        }
-        candidate_fields = [
-            f.name for f in VerificationLog._meta.concrete_fields
-            if f.name not in excluded and not f.is_relation
-        ]
-        priority = ['result', 'status', 'verification_status', 'is_valid', 'valid', 'outcome', 'verify_result']
-        target_field = next((p for p in priority if p in candidate_fields), candidate_fields[0] if candidate_fields else None)
-
-        if target_field:
-            ver_stats = VerificationLog.objects.values(target_field).annotate(count=Count('id'))
-            temp_counts = {'Hợp lệ': 0, 'Không hợp lệ': 0}
-            
-            for item in ver_stats:
-                val = item[target_field]
-                if isinstance(val, bool):
-                    label = 'Hợp lệ' if val else 'Không hợp lệ'
-                elif str(val).upper() in ('VALID', 'TRUE', 'SUCCESS', 'HOP_LE', 'HỢP LỆ', '1'):
-                    label = 'Hợp lệ'
-                elif str(val).upper() in ('INVALID', 'FALSE', 'FAILED', 'REVOKED', 'NOT_FOUND', 'KHONG_HOP_LE', 'KHÔNG HỢP LỆ', '0'):
-                    label = 'Không hợp lệ'
-                else:
-                    label = str(val) if val is not None else 'Khác'
-                
-                temp_counts[label] = temp_counts.get(label, 0) + item['count']
-
-            for key in ['Hợp lệ', 'Không hợp lệ']:
-                if temp_counts.get(key, 0) > 0:
-                    ver_labels.append(key)
-                    ver_data.append(temp_counts[key])
-            for key, val in temp_counts.items():
-                if key not in ('Hợp lệ', 'Không hợp lệ') and val > 0:
-                    ver_labels.append(key)
-                    ver_data.append(val)
-    except Exception as e:
-        print(f"Lỗi truy vấn VerificationLog: {e}")
-
-    # 4. [Nghĩa - Task 4] Tỷ lệ Xếp loại tốt nghiệp (Xuất sắc, Giỏi, Khá, Trung bình)
-    class_order = ['Xuất sắc', 'Giỏi', 'Khá', 'Trung bình']
-    class_counts = {k: 0 for k in class_order}
-    raw_classes = Degree.objects.values('classification').annotate(count=Count('id'))
-    for rc in raw_classes:
-        c_name = (rc['classification'] or '').strip()
-        matched = False
-        for std_c in class_order:
-            if std_c.lower() in c_name.lower():
-                class_counts[std_c] += rc['count']
-                matched = True
-                break
-        if not matched and c_name:
-            class_counts['Khác'] = class_counts.get('Khác', 0) + rc['count']
-
-    class_labels = [k for k, v in class_counts.items() if v > 0]
-    class_data = [class_counts[k] for k in class_labels]
-    if not class_labels:
-        class_labels = class_order
-        class_data = [0, 0, 0, 0]
-
-    # 5. [Nghĩa - Task 4] Xu hướng Tra cứu theo Ngày (7 ngày gần nhất)
-    today = timezone.now().date()
-    start_date = today - timedelta(days=6)
-    daily_counts = {}
-    for i in range(7):
-        d = start_date + timedelta(days=i)
-        daily_counts[d.strftime('%d/%m')] = 0
-
-    try:
-        vlogs = VerificationLog.objects.filter(created_at__date__gte=start_date).annotate(
-            log_date=TruncDate('created_at')
-        ).values('log_date').annotate(count=Count('id'))
-
-        for vl in vlogs:
-            if vl['log_date']:
-                d_str = vl['log_date'].strftime('%d/%m')
-                if d_str in daily_counts:
-                    daily_counts[d_str] = vl['count']
-    except Exception as e:
-        print(f"Lỗi truy vấn daily verifications: {e}")
-
-    daily_labels = list(daily_counts.keys())
-    daily_data = list(daily_counts.values())
-
     return {
-        'degree_types': {'labels': degree_type_labels, 'data': degree_type_data},
+        'degrees_by_year': degrees_by_year,
+        'degrees_by_type': degrees_by_type,
+        'verify_by_day': verify_by_day,
+        # Tương thích ngược:
+        'degree_types': degrees_by_type,
         'degrees_status': {'labels': degree_labels, 'data': degree_data},
-        'verifications': {'labels': ver_labels, 'data': ver_data},
-        'classifications': {'labels': class_labels, 'data': class_data},
-        'daily_verifications': {'labels': daily_labels, 'data': daily_data},
+        'daily_verifications': verify_by_day,
     }

@@ -49,9 +49,22 @@ def report_view(request):
     stats = get_dashboard_stats()
     chart_data = get_chart_data()
 
+    from apps.degrees.models import Degree
+    from apps.verification.models import VerificationLog
+    from django.utils import timezone
+    today = timezone.now().date()
+    kpi = {
+        'total_issued': Degree.objects.filter(status='ISSUED').count(),
+        'pending':      Degree.objects.filter(status__in=['DRAFT', 'REVIEWED', 'APPROVED']).count(),
+        'revoked':      Degree.objects.filter(status='REVOKED').count(),
+        'verify_today': VerificationLog.objects.filter(created_at__date=today).count(),
+    }
+
     context = {
         'stats': stats,
-        'chart_data': chart_data
+        'chart_data': chart_data,
+        'charts': chart_data,
+        'kpi': kpi,
     }
     return render(request, 'dashboard.html', context)
 

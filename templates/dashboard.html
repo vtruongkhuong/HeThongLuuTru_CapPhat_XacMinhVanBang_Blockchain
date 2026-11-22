@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Dashboard | Tổng quan hệ thống{% endblock %}
+{% block title %}Dashboard | Thống Kê & Báo Cáo Văn Bằng{% endblock %}
 
 {% block content %}
 <div class="max-w-[1400px] mx-auto px-6 py-8 w-full">
@@ -8,7 +8,7 @@
     <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
             <h1 class="text-3xl font-extrabold text-ntt-dark tracking-tight">Tổng quan hệ thống</h1>
-            <p class="text-sm text-gray-500 mt-1.5 font-medium">Số liệu thống kê & Giám sát hoạt động</p>
+            <p class="text-sm text-gray-500 mt-1.5 font-medium">Báo cáo số liệu thống kê & Giám sát hoạt động cấp phát, xác minh văn bằng</p>
         </div>
         
         <div class="flex flex-wrap items-center gap-2.5">
@@ -36,119 +36,155 @@
         </div>
     </div>
 
-    <!-- 4 THẺ THỐNG KÊ CƠ BẢN -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-5">
-        <div class="taste-card bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm hover:border-blue-300">
-            <div class="flex justify-between items-start mb-6">
-                <div class="bg-blue-50 text-blue-600 w-12 h-12 flex items-center justify-center rounded-xl">
-                    <i class="material-symbols-outlined text-[24px]">groups</i>
-                </div>
-            </div>
-            <div>
-                <h3 class="text-4xl font-black text-slate-900 tracking-tight">{{ stats.total_students }}</h3>
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1.5">Tổng hồ sơ sinh viên</p>
-            </div>
-        </div>
-        
-        <div class="taste-card bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm hover:border-slate-400">
-            <div class="flex justify-between items-start mb-6">
-                <div class="bg-slate-100 text-slate-700 w-12 h-12 flex items-center justify-center rounded-xl">
-                    <i class="material-symbols-outlined text-[24px]">corporate_fare</i>
-                </div>
-            </div>
-            <div>
-                <h3 class="text-4xl font-black text-slate-900 tracking-tight">{{ stats.total_faculties }}</h3>
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1.5">Khoa trực thuộc</p>
-            </div>
-        </div>
-        
-        <div class="taste-card bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm hover:border-slate-400">
-            <div class="flex justify-between items-start mb-6">
-                <div class="bg-slate-100 text-slate-700 w-12 h-12 flex items-center justify-center rounded-xl">
-                    <i class="material-symbols-outlined text-[24px]">school</i>
-                </div>
-            </div>
-            <div>
-                <h3 class="text-4xl font-black text-slate-900 tracking-tight">{{ stats.total_majors }}</h3>
-                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1.5">Chương trình đào tạo</p>
-            </div>
-        </div>
-        
-        <div class="taste-card bg-gradient-to-br from-slate-900 via-slate-950 to-blue-950 rounded-2xl p-6 shadow-md border border-slate-800 text-white relative overflow-hidden group">
-            <div class="flex justify-between items-start mb-6 relative z-10">
-                <div class="bg-white/10 text-amber-300 w-12 h-12 flex items-center justify-center rounded-xl backdrop-blur-sm border border-white/10">
+    <!-- [BƯỚC 3] 4 THẺ KPI (CARD): Total / Chờ duyệt / Thu hồi / Verify hôm nay -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- KPI 1: TOTAL ISSUED -->
+        <div class="taste-card bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-teal-500/10 rounded-2xl p-6 border border-emerald-500/20 shadow-sm hover:border-emerald-500/40 transition-all">
+            <div class="flex justify-between items-start mb-4">
+                <div class="bg-emerald-600 text-white w-12 h-12 flex items-center justify-center rounded-xl shadow-md shadow-emerald-500/20">
                     <i class="material-symbols-outlined text-[24px]">workspace_premium</i>
                 </div>
-                <div class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-mono border border-emerald-500/30">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse-subtle"></span>
-                    <span>Sepolia v2</span>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">
+                    Đã phát hành
+                </span>
+            </div>
+            <div>
+                <h3 class="text-4xl font-black text-slate-900 tracking-tight" id="kpi-total-issued">
+                    {{ kpi.total_issued|default:stats.total_issued_degrees|default:0 }}
+                </h3>
+                <p class="text-xs font-bold text-emerald-800 uppercase tracking-wider mt-1.5">Total (Đã cấp)</p>
+                <p class="text-[11px] text-slate-500 mt-0.5">Văn bằng trạng thái ISSUED</p>
+            </div>
+        </div>
+
+        <!-- KPI 2: PENDING -->
+        <div class="taste-card bg-gradient-to-br from-blue-500/10 via-indigo-500/5 to-sky-500/10 rounded-2xl p-6 border border-blue-500/20 shadow-sm hover:border-blue-500/40 transition-all">
+            <div class="flex justify-between items-start mb-4">
+                <div class="bg-blue-600 text-white w-12 h-12 flex items-center justify-center rounded-xl shadow-md shadow-blue-500/20">
+                    <i class="material-symbols-outlined text-[24px]">hourglass_top</i>
                 </div>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                    Đang xử lý
+                </span>
             </div>
-            <div class="relative z-10">
-                <h3 class="text-4xl font-black text-white tracking-tight">{{ stats.total_issued_degrees }}</h3>
-                <p class="text-xs font-bold text-sky-200 uppercase tracking-wider mt-1.5">Văn bằng trên chuỗi (ISSUED)</p>
+            <div>
+                <h3 class="text-4xl font-black text-slate-900 tracking-tight" id="kpi-pending">
+                    {{ kpi.pending|default:0 }}
+                </h3>
+                <p class="text-xs font-bold text-blue-800 uppercase tracking-wider mt-1.5">Chờ duyệt</p>
+                <p class="text-[11px] text-slate-500 mt-0.5">DRAFT, REVIEWED, APPROVED</p>
             </div>
-            <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-600 opacity-20 rounded-full blur-3xl z-0 transition-transform group-hover:scale-125"></div>
+        </div>
+
+        <!-- KPI 3: REVOKED -->
+        <div class="taste-card bg-gradient-to-br from-rose-500/10 via-red-500/5 to-pink-500/10 rounded-2xl p-6 border border-rose-500/20 shadow-sm hover:border-rose-500/40 transition-all">
+            <div class="flex justify-between items-start mb-4">
+                <div class="bg-rose-600 text-white w-12 h-12 flex items-center justify-center rounded-xl shadow-md shadow-rose-500/20">
+                    <i class="material-symbols-outlined text-[24px]">block</i>
+                </div>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800">
+                    Đã hủy hiệu lực
+                </span>
+            </div>
+            <div>
+                <h3 class="text-4xl font-black text-slate-900 tracking-tight" id="kpi-revoked">
+                    {{ kpi.revoked|default:0 }}
+                </h3>
+                <p class="text-xs font-bold text-rose-800 uppercase tracking-wider mt-1.5">Thu hồi</p>
+                <p class="text-[11px] text-slate-500 mt-0.5">Văn bằng trạng thái REVOKED</p>
+            </div>
+        </div>
+
+        <!-- KPI 4: VERIFY TODAY -->
+        <div class="taste-card bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-yellow-500/10 rounded-2xl p-6 border border-amber-500/20 shadow-sm hover:border-amber-500/40 transition-all">
+            <div class="flex justify-between items-start mb-4">
+                <div class="bg-amber-500 text-white w-12 h-12 flex items-center justify-center rounded-xl shadow-md shadow-amber-500/20">
+                    <i class="material-symbols-outlined text-[24px]">verified</i>
+                </div>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">
+                    Hôm nay
+                </span>
+            </div>
+            <div>
+                <h3 class="text-4xl font-black text-slate-900 tracking-tight" id="kpi-verify-today">
+                    {{ kpi.verify_today|default:0 }}
+                </h3>
+                <p class="text-xs font-bold text-amber-800 uppercase tracking-wider mt-1.5">Verify hôm nay</p>
+                <p class="text-[11px] text-slate-500 mt-0.5">Lượt tra cứu đối soát trong ngày</p>
+            </div>
         </div>
     </div>
 
-    <!-- 3 THẺ CHỈ SỐ SỨC KHỎE HỆ THỐNG -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="taste-card bg-white rounded-2xl p-4 border border-slate-200/90 shadow-2xs flex items-center gap-4">
-            <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl border border-emerald-100">
-                <i class="material-symbols-outlined text-[22px]">fact_check</i>
-            </div>
-            <div>
-                <p class="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">Tra cứu & Xác minh</p>
-                <div class="flex items-end gap-2 mt-0.5">
-                    <p class="text-xl font-black text-slate-900 leading-none">{{ stats.total_verifications }}</p>
-                    <span class="text-xs text-slate-400 font-medium leading-none mb-0.5">lượt</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="taste-card bg-white rounded-2xl p-4 border border-slate-200/90 shadow-2xs flex items-center gap-4">
-            <div class="bg-rose-50 text-rose-600 p-3 rounded-xl border border-rose-100">
-                <i class="material-symbols-outlined text-[22px]">link_off</i>
-            </div>
-            <div>
-                <p class="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">Blockchain lỗi</p>
-                <div class="flex items-end gap-2 mt-0.5">
-                    <p class="text-xl font-black text-slate-900 leading-none">{{ stats.failed_transactions }}</p>
-                    <span class="text-xs text-rose-500 font-medium leading-none mb-0.5">giao dịch</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="taste-card bg-white rounded-2xl p-4 border border-slate-200/90 shadow-2xs flex items-center gap-4">
-            <div class="bg-amber-50 text-amber-600 p-3 rounded-xl border border-amber-100">
-                <i class="material-symbols-outlined text-[22px]">warning</i>
-            </div>
-            <div>
-                <p class="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider">Tỷ lệ Import lỗi</p>
-                <div class="flex items-end gap-2 mt-0.5">
-                    <p class="text-xl font-black text-slate-900 leading-none">{{ stats.import_error_rate }}%</p>
-                    <span class="text-xs text-slate-400 font-medium leading-none mb-0.5">trên tổng Batch</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- KHU VỰC BIỂU ĐỒ & LỊCH SỬ -->
+    <!-- KHU VỰC 3 BIỂU ĐỒ CHART.JS (3 LOẠI CHART THỰC) -->
+    <!-- TẦNG 1: BIỂU ĐỒ CỘT (chartYear) & BIỂU ĐỒ TRÒN (chartType) -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div class="taste-card col-span-1 lg:col-span-2 bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col min-h-[350px]">
-            <div class="mb-4">
-                <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wide">Phân bố Loại Văn Bằng</h2>
-                <p class="text-xs text-slate-500 font-medium mt-0.5">Tổng số hồ sơ văn bằng khởi tạo theo hệ đào tạo / chứng chỉ</p>
+        <!-- 1. Biểu đồ cột: chartYear -->
+        <div class="taste-card col-span-1 lg:col-span-2 bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col min-h-[380px]">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                        <i class="material-symbols-outlined text-blue-600 text-[20px]">bar_chart</i>
+                        Số lượng Văn Bằng Cấp Mỗi Năm
+                    </h2>
+                    <p class="text-xs text-slate-500 font-medium mt-0.5">Thống kê văn bằng chính thức (status: ISSUED) giai đoạn 2022 - 2026</p>
+                </div>
+                <span class="text-xs font-mono font-semibold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">
+                    Biểu đồ cột
+                </span>
             </div>
-            <div class="relative w-full flex-1 min-h-[260px]">
-                <canvas id="importChart"></canvas>
+            <div class="relative w-full flex-1 min-h-[280px]">
+                <canvas id="chartYear"></canvas>
             </div>
         </div>
 
-        <div class="taste-card bg-white rounded-2xl border border-slate-200/90 shadow-sm flex flex-col max-h-[350px]">
+        <!-- 2. Biểu đồ tròn: chartType -->
+        <div class="taste-card bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col min-h-[380px]">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                        <i class="material-symbols-outlined text-indigo-600 text-[20px]">pie_chart</i>
+                        Cơ Cấu Loại Văn Bằng
+                    </h2>
+                    <p class="text-xs text-slate-500 font-medium mt-0.5">Tỷ lệ theo nhóm: Kỹ sư, Cử nhân, TH Văn phòng, CNTT</p>
+                </div>
+                <span class="text-xs font-mono font-semibold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">
+                    Biểu đồ tròn
+                </span>
+            </div>
+            <div class="relative w-full flex-1 min-h-[280px] flex items-center justify-center">
+                <canvas id="chartType"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- TẦNG 2: BIỂU ĐỒ ĐƯỜNG (chartVerify) & IMPORT GẦN ĐÂY -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <!-- 3. Biểu đồ đường: chartVerify -->
+        <div class="taste-card col-span-1 lg:col-span-2 bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col min-h-[380px]">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                        <i class="material-symbols-outlined text-emerald-600 text-[20px]">show_chart</i>
+                        Tần Suất Tra Cứu & Xác Minh (30 Ngày Qua)
+                    </h2>
+                    <p class="text-xs text-slate-500 font-medium mt-0.5">Lưu lượng truy vấn VerificationLog đối soát tính toàn vẹn trên chuỗi</p>
+                </div>
+                <span class="text-xs font-mono font-semibold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-lg">
+                    Biểu đồ đường
+                </span>
+            </div>
+            <div class="relative w-full flex-1 min-h-[280px]">
+                <canvas id="chartVerify"></canvas>
+            </div>
+        </div>
+
+        <!-- DANH SÁCH BATCH IMPORT GẦN ĐÂY -->
+        <div class="taste-card bg-white rounded-2xl border border-slate-200/90 shadow-sm flex flex-col max-h-[380px]">
             <div class="p-5 border-b border-slate-100 flex items-center justify-between">
-                <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wide">Import gần đây</h2>
+                <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+                    <i class="material-symbols-outlined text-slate-700 text-[20px]">history</i>
+                    Import Gần Đây
+                </h2>
                 <a href="/admin/students/importbatch/" class="text-xs text-blue-600 hover:text-blue-800 font-bold uppercase tracking-wider">Xem tất cả &rarr;</a>
             </div>
             
@@ -193,191 +229,192 @@
         </div>
     </div>
 
-    <!-- TẦNG 2: BIỂU ĐỒ DOUGHNUT TRẠNG THÁI -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="taste-card bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col items-center">
-            <div class="w-full mb-4 text-center">
-                <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wide">Trạng thái Văn Bằng</h2>
-                <p class="text-xs text-slate-500 font-medium mt-0.5">Tỷ lệ các văn bằng Hợp lệ, Nháp, Thu hồi...</p>
+    <!-- TẦNG 3: CÁC THẺ THỐNG KÊ QUẢN TRỊ NỀN TẢNG BỔ TRỢ -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-5">
+        <div class="taste-card bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm hover:border-blue-300">
+            <div class="flex justify-between items-start mb-6">
+                <div class="bg-blue-50 text-blue-600 w-12 h-12 flex items-center justify-center rounded-xl">
+                    <i class="material-symbols-outlined text-[24px]">groups</i>
+                </div>
             </div>
-            <div class="relative w-full h-[280px] flex justify-center">
-                <canvas id="facultyChart"></canvas>
-            </div>
-        </div>
-
-        <div class="taste-card bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col items-center">
-            <div class="w-full mb-4 text-center">
-                <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wide">Tỷ lệ Tra cứu / Xác minh</h2>
-                <p class="text-xs text-slate-500 font-medium mt-0.5">Kết quả đối soát trên cổng công khai</p>
-            </div>
-            <div class="relative w-full h-[280px] flex justify-center">
-                <canvas id="degreeChart"></canvas>
+            <div>
+                <h3 class="text-4xl font-black text-slate-900 tracking-tight">{{ stats.total_students }}</h3>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1.5">Tổng hồ sơ sinh viên</p>
             </div>
         </div>
-    </div>
-
-    <!-- TẦNG 3: BIỂU ĐỒ XẾP LOẠI TỐT NGHIỆP & TRA CỨU THEO NGÀY (Nghĩa - Task 4) -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        <div class="taste-card bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col items-center">
-            <div class="w-full mb-4 text-center">
-                <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wide">Tỷ Lệ Xếp Loại Tốt Nghiệp</h2>
-                <p class="text-xs text-slate-500 font-medium mt-0.5">Phân bố thứ hạng văn bằng (Xuất sắc, Giỏi, Khá, TB)</p>
+        
+        <div class="taste-card bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm hover:border-slate-400">
+            <div class="flex justify-between items-start mb-6">
+                <div class="bg-slate-100 text-slate-700 w-12 h-12 flex items-center justify-center rounded-xl">
+                    <i class="material-symbols-outlined text-[24px]">corporate_fare</i>
+                </div>
             </div>
-            <div class="relative w-full h-[280px] flex justify-center">
-                <canvas id="classificationChart"></canvas>
+            <div>
+                <h3 class="text-4xl font-black text-slate-900 tracking-tight">{{ stats.total_faculties }}</h3>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1.5">Khoa trực thuộc</p>
             </div>
         </div>
-
-        <div class="taste-card bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 flex flex-col items-center">
-            <div class="w-full mb-4 text-center">
-                <h2 class="text-base font-extrabold text-slate-900 uppercase tracking-wide">Xu Hướng Tra Cứu Theo Ngày</h2>
-                <p class="text-xs text-slate-500 font-medium mt-0.5">Lưu lượng truy cập đối soát xác minh 7 ngày qua</p>
+        
+        <div class="taste-card bg-white rounded-2xl p-6 border border-slate-200/90 shadow-sm hover:border-slate-400">
+            <div class="flex justify-between items-start mb-6">
+                <div class="bg-slate-100 text-slate-700 w-12 h-12 flex items-center justify-center rounded-xl">
+                    <i class="material-symbols-outlined text-[24px]">school</i>
+                </div>
             </div>
-            <div class="relative w-full h-[280px] flex justify-center">
-                <canvas id="dailyVerificationChart"></canvas>
+            <div>
+                <h3 class="text-4xl font-black text-slate-900 tracking-tight">{{ stats.total_majors }}</h3>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1.5">Chương trình đào tạo</p>
             </div>
+        </div>
+        
+        <div class="taste-card bg-gradient-to-br from-slate-900 via-slate-950 to-blue-950 rounded-2xl p-6 shadow-md border border-slate-800 text-white relative overflow-hidden group">
+            <div class="flex justify-between items-start mb-6 relative z-10">
+                <div class="bg-white/10 text-amber-300 w-12 h-12 flex items-center justify-center rounded-xl backdrop-blur-sm border border-white/10">
+                    <i class="material-symbols-outlined text-[24px]">token</i>
+                </div>
+                <div class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-mono border border-emerald-500/30">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse-subtle"></span>
+                    <span>Sepolia v2</span>
+                </div>
+            </div>
+            <div class="relative z-10">
+                <h3 class="text-4xl font-black text-white tracking-tight">{{ stats.total_issued_degrees }}</h3>
+                <p class="text-xs font-bold text-sky-200 uppercase tracking-wider mt-1.5">Smart Contract On-Chain</p>
+            </div>
+            <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-600 opacity-20 rounded-full blur-3xl z-0 transition-transform group-hover:scale-125"></div>
         </div>
     </div>
 </div>
 
-
+<!-- NHÚNG CDN CHART.JS -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-{{ chart_data|json_script:"chart-data-main" }}
-{{ charts|json_script:"chart-data-alt" }}
 
+<!-- SCRIPT JS: FETCH AJAX /reporting/api/stats/ KHỞI TẠO 3 CHART() VÀ CẬP NHẬT 4 KPI CARDS -->
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const parseJsonSafe = (id) => {
-            const el = document.getElementById(id);
-            if (!el || !el.textContent) return null;
-            try {
-                const parsed = JSON.parse(el.textContent);
-                return (parsed && typeof parsed === 'object') ? parsed : null;
-            } catch (e) {
-                return null;
-            }
-        };
+document.addEventListener("DOMContentLoaded", function() {
+    // Biến lưu trữ instances để cập nhật hoặc resize mượt mà
+    let chartYearInstance = null;
+    let chartTypeInstance = null;
+    let chartVerifyInstance = null;
 
-        // Tự động nhận diện dữ liệu dù View truyền tên biến là chart_data hay charts
-        const chartData = parseJsonSafe('chart-data-main') || parseJsonSafe('chart-data-alt') || {};
+    // Hàm render 3 biểu đồ từ dữ liệu API
+    function renderDashboardCharts(charts) {
+        if (!charts) return;
 
-        const commonOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom', labels: { font: { family: 'Inter', size: 12 }, padding: 15, usePointStyle: true, boxWidth: 8 } }
-            },
-            cutout: '65%'
-        };
-        const colors = ['#112953', '#2a63b2', '#c09b4d', '#475569', '#94a3b8', '#cbd5e1'];
-
-        // 1. Chart: Phân bố Loại Bằng
-        const importCtx = document.getElementById('importChart');
-        const dtSource = chartData.degree_types || chartData.imports || { labels: [], data: [] };
-        if (importCtx) {
-            const hasData1 = dtSource.labels && dtSource.labels.length > 0;
-            new Chart(importCtx.getContext('2d'), {
+        // 1. Biểu đồ cột: chartYear
+        const ctxYear = document.getElementById('chartYear');
+        if (ctxYear && charts.degrees_by_year) {
+            const yearData = charts.degrees_by_year;
+            if (chartYearInstance) chartYearInstance.destroy();
+            chartYearInstance = new Chart(ctxYear.getContext('2d'), {
                 type: 'bar',
                 data: {
-                    labels: hasData1 ? dtSource.labels : ['Chưa có dữ liệu'],
+                    labels: yearData.labels || ['2022', '2023', '2024', '2025', '2026'],
                     datasets: [{
-                        label: 'Số lượng văn bằng',
-                        data: hasData1 ? dtSource.data : [0],
-                        backgroundColor: hasData1 ? '#2a63b2' : '#e2e8f0',
-                        borderRadius: 6
+                        label: 'Số văn bằng cấp',
+                        data: yearData.data || [0, 0, 0, 0, 0],
+                        backgroundColor: '#2563eb',
+                        hoverBackgroundColor: '#1d4ed8',
+                        borderRadius: 8,
+                        maxBarThickness: 48
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` Số lượng: ${context.parsed.y} văn bằng`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0, font: { family: 'Inter', size: 12 } },
+                            grid: { color: 'rgba(226, 232, 240, 0.6)' }
+                        },
+                        x: {
+                            ticks: { font: { family: 'Inter', size: 12, weight: '600' } },
+                            grid: { display: false }
+                        }
+                    }
                 }
             });
         }
 
-        // 2. Chart: Trạng thái Văn Bằng
-        const facultyCtx = document.getElementById('facultyChart');
-        const statusSource = chartData.degrees_status || chartData.degrees || { labels: [], data: [] };
-        if (facultyCtx) {
-            const hasData2 = statusSource.labels && statusSource.labels.length > 0;
-            new Chart(facultyCtx.getContext('2d'), {
+        // 2. Biểu đồ tròn (Doughnut): chartType
+        const ctxType = document.getElementById('chartType');
+        if (ctxType && charts.degrees_by_type) {
+            const typeData = charts.degrees_by_type;
+            const typeColors = ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4'];
+            if (chartTypeInstance) chartTypeInstance.destroy();
+            chartTypeInstance = new Chart(ctxType.getContext('2d'), {
                 type: 'doughnut',
                 data: {
-                    labels: hasData2 ? statusSource.labels : ['Chưa có dữ liệu'],
+                    labels: typeData.labels || ['Kỹ sư', 'Cử nhân', 'TH Văn phòng', 'CNTT'],
                     datasets: [{
-                        data: hasData2 ? statusSource.data : [1],
-                        backgroundColor: hasData2 ? colors : ['#f1f5f9'],
+                        data: typeData.data || [0, 0, 0, 0],
+                        backgroundColor: typeColors,
                         borderWidth: 2,
-                        borderColor: '#ffffff'
+                        borderColor: '#ffffff',
+                        hoverOffset: 6
                     }]
                 },
-                options: commonOptions
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: { family: 'Inter', size: 12 },
+                                padding: 14,
+                                usePointStyle: true,
+                                boxWidth: 8
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const val = context.parsed;
+                                    const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                                    return ` ${context.label}: ${val} (${pct}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
             });
         }
 
-        // 3. Chart: Tỷ lệ Tra Cứu / Xác minh
-        const degreeCtx = document.getElementById('degreeChart');
-        const verSource = chartData.verifications || chartData.faculty || { labels: [], data: [] };
-        if (degreeCtx) {
-            const hasData3 = verSource.labels && verSource.labels.length > 0;
-            new Chart(degreeCtx.getContext('2d'), {
-                type: 'pie',
-                data: {
-                    labels: hasData3 ? verSource.labels : ['Chưa có dữ liệu'],
-                    datasets: [{
-                        data: hasData3 ? verSource.data : [1],
-                        backgroundColor: hasData3 ? ['#10b981', '#ef4444', '#f59e0b', '#64748b'] : ['#f1f5f9'],
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
-                    }]
-                },
-                options: commonOptions
-            });
-        }
-
-        // 4. [Nghĩa - Task 4] Chart: Tỷ Lệ Xếp Loại Tốt Nghiệp
-        const classCtx = document.getElementById('classificationChart');
-        const classSource = chartData.classifications || { labels: [], data: [] };
-        if (classCtx) {
-            const hasData4 = classSource.labels && classSource.labels.length > 0;
-            const classColors = ['#10b981', '#2563eb', '#f59e0b', '#94a3b8', '#64748b'];
-            new Chart(classCtx.getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: hasData4 ? classSource.labels : ['Chưa có dữ liệu'],
-                    datasets: [{
-                        data: hasData4 ? classSource.data : [1],
-                        backgroundColor: hasData4 ? classColors : ['#f1f5f9'],
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
-                    }]
-                },
-                options: commonOptions
-            });
-        }
-
-        // 5. [Nghĩa - Task 4] Chart: Xu Hướng Tra Cứu Theo Ngày
-        const dailyCtx = document.getElementById('dailyVerificationChart');
-        const dailySource = chartData.daily_verifications || { labels: [], data: [] };
-        if (dailyCtx) {
-            const hasData5 = dailySource.labels && dailySource.labels.length > 0;
-            new Chart(dailyCtx.getContext('2d'), {
+        // 3. Biểu đồ đường: chartVerify
+        const ctxVerify = document.getElementById('chartVerify');
+        if (ctxVerify && charts.verify_by_day) {
+            const verifyData = charts.verify_by_day;
+            if (chartVerifyInstance) chartVerifyInstance.destroy();
+            chartVerifyInstance = new Chart(ctxVerify.getContext('2d'), {
                 type: 'line',
                 data: {
-                    labels: hasData5 ? dailySource.labels : ['Hôm nay'],
+                    labels: verifyData.labels || [],
                     datasets: [{
-                        label: 'Lượt tra cứu',
-                        data: hasData5 ? dailySource.data : [0],
-                        borderColor: '#2563eb',
-                        backgroundColor: 'rgba(37, 99, 235, 0.12)',
+                        label: 'Số lần tra cứu',
+                        data: verifyData.data || [],
+                        borderColor: '#059669',
+                        backgroundColor: 'rgba(5, 150, 105, 0.12)',
                         borderWidth: 2.5,
                         fill: true,
                         tension: 0.35,
-                        pointBackgroundColor: '#2563eb',
+                        pointBackgroundColor: '#059669',
                         pointBorderColor: '#ffffff',
                         pointBorderWidth: 2,
-                        pointRadius: 4,
+                        pointRadius: 3.5,
                         pointHoverRadius: 6
                     }]
                 },
@@ -385,22 +422,72 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: false }
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` Lượt tra cứu: ${context.parsed.y}`;
+                                }
+                            }
+                        }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
                             ticks: { precision: 0, font: { family: 'Inter', size: 11 } },
-                            grid: { color: 'rgba(226, 232, 240, 0.7)' }
+                            grid: { color: 'rgba(226, 232, 240, 0.6)' }
                         },
                         x: {
-                            ticks: { font: { family: 'Inter', size: 11 } },
+                            ticks: {
+                                font: { family: 'Inter', size: 10 },
+                                maxRotation: 45,
+                                autoSkip: true,
+                                maxTicksLimit: 15
+                            },
                             grid: { display: false }
                         }
                     }
                 }
             });
         }
-    });
+    }
+
+    // Nạp dữ liệu từ View AJAX /reporting/api/stats/
+    fetch('/reporting/api/stats/')
+        .then(res => {
+            if (!res.ok) throw new Error('HTTP status ' + res.status);
+            return res.json();
+        })
+        .then(data => {
+            // Cập nhật 4 thẻ KPI động
+            if (data.kpi) {
+                const totalEl = document.getElementById('kpi-total-issued');
+                const pendingEl = document.getElementById('kpi-pending');
+                const revokedEl = document.getElementById('kpi-revoked');
+                const verifyTodayEl = document.getElementById('kpi-verify-today');
+
+                if (totalEl && data.kpi.total_issued !== undefined) {
+                    totalEl.innerText = Number(data.kpi.total_issued).toLocaleString('vi-VN');
+                }
+                if (pendingEl && data.kpi.pending !== undefined) {
+                    pendingEl.innerText = Number(data.kpi.pending).toLocaleString('vi-VN');
+                }
+                if (revokedEl && data.kpi.revoked !== undefined) {
+                    revokedEl.innerText = Number(data.kpi.revoked).toLocaleString('vi-VN');
+                }
+                if (verifyTodayEl && data.kpi.verify_today !== undefined) {
+                    verifyTodayEl.innerText = Number(data.kpi.verify_today).toLocaleString('vi-VN');
+                }
+            }
+
+            // Khởi tạo 3 Chart() với dữ liệu trả về từ API
+            if (data.charts) {
+                renderDashboardCharts(data.charts);
+            }
+        })
+        .catch(err => {
+            console.error('Lỗi khi fetch /reporting/api/stats/:', err);
+        });
+});
 </script>
 {% endblock %}

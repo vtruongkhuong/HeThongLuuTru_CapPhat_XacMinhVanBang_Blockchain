@@ -1,21 +1,48 @@
 import csv
+from datetime import date
+from django.utils import timezone
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.exceptions import PermissionDenied
 
 from .services import get_dashboard_stats, get_chart_data
 from apps.degrees.models import Degree
+from apps.verification.models import VerificationLog
+
+
+def stats_api(request):
+    """
+    [BƯỚC 2] View AJAX trả JSON thống kê cho 3 biểu đồ Chart.js và 4 thẻ KPI
+    Endpoint: /reporting/api/stats/
+    """
+    today = timezone.now().date()
+    return JsonResponse({
+        'charts': get_chart_data(),
+        'kpi': {
+            'total_issued': Degree.objects.filter(status='ISSUED').count(),
+            'pending':      Degree.objects.filter(status__in=['DRAFT', 'REVIEWED', 'APPROVED']).count(),
+            'revoked':      Degree.objects.filter(status='REVOKED').count(),
+            'verify_today': VerificationLog.objects.filter(created_at__date=today).count(),
+        }
+    })
 
 
 @staff_member_required
 def dashboard_view(request):
     """View hiển thị trang Dashboard Báo cáo"""
+    today = timezone.now().date()
     context = {
         'title': 'Dashboard Thống Kê & Báo Cáo',
         'stats': get_dashboard_stats(),
         'charts': get_chart_data(),
+        'kpi': {
+            'total_issued': Degree.objects.filter(status='ISSUED').count(),
+            'pending':      Degree.objects.filter(status__in=['DRAFT', 'REVIEWED', 'APPROVED']).count(),
+            'revoked':      Degree.objects.filter(status='REVOKED').count(),
+            'verify_today': VerificationLog.objects.filter(created_at__date=today).count(),
+        }
     }
     return render(request, 'dashboard.html', context)
 
