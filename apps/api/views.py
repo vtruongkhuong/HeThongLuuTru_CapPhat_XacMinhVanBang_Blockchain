@@ -16,6 +16,8 @@ from .serializers import (
     DegreeVerifyResponseSerializer,
     HashVerifyRequestSerializer,
     BatchVerifyRequestSerializer,
+    BatchVerifyResponseSerializer,
+    IPFSUploadResponseSerializer,
 )
 from .authentication import APIKeyAuthentication
 from .vc_generator import generate_verifiable_credential
@@ -137,7 +139,7 @@ class VerifyBatchView(APIView):
         description='Body JSON: {"uuids": ["<uuid1>", "<uuid2>", ...]} — tối đa 50 UUID',
         request=BatchVerifyRequestSerializer,
         responses={
-            200: OpenApiResponse(description='results[] + summary{total/verified/tampered/revoked/not_found}'),
+            200: BatchVerifyResponseSerializer,
             400: OpenApiResponse(description='Dữ liệu đầu vào không hợp lệ'),
         },
     )
@@ -192,6 +194,7 @@ class DownloadVerifiableCredentialView(APIView):
         summary="Tải W3C Verifiable Credential JSON",
         description="Trả về file JSON chuẩn W3C VC Data Model v1.1 cho văn bằng, dùng để xác minh độc lập.",
         parameters=[OpenApiParameter('uuid', str, description='credential_public_id của văn bằng')],
+        request=None,
         responses={
             200: OpenApiResponse(description='JSON file — W3C Verifiable Credential'),
             400: OpenApiResponse(description='Văn bằng chưa phát hành on-chain'),
@@ -240,8 +243,9 @@ class IPFSUploadView(APIView):
             "Cập nhật ipfs_cid và ipfs_url vào DB."
         ),
         parameters=[OpenApiParameter('uuid', str, description='credential_public_id của văn bằng')],
+        request=None,
         responses={
-            200: OpenApiResponse(description='{"cid": "Qm...", "ipfs_url": "...", "student_name": "..."}'),
+            200: IPFSUploadResponseSerializer,
             404: OpenApiResponse(description='Không tìm thấy văn bằng'),
             400: OpenApiResponse(description='File PDF không tồn tại hoặc lỗi upload'),
         },

@@ -32,3 +32,24 @@ class BatchVerifyRequestSerializer(serializers.Serializer):
         max_length=50,
         help_text="Danh sách UUID văn bằng cần kiểm tra (tối đa 50)"
     )
+
+
+class BatchVerifySummarySerializer(serializers.Serializer):
+    total = serializers.IntegerField()
+    verified = serializers.IntegerField()
+    revoked = serializers.IntegerField()
+    tampered = serializers.IntegerField()
+    not_found = serializers.IntegerField()
+
+
+class BatchVerifyResponseSerializer(serializers.Serializer):
+    results = DegreeVerifyResponseSerializer(many=True)
+    summary = BatchVerifySummarySerializer()
+
+
+class IPFSUploadResponseSerializer(serializers.Serializer):
+    cid = serializers.CharField(help_text="Mã IPFS CIDv0 (Qm...)")
+    ipfs_url = serializers.URLField(help_text="Đường dẫn xem trên IPFS Gateway")
+    student_name = serializers.CharField()
+    degree_number = serializers.CharField()
+    already_uploaded = serializers.BooleanField(help_text="True nếu file đã được upload từ trước")

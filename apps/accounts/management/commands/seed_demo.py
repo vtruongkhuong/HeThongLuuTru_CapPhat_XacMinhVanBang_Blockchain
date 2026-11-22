@@ -8,6 +8,10 @@ from apps.accounts.models import Role
 from apps.academic.models import Faculty, Major, DegreeType
 from apps.students.models import Student, ImportBatch, ImportBatchItem
 from apps.graduation.models import GraduationBatch
+from apps.degrees.models import Degree
+from apps.revocation.models import RevocationRequest, ReasonCode
+from apps.verification.models import VerificationLog
+from apps.api.models import APIClient
 
 User = get_user_model()
 
@@ -201,4 +205,115 @@ class Command(BaseCommand):
             )
 
         self.stdout.write(self.style.SUCCESS('   [+] Đã tạo thành công 20 Sinh viên và gắn vào ImportBatch'))
-        self.stdout.write(self.style.SUCCESS('\n=== SEED DEMO HOÀN TẤT THÀNH CÔNG ==='))
+
+        # --- 8. TẠO 4 VĂN BẰNG DEMO ON-CHAIN (STATUS='ISSUED') (Task 14) ---
+        self.stdout.write(self.style.WARNING('5. Khởi tạo 4 Văn bằng phát hành On-Chain (ISSUED)...'))
+        import hashlib, uuid as uuid_lib
+        from django.utils import timezone as dj_tz
+
+        issued_students = Student.objects.filter(student_code__in=['B2200001', 'B2200002', 'B2200003', 'B2200004'])
+        created_degrees = []
+        for idx, st in enumerate(issued_students, start=1):
+            deg_hash = hashlib.sha256(f"CTUT-2026-DEMO-{st.student_code}-{idx}".encode()).hexdigest()
+            deg, _ = Degree.objects.update_or_create(
+                student=st,
+                batch=batch,
+                defaults={
+                    'degree_type': st.major.degree_type or deg_ks,
+                    'credential_public_id': uuid_lib.uuid5(uuid_lib.NAMESPACE_DNS, f"ctut.degree.{st.student_code}"),
+                    'classification': 'Giỏi' if idx % 2 == 1 else 'Khá',
+                    'issue_date': date(2026, 7, 1),
+                    'template_version': 'v2.0',
+                    'credential_version': '1.0',
+                    'canonical_hash': deg_hash,
+                    'status': 'ISSUED',
+                    'generated_at': dj_tz.now(),
+                    'approved_by': created_users.get('officer_b'),
+                    'reviewed_by': created_users.get('officer_a'),
+                }
+            )
+            created_degrees.append(deg)
+            self.stdout.write(self.style.SUCCESS(f'   [+] Degree ISSUED: {st.full_name} ({st.student_code}) - {deg.credential_public_id}'))
+
+        # --- 9. TẠO 1 VĂN BẰNG BỊ THU HỒI (STATUS='REVOKED') (Task 14) ---
+        self.stdout.write(self.style.WARNING('6. Khởi tạo 1 Văn bằng bị thu hồi (REVOKED)...'))
+        st_revoked = Student.objects.filter(student_code='B2200005').first()
+        if st_revoked:
+            rev_hash = hashlib.sha256(f"CTUT-2026-REVOKED-{st_revoked.student_code}".encode()).hexdigest()
+            deg_rev, _ = Degree.objects.update_or_create(
+                student=st_revoked,
+                batch=batch,
+                defaults={
+                    'degree_type': st_revoked.major.degree_type or deg_ks,
+                    'credential_public_id': uuid_lib.uuid5(uuid_lib.NAMESPACE_DNS, f"ctut.degree.{st_revoked.student_code}"),
+                    'classification': 'Trung bình',
+                    'issue_date': date(2026, 7, 1),
+                    'template_version': 'v2.0',
+                    'credential_version': '1.0',
+                    'canonical_hash': rev_hash,
+                    'status': 'REVOKED',
+                    'generated_at': dj_tz.now(),
+                    'approved_by': created_users.get('officer_b'),
+                    'reviewed_by': created_users.get('officer_a'),
+                }
+            )
+            reason = ReasonCode.objects.filter(code='DISCIPLINARY').first() or ReasonCode.objects.first()
+            if reason:
+                RevocationRequest.objects.update_or_create(
+                    degree=deg_rev,
+                    defaults={
+                        'reason_code': reason,
+                        'description': 'Thu hồi do phát hiện vi phạm quy chế tuyển sinh & kỷ luật sinh viên.',
+                        'status': 'EXECUTED',
+                        'requested_by': created_users.get('officer_a'),
+                        'approved_by': created_users.get('officer_b'),
+                        'executed_by': created_users.get('issuer'),
+                        'requested_at': dj_tz.now(),
+                        'approved_at': dj_tz.now(),
+                        'executed_at': dj_tz.now(),
+                    }
+                )
+            self.stdout.write(self.style.SUCCESS(f'   [+] Degree REVOKED: {st_revoked.full_name} ({st_revoked.student_code})'))
+
+        # --- 10. TẠO 10 VERIFICATION LOGS MẪU CHO BIỂU ĐỒ & LỊCH SỬ (Task 14) ---
+        self.stdout.write(self.style.WARNING('7. Khởi tạo 10 Lịch sử tra cứu VerificationLog...'))
+        log_samples = [
+            ('CTUT-2026-000001', created_degrees[0] if created_degrees else None, 'VALID', True),
+            ('CTUT-2026-000002', created_degrees[1] if len(created_degrees) > 1 else None, 'VALID', True),
+            ('CTUT-2026-000003', created_degrees[2] if len(created_degrees) > 2 else None, 'VALID', True),
+            ('CTUT-2026-000005', deg_rev if 'deg_rev' in locals() else None, 'REVOKED', True),
+            ('CTUT-FAKE-999999', None, 'TAMPERED', False),
+            ('CTUT-FAKE-888888', None, 'NOT_FOUND', False),
+            ('CTUT-2026-000001', created_degrees[0] if created_degrees else None, 'VALID', True),
+            ('CTUT-2026-000002', created_degrees[1] if len(created_degrees) > 1 else None, 'VALID', True),
+            ('CTUT-FAKE-777777', None, 'TAMPERED', False),
+            ('CTUT-2026-000004', created_degrees[3] if len(created_degrees) > 3 else None, 'VALID', True),
+        ]
+        for query_code, d_obj, res_st, is_succ in log_samples:
+            VerificationLog.objects.create(
+                search_query=query_code,
+                degree=d_obj,
+                ip_address='127.0.0.1',
+                user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0',
+                is_successful=is_succ,
+                result_status=res_st,
+                verification_type='PUBLIC_SEARCH',
+            )
+        self.stdout.write(self.style.SUCCESS('   [+] 10 VerificationLog mẫu (VALID, REVOKED, TAMPERED, NOT_FOUND)'))
+
+        # --- 11. TẠO APICLIENT MẪU CHO DOANH NGHIỆP DEMO (Task 14) ---
+        self.stdout.write(self.style.WARNING('8. Khởi tạo Doanh nghiệp API Client demo...'))
+        demo_key = "4397dc03eec1bbc03d28b37c81540f537e072324af958bb7dd74acde8699da11"
+        api_client, _ = APIClient.objects.update_or_create(
+            api_key=demo_key,
+            defaults={
+                'name': "Tập Đoàn Công Nghệ FPT - Ban Tuyển Dụng",
+                'is_active': True,
+                'quota_per_day': 500,
+                'usage_today': 5,
+                'contact_email': 'hr-tuyendung@fpt.com.vn',
+            }
+        )
+        self.stdout.write(self.style.SUCCESS(f'   [+] API Client: {api_client.name} | Key: {demo_key[:12]}...'))
+
+        self.stdout.write(self.style.SUCCESS('\n=== ✅ SEED DATA DEMO HOÀN TẤT THÀNH CÔNG ==='))

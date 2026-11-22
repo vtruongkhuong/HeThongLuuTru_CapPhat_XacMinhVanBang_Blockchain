@@ -51,3 +51,20 @@ class APIKeyAuthentication(BaseAuthentication):
 
     def authenticate_header(self, request):
         return 'X-API-Key'
+
+
+from drf_spectacular.extensions import OpenApiAuthenticationExtension
+
+
+class APIKeyScheme(OpenApiAuthenticationExtension):
+    """Đăng ký bảo mật X-API-Key vào tài liệu Swagger / OpenAPI."""
+    target_class = 'apps.api.authentication.APIKeyAuthentication'
+    name = 'ApiKeyAuth'
+
+    def get_security_definition(self, auto_schema):
+        return {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'X-API-Key',
+            'description': 'Nhập mã API Key của doanh nghiệp được cấp trong Django Admin.',
+        }
