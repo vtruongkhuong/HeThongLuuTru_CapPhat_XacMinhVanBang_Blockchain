@@ -706,7 +706,7 @@ def employer_batch_verify_view(request):
                             tx_hash = getattr(degree, 'tx_hash', None) or getattr(issuance_batch, 'tx_hash', '---')
 
                             results.append({
-                                'file_name': f"Excel #{r_idx-header_row_idx}: {name_val}",
+                                'file_name': f"{file_name} [Dòng {r_idx-header_row_idx}]",
                                 'file_size': f"{file_size_kb} KB",
                                 'status': status,
                                 'status_text': status_text,
@@ -728,7 +728,7 @@ def employer_batch_verify_view(request):
                             badge_class = 'bg-rose-50 text-rose-700 border-rose-200' if is_tampered_test else 'bg-gray-50 text-gray-600 border-gray-200'
 
                             results.append({
-                                'file_name': f"Excel #{r_idx-header_row_idx}: {name_val}",
+                                'file_name': f"{file_name} [Dòng {r_idx-header_row_idx}]",
                                 'file_size': f"{file_size_kb} KB",
                                 'status': status,
                                 'status_text': status_text,
