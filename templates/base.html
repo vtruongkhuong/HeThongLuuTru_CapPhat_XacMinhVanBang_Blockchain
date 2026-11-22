@@ -69,7 +69,7 @@
                     <span class="material-symbols-outlined text-2xl transition-transform group-hover:scale-110">school</span>
                 </div>
                 <div>
-                    <h1 class="font-black text-slate-900 uppercase tracking-wider text-xs leading-tight">BLOCKCHAIN<br><span class="text-blue-600">DEGREE PORTAL</span></h1>
+                    <h1 class="font-black text-slate-900 uppercase tracking-wider text-xs leading-tight">CTUT • BLOCKCHAIN<br><span class="text-blue-600">HỆ THỐNG XÁC THỰC VĂN BẰNG</span></h1>
                 </div>
             </a>
             
@@ -87,6 +87,12 @@
             </a>
             <a href="{% url 'verification:employer_batch_verify' %}" class="text-gray-600 hover:text-blue-600 transition-colors flex items-center gap-1.5 text-xs uppercase tracking-wider font-bold">
                 <span class="material-symbols-outlined text-base">domain</span> Doanh nghiệp
+            </a>
+            <a href="{% url 'verification:merkle_visualizer' %}" class="text-gray-600 hover:text-blue-600 transition-colors flex items-center gap-1.5 text-xs uppercase tracking-wider font-bold">
+                <span class="material-symbols-outlined text-base text-indigo-500">account_tree</span> Cây Merkle
+            </a>
+            <a href="{% url 'verification:w3c_standalone_verifier' %}" class="text-gray-600 hover:text-blue-600 transition-colors flex items-center gap-1.5 text-xs uppercase tracking-wider font-bold">
+                <span class="material-symbols-outlined text-base text-emerald-500">verified_user</span> Xác minh W3C
             </a>
 
             {% if user.is_authenticated %}
@@ -144,18 +150,111 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="bg-white py-6 border-t border-gray-100 mt-auto text-center text-xs text-gray-400 font-medium flex flex-col sm:flex-row items-center justify-between px-8 gap-3">
-        <div>
-            &copy; 2026 Đồ án Hệ thống Quản lý & Xác thực Văn bằng Blockchain. CTUT.
-        </div>
-        <div class="flex items-center gap-4 text-[11px] font-semibold text-gray-400">
-            <a href="{% url 'landing' %}" class="hover:text-ntt-light transition-colors">Tra cứu công khai</a>
-            <span>&bull;</span>
-            <a href="/animate-ui/" class="hover:text-ntt-light transition-colors flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Animate UI Demo
-            </a>
-            <span>&bull;</span>
-            <a href="/admin/" class="hover:text-ntt-light transition-colors">Admin Unfold</a>
+    <!-- Footer chuẩn Viện - Trường Đại học Kỹ thuật - Công nghệ Cần Thơ (CTUT) -->
+    <footer class="bg-[#0b1120] text-slate-400 text-xs border-t border-slate-800 mt-auto">
+        <div class="max-w-6xl mx-auto px-6 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
+                <!-- Cột 1 & 2: Thông tin cơ quan chủ quản -->
+                <div class="md:col-span-2 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold shrink-0">
+                            <span class="material-symbols-outlined text-2xl">school</span>
+                        </div>
+                        <div>
+                            <div class="text-sm font-extrabold text-white uppercase tracking-tight">TRƯỜNG ĐẠI HỌC KỸ THUẬT - CÔNG NGHỆ CẦN THƠ</div>
+                            <div class="text-[11px] font-mono text-slate-400">CAN THO UNIVERSITY OF TECHNOLOGY (CTUT)</div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-slate-400 leading-relaxed max-w-md">
+                        Hệ thống Quản lý, Cấp phát & Bảo chứng Toàn vẹn Văn bằng Số trên nền tảng Chuỗi khối (Blockchain) và Lưu trữ phi tập trung (IPFS), tuân thủ tiêu chuẩn Merkle Tree RFC 6962 và quy chế văn bằng hiện hành của Bộ GD&ĐT.
+                    </p>
+                    <div class="space-y-1.5 text-xs text-slate-400 font-medium pt-1">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[16px] text-slate-500">location_on</span>
+                            <span>256 Nguyễn Văn Cừ, P. An Hòa, Q. Ninh Kiều, TP. Cần Thơ</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[16px] text-slate-500">mail</span>
+                            <span>daotao@ctuet.edu.vn</span>
+                            <span class="text-slate-600">•</span>
+                            <span class="material-symbols-outlined text-[16px] text-slate-500">call</span>
+                            <span>(0292) 3898 167</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cột 3: Cổng dịch vụ tra cứu -->
+                <div class="space-y-3">
+                    <div class="text-xs font-bold text-white uppercase tracking-wider font-mono">Dịch Vụ Tra Cứu</div>
+                    <ul class="space-y-2 text-xs">
+                        <li>
+                            <a href="{% url 'landing' %}" class="hover:text-blue-400 transition-colors flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-[14px] text-slate-500">arrow_forward</span> Tra cứu văn bằng chính quy
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'verification:verify_temp_cert' %}" class="hover:text-blue-400 transition-colors flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-[14px] text-slate-500">arrow_forward</span> Chứng nhận tốt nghiệp tạm thời
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'verification:employer_batch_verify' %}" class="hover:text-blue-400 transition-colors flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-[14px] text-slate-500">arrow_forward</span> Doanh nghiệp đối soát hồ sơ
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'student_portal:dashboard' %}" class="hover:text-blue-400 transition-colors flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-[14px] text-slate-500">arrow_forward</span> Cổng sinh viên (Hồ sơ số)
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Cột 4: Tiêu chuẩn công nghệ mật mã -->
+                <div class="space-y-3">
+                    <div class="text-xs font-bold text-white uppercase tracking-wider font-mono">Tiêu Chuẩn Bảo Chứng</div>
+                    <ul class="space-y-2 text-xs">
+                        <li class="flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            <span>Ethereum Sepolia Testnet</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                            <a href="{% url 'verification:merkle_visualizer' %}" class="hover:text-blue-400 transition-colors flex items-center gap-1">
+                                <span>Merkle Tree (RFC 6962)</span>
+                                <span class="material-symbols-outlined text-[12px] text-slate-500">open_in_new</span>
+                            </a>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                            <span>Lưu trữ IPFS CIDv1 Pinata</span>
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+                            <a href="{% url 'verification:w3c_standalone_verifier' %}" class="hover:text-blue-400 transition-colors flex items-center gap-1">
+                                <span>W3C Verifiable Credentials</span>
+                                <span class="material-symbols-outlined text-[12px] text-slate-500">open_in_new</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Dòng đáy (Sub-footer bản quyền) -->
+            <div class="pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
+                <div>
+                    &copy; 2026 Trường Đại học Kỹ thuật - Công nghệ Cần Thơ (CTUT). Bảo lưu mọi quyền.
+                </div>
+                <div class="flex items-center gap-4">
+                    <a href="{% url 'landing' %}" class="hover:text-slate-300 transition-colors">Trang chủ tra cứu</a>
+                    <span class="text-slate-700">&bull;</span>
+                    <a href="https://ctuet.edu.vn" target="_blank" rel="noopener noreferrer" class="hover:text-slate-300 transition-colors">Cổng TT Đào tạo CTUT</a>
+                    <span class="text-slate-700">&bull;</span>
+                    <a href="/admin/" class="hover:text-slate-300 transition-colors flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[13px]">lock</span> Cổng Quản Trị Hệ Thống
+                    </a>
+                </div>
+            </div>
         </div>
     </footer>
 </body>

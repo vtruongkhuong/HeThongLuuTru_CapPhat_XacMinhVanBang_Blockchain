@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Liên Kết Đã Đạt Giới Hạn Lượt Xem{% endblock %}
+
+{% block content %}
+<div class="min-h-[75vh] flex items-center justify-center px-4 py-16 bg-slate-50">
+    <div class="max-w-md w-full bg-white rounded-3xl p-8 sm:p-10 shadow-xl border border-slate-200 taste-card text-center space-y-6">
+        <div class="w-20 h-20 rounded-3xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mx-auto shadow-xs">
+            <span class="material-symbols-outlined text-4xl">visibility_off</span>
+        </div>
+        
+        <div>
+            <span class="text-xs uppercase tracking-wider font-extrabold text-rose-600 bg-rose-100/60 px-3 py-1 rounded-full border border-rose-200">
+                Giới Hạn Truy Cập
+            </span>
+            <h2 class="text-2xl font-black text-slate-900 mt-3">Đã Hết Lượt Xem</h2>
+            <p class="text-xs text-slate-500 mt-2 leading-relaxed font-medium">
+                Liên kết chia sẻ này đã đạt giới hạn tối đa <strong>{{ link.max_views }} lượt xem</strong> do ứng viên thiết lập để bảo mật thông tin tuyển dụng.
+            </p>
+        </div>
+
+        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 text-xs text-slate-600 text-left space-y-1.5">
+            <p class="font-bold text-slate-800 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[16px] text-rose-500">shield</span>
+                Cơ chế bảo vệ CV tuyển dụng
+            </p>
+            <p class="text-slate-500 text-[11px] leading-relaxed">
+                Để tránh rò rỉ dữ liệu, ứng viên có thể giới hạn số lần nhà tuyển dụng mở xem hồ sơ. Sau khi vượt quá lượt xem, hệ thống sẽ tự động khóa liên kết.
+            </p>
+        </div>
+
+        <div class="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
+            <a href="{% url 'verification:landing' %}" class="taste-btn w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-sm">
+                Trang Chủ
+            </a>
+            <a href="{% url 'verification:employer_batch_verify' %}" class="taste-btn w-full sm:w-auto px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs uppercase tracking-wider transition-all">
+                Cổng Doanh Nghiệp
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

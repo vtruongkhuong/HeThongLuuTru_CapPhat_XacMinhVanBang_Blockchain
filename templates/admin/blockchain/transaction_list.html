@@ -1,0 +1,445 @@
+{% extends "unfold/layouts/base.html" %}
+{% load i18n static %}
+
+{% block title %}Blockchain Transaction Explorer | {{ site_title|default:_("CTUT Admin") }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="px-4 py-3 border-b border-slate-200 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
+    <a href="{% url 'admin:index' %}" class="hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-1 font-semibold transition-colors">
+        <span class="material-symbols-outlined text-[16px]">home</span> {% trans "Trang chủ" %}
+    </a>
+    <span class="text-slate-300 dark:text-slate-600">/</span>
+    <span class="text-slate-800 dark:text-slate-200 font-bold flex items-center gap-1">
+        <span class="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">receipt_long</span>
+        Blockchain Transaction Explorer
+    </span>
+</div>
+{% endblock %}
+
+{% block content %}
+<style>
+    /* Khoảng cách chuẩn giữa các khối (Breathing Room) */
+    .explorer-block {
+        margin-bottom: 24px !important;
+    }
+
+    /* Thẻ nền sáng tối giản, phẳng tinh tế, chuẩn Light Mode */
+    .explorer-card {
+        background-color: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        border-radius: 16px !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+    }
+
+    /* Styling dropdown option chuẩn Light Theme */
+    select.explorer-select {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        border: 1px solid #cbd5e1 !important;
+        height: 40px !important;
+    }
+    select.explorer-select option {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        padding: 10px 12px !important;
+    }
+
+    /* Hiệu ứng hover dòng bảng */
+    .tx-row {
+        transition: background-color 0.15s ease;
+    }
+    .tx-row:hover {
+        background-color: #f0f7ff !important;
+    }
+</style>
+
+<div class="max-w-7xl mx-auto px-2 sm:px-4 py-4">
+
+    <!-- =========================================================================
+         1. HEADER BANNER (KHỐI 1)
+         ========================================================================= -->
+    <div class="explorer-card explorer-block p-6">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2 mb-1.5">
+                    <span class="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/60">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Ethereum Sepolia Live • Chain ID: 11155111
+                    </span>
+                </div>
+                <h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                    Blockchain Transaction Explorer
+                </h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    Trình giám sát đối soát giao dịch ghi nhận Merkle Root và thu hồi văn bằng trên mạng lưới Blockchain.
+                </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                <a href="{% url 'verification:merkle_visualizer' %}" class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-xl border border-indigo-200 flex items-center gap-1.5 transition-all shadow-sm" title="Mô phỏng cây Merkle phân cấp và đường đi Audit Path">
+                    <span class="material-symbols-outlined text-[16px] text-indigo-600">account_tree</span> Cây Merkle
+                </a>
+                <a href="{% url 'verification:w3c_standalone_verifier' %}" class="px-3.5 py-2 bg-sky-50 hover:bg-sky-100 text-sky-700 text-xs font-semibold rounded-xl border border-sky-200 flex items-center gap-1.5 transition-all shadow-sm" title="Trình thẩm định độc lập chuẩn W3C Verifiable Credentials">
+                    <span class="material-symbols-outlined text-[16px] text-sky-600">verified_user</span> Xác Minh W3C
+                </a>
+                <a href="{% url 'admin_blockchain_transactions' %}?sync=1" class="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-xl border border-emerald-300 flex items-center gap-1.5 transition-all shadow-sm" title="Quét và đồng bộ dữ liệu Khối & Gas mới nhất trực tiếp từ Sepolia RPC">
+                    <span class="material-symbols-outlined text-[16px] text-emerald-600">sync</span> Đồng Bộ On-Chain
+                </a>
+                <a href="https://sepolia.etherscan.io/address/0x8E53683464fE95222b854b9336ba1b8B6B913577" target="_blank" class="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-xl border border-slate-300 dark:border-slate-700 flex items-center gap-1.5 transition-all">
+                    <span class="material-symbols-outlined text-[16px] text-blue-500">open_in_new</span> Sepolia Contract
+                </a>
+                <a href="{% url 'admin:index' %}" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 shadow-sm transition-all">
+                    <span class="material-symbols-outlined text-[16px]">arrow_back</span> Hub Quản Trị
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================================================
+         2. 4 KPI STATS CARDS (KHỐI 2 - THIẾT KẾ PHẲNG, TỰ NHIÊN, BỎ PILL THỪA)
+         ========================================================================= -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 explorer-block">
+        <!-- Card 1: Tổng Giao Dịch -->
+        <div class="explorer-card p-5 flex flex-col justify-between" style="min-height: 120px;">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+                </div>
+                <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Tổng Giao Dịch</span>
+            </div>
+            <div class="mt-4">
+                <div class="text-3xl font-black text-slate-900 dark:text-white font-mono tracking-tight">{{ stats.total }}</div>
+                <div class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Toàn bộ lịch sử on-chain</div>
+            </div>
+        </div>
+
+        <!-- Card 2: Đã Xác Nhận On-Chain -->
+        <div class="explorer-card p-5 flex flex-col justify-between" style="min-height: 120px;">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]">verified</span>
+                </div>
+                <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Đã Xác Nhận</span>
+            </div>
+            <div class="mt-4">
+                <div class="text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono tracking-tight">{{ stats.confirmed }}</div>
+                <div class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Đã đóng dấu block bất biến</div>
+            </div>
+        </div>
+
+        <!-- Card 3: Giao Dịch Cấp Bằng -->
+        <div class="explorer-card p-5 flex flex-col justify-between" style="min-height: 120px;">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]">add_task</span>
+                </div>
+                <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Cấp Bằng (Issue)</span>
+            </div>
+            <div class="mt-4">
+                <div class="text-3xl font-black text-indigo-600 dark:text-indigo-400 font-mono tracking-tight">{{ stats.issue }}</div>
+                <div class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Ghi nhận Merkle Root đợt</div>
+            </div>
+        </div>
+
+        <!-- Card 4: Giao Dịch Thu Hồi -->
+        <div class="explorer-card p-5 flex flex-col justify-between" style="min-height: 120px;">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]">gpp_bad</span>
+                </div>
+                <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Thu Hồi (Revoke)</span>
+            </div>
+            <div class="mt-4">
+                <div class="text-3xl font-black text-rose-600 dark:text-rose-400 font-mono tracking-tight">{{ stats.revoke }}</div>
+                <div class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">Hủy hiệu lực văn bằng</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================================================
+         3. BỘ LỌC DỮ LIỆU (KHỐI 3 - SỬA LỖI KÍNH LÚP & COMBOBOX)
+         ========================================================================= -->
+    <div class="explorer-card explorer-block p-5">
+        <form method="GET" id="txFilterForm" class="space-y-3">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                <!-- Search Input: dùng Flex container chuẩn, icon nằm trong và căn giữa tuyệt đối -->
+                <div class="md:col-span-4">
+                    <div class="flex items-center w-full bg-slate-50 dark:bg-[#141e33] border border-slate-300 dark:border-slate-700 rounded-xl px-3 h-[40px] transition-colors focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+                        <span class="material-symbols-outlined text-slate-400 text-[18px] mr-2.5 shrink-0 select-none">search</span>
+                        <input type="text" name="q" value="{{ search_query }}" placeholder="Tìm theo TxHash, MSSV, Họ tên..." 
+                               class="w-full bg-transparent border-0 p-0 text-xs font-semibold text-slate-800 dark:text-slate-100 placeholder-slate-400 outline-none focus:outline-none focus:ring-0 shadow-none">
+                    </div>
+                </div>
+
+                <!-- Batch Select Dropdown -->
+                <div class="md:col-span-3">
+                    <select name="batch_id" onchange="document.getElementById('txFilterForm').submit()" 
+                            class="explorer-select w-full rounded-xl px-3 text-xs font-semibold outline-none focus:border-blue-500 transition-colors cursor-pointer">
+                        <option value="">-- Tất cả đợt tốt nghiệp --</option>
+                        {% for b in batches %}
+                        <option value="{{ b.id }}" {% if selected_batch == b.id|stringformat:"s" %}selected{% endif %}>
+                            {{ b.name }}{% if b.decision_date %} ({{ b.decision_date.year }}){% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Operation Type Dropdown -->
+                <div class="md:col-span-2">
+                    <select name="op_type" onchange="document.getElementById('txFilterForm').submit()" 
+                            class="explorer-select w-full rounded-xl px-3 text-xs font-semibold outline-none focus:border-blue-500 transition-colors cursor-pointer">
+                        <option value="">-- Tất cả thao tác --</option>
+                        <option value="ISSUE" {% if selected_op == 'ISSUE' %}selected{% endif %}>Phát hành (ISSUE)</option>
+                        <option value="REVOKE" {% if selected_op == 'REVOKE' %}selected{% endif %}>Thu hồi (REVOKE)</option>
+                    </select>
+                </div>
+
+                <!-- Status Dropdown -->
+                <div class="md:col-span-2">
+                    <select name="status" onchange="document.getElementById('txFilterForm').submit()" 
+                            class="explorer-select w-full rounded-xl px-3 text-xs font-semibold outline-none focus:border-blue-500 transition-colors cursor-pointer">
+                        <option value="">-- Tất cả trạng thái --</option>
+                        <option value="confirmed" {% if selected_status == 'confirmed' %}selected{% endif %}>Đã xác nhận</option>
+                        <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Đang chờ</option>
+                    </select>
+                </div>
+
+                <!-- Buttons -->
+                <div class="md:col-span-1 flex items-center gap-1.5">
+                    <button type="submit" class="w-full h-[40px] bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1 shadow-sm cursor-pointer" title="Lọc dữ liệu">
+                        <span class="material-symbols-outlined text-[16px]">filter_list</span> Lọc
+                    </button>
+                    {% if selected_batch or selected_op or selected_status or search_query %}
+                    <a href="{% url 'admin_blockchain_transactions' %}" class="h-[40px] px-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold transition-all flex items-center justify-center shrink-0 border border-slate-300 dark:border-slate-700" title="Đặt lại bộ lọc">
+                        <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Active Filter Tags -->
+            {% if selected_batch or selected_op or selected_status or search_query %}
+            <div class="flex flex-wrap items-center gap-2 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-xs">
+                <span class="text-slate-400 font-medium">Đang lọc:</span>
+                {% if search_query %}
+                <span class="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-[11px] font-medium">
+                    Từ khóa: "{{ search_query }}"
+                </span>
+                {% endif %}
+                {% if selected_batch %}
+                <span class="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-[11px] font-medium">
+                    Đợt ID: #{{ selected_batch }}
+                </span>
+                {% endif %}
+                {% if selected_op %}
+                <span class="px-2.5 py-1 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 text-[11px] font-medium">
+                    Thao tác: {{ selected_op }}
+                </span>
+                {% endif %}
+                {% if selected_status %}
+                <span class="px-2.5 py-1 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-medium">
+                    Trạng thái: {{ selected_status }}
+                </span>
+                {% endif %}
+                <a href="{% url 'admin_blockchain_transactions' %}" class="text-rose-500 hover:text-rose-600 text-[11px] font-semibold ml-1 inline-flex items-center gap-0.5 hover:underline">
+                    <span class="material-symbols-outlined text-[13px]">close</span> Xóa lọc
+                </a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- =========================================================================
+         4. BẢNG GIAO DỊCH ON-CHAIN (KHỐI 4 - ETHERSCAN / STRIPE STYLE)
+         ========================================================================= -->
+    <div class="explorer-card explorer-block overflow-hidden">
+        <div class="px-5 py-3.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/40">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[17px] text-blue-600 dark:text-blue-400">dataset</span>
+                Giao Dịch Sepolia ({{ transactions|length }} bản ghi)
+            </h3>
+            <span class="text-[11px] font-mono text-slate-400 dark:text-slate-500">
+                Thứ tự: Mới nhất trước &darr;
+            </span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+                <thead class="bg-slate-50 dark:bg-[#141e33] text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800">
+                    <tr>
+                        <th class="py-3 px-4 text-center w-12 font-mono text-slate-400">#</th>
+                        <th class="py-3 px-4">Loại Thao Tác</th>
+                        <th class="py-3 px-4">Mã Giao Dịch (TxHash)</th>
+                        <th class="py-3 px-4">Đợt / Đối Tượng</th>
+                        <th class="py-3 px-4 text-center">Khối (Block)</th>
+                        <th class="py-3 px-4 text-right">Lượng Gas</th>
+                        <th class="py-3 px-4 text-center">Trạng Thái</th>
+                        <th class="py-3 px-4 text-right">Thời Gian</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80">
+                    {% for tx in transactions %}
+                    <tr class="tx-row">
+                        <td class="py-3 px-4 text-center font-mono text-slate-400 font-medium">{{ forloop.counter }}</td>
+                        
+                        <!-- Loại thao tác: chip dẹp nhẹ nhàng, không viền dày -->
+                        <td class="py-3 px-4">
+                            {% if tx.operation_type == 'ISSUE' %}
+                                <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 inline-flex items-center gap-1">
+                                    Cấp Phát
+                                </span>
+                            {% elif tx.operation_type == 'REVOKE' %}
+                                <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 inline-flex items-center gap-1">
+                                    Thu Hồi
+                                </span>
+                            {% elif tx.operation_type == 'SYNC' %}
+                                <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 inline-flex items-center gap-1">
+                                    Đồng Bộ
+                                </span>
+                            {% else %}
+                                <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20 inline-flex items-center gap-1">
+                                    {{ tx.operation_type|default:"Tác Vụ" }}
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Mã Giao dịch: Monospace link tự nhiên, không đóng khung pill dày -->
+                        <td class="py-3 px-4">
+                            <div class="flex items-center gap-1.5">
+                                <a href="https://sepolia.etherscan.io/tx/{{ tx.tx_hash }}" target="_blank" 
+                                   class="font-mono text-xs font-semibold text-blue-600 dark:text-sky-400 hover:underline tracking-tight" 
+                                   title="Xem trên Etherscan Sepolia: {{ tx.tx_hash }}">
+                                    {{ tx.tx_hash|slice:":10" }}...{{ tx.tx_hash|slice:"-8:" }}
+                                </a>
+                                <button type="button" onclick="navigator.clipboard.writeText('{{ tx.tx_hash }}'); alert('Đã chép TxHash vào clipboard!');" 
+                                        class="p-1 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer" 
+                                        title="Chép mã TxHash">
+                                    <span class="material-symbols-outlined text-[14px]">content_copy</span>
+                                </button>
+                                <a href="https://sepolia.etherscan.io/tx/{{ tx.tx_hash }}" target="_blank" 
+                                   class="p-1 rounded text-slate-400 hover:text-blue-600 dark:hover:text-sky-400 transition-colors" 
+                                   title="Mở tab Etherscan">
+                                    <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+                                </a>
+                            </div>
+                        </td>
+
+                        <!-- Đợt / Đối tượng -->
+                        <td class="py-3 px-4">
+                            {% if tx.operation_type == 'REVOKE' %}
+                                {% if tx.degree %}
+                                    <div class="font-bold text-slate-900 dark:text-slate-100 text-xs flex items-center gap-1.5 flex-wrap">
+                                        <span>{{ tx.degree.student.full_name }}</span>
+                                        <span class="text-blue-600 dark:text-sky-400 font-mono font-medium">({{ tx.degree.student.student_code }})</span>
+                                    </div>
+                                    <div class="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5 flex flex-wrap items-center gap-x-2">
+                                        <span>Số hiệu: <span class="text-slate-700 dark:text-slate-300 font-semibold">{{ tx.degree.degree_number }}</span></span>
+                                        {% if tx.degree.batch %}
+                                        <span class="text-slate-300 dark:text-slate-600">•</span>
+                                        <span class="text-slate-500">Đợt: {{ tx.degree.batch.name }} (#{{ tx.degree.batch.id }})</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if tx.revocation_request and tx.revocation_request.reason_code %}
+                                    <div class="mt-1 flex items-center gap-1.5">
+                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60">
+                                            <span class="material-symbols-outlined text-[12px]">gavel</span>
+                                            {{ tx.revocation_request.reason_code.description }}
+                                        </span>
+                                        {% if tx.revocation_request.supersedes %}
+                                        <span class="text-[10px] text-slate-400 font-mono" title="Cấp đổi thay thế bằng mới">
+                                            &rarr; Cấp đổi: {{ tx.revocation_request.supersedes.degree_number }}
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-slate-400">-</span>
+                                {% endif %}
+                            {% elif tx.issuance_batch %}
+                                <div class="font-bold text-slate-900 dark:text-slate-100 text-xs">{{ tx.issuance_batch.graduation_batch.name }}</div>
+                                <div class="text-[10px] text-slate-400 dark:text-slate-500 font-mono mt-0.5">
+                                    Đợt ID: #{{ tx.issuance_batch.graduation_batch.id }}
+                                    {% if tx.issuance_batch.chain_id %}
+                                    • BatchID: {{ tx.issuance_batch.chain_id|slice:":10" }}...
+                                    {% endif %}
+                                </div>
+                            {% elif tx.degree %}
+                                <div class="font-bold text-slate-900 dark:text-slate-100 text-xs">
+                                    {{ tx.degree.student.full_name }}
+                                    <span class="text-blue-600 dark:text-blue-400 font-mono font-medium">({{ tx.degree.student.student_code }})</span>
+                                </div>
+                                <div class="text-[10px] text-slate-400 dark:text-slate-500 font-mono mt-0.5">
+                                    Số hiệu: {{ tx.degree.degree_number }}
+                                    {% if tx.degree.batch %}
+                                    • Đợt: {{ tx.degree.batch.name }}
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <span class="text-slate-400">-</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Khối Block: số phẳng font-mono -->
+                        <td class="py-3 px-4 text-center font-mono text-slate-600 dark:text-slate-300 text-xs whitespace-nowrap">
+                            {% if tx.block_number %}
+                                <span class="font-bold text-slate-700 dark:text-slate-200">#{{ tx.block_number }}</span>
+                            {% elif tx.status|lower == 'pending' %}
+                                <span class="inline-flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400 font-sans italic">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Chờ khối...
+                                </span>
+                            {% else %}
+                                <span class="text-slate-400 font-mono">-</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Gas Used -->
+                        <td class="py-3 px-4 text-right font-mono text-slate-600 dark:text-slate-300 text-xs whitespace-nowrap">
+                            {% if tx.gas_used %}
+                                <span class="font-semibold text-slate-700 dark:text-slate-200">{{ tx.gas_used }}</span>
+                            {% elif tx.status|lower == 'pending' %}
+                                <span class="text-[11px] text-slate-400 font-sans italic">Đang tính...</span>
+                            {% else %}
+                                <span class="text-slate-400 font-mono">-</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Trạng thái: Dùng status dot thanh lịch -->
+                        <td class="py-3 px-4 text-center">
+                            {% if tx.status|lower == 'confirmed' %}
+                                <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Confirmed
+                                </span>
+                            {% elif tx.status|lower == 'failed' %}
+                                <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Failed
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Pending
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Thời gian -->
+                        <td class="py-3 px-4 text-right text-slate-400 text-[11px] font-mono">
+                            {{ tx.created_at|date:"d/m/Y H:i" }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="py-12 text-center text-slate-400">
+                            <span class="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 block mb-2">database</span>
+                            <span class="font-bold block text-sm text-slate-700 dark:text-slate-300">Không tìm thấy giao dịch nào</span>
+                            <span class="text-xs text-slate-400 mt-1 block">Không có bản ghi giao dịch Blockchain nào khớp với bộ lọc hiện tại.</span>
+                            <a href="{% url 'admin_blockchain_transactions' %}" class="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 text-xs font-semibold mt-3 hover:underline">
+                                <span class="material-symbols-outlined text-[14px]">restart_alt</span> Đặt lại bộ lọc
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

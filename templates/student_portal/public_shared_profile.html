@@ -10,9 +10,14 @@
     <div class="w-full bg-gradient-to-br from-[#0a192f] via-[#112240] to-[#1d4ed8] pt-14 pb-32 px-4 relative overflow-hidden flex flex-col items-center text-center">
         <div class="absolute inset-0 pointer-events-none opacity-30 bg-[radial-gradient(circle_at_50%_20%,#38bdf8_0%,transparent_60%)]"></div>
         <div class="relative z-10 max-w-3xl">
-            <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider text-emerald-300 bg-emerald-950/70 border border-emerald-700/60 mb-3 shadow-xs">
-                <span class="material-symbols-outlined text-[16px]">verified_user</span> Hồ Sơ Đã Được Chứng Thực Trên Blockchain
-            </span>
+            <div class="flex flex-wrap items-center justify-center gap-2 mb-3">
+                <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider text-emerald-300 bg-emerald-950/70 border border-emerald-700/60 shadow-xs">
+                    <span class="material-symbols-outlined text-[16px]">verified_user</span> Hồ Sơ Đã Được Chứng Thực Trên Blockchain
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider text-sky-300 bg-sky-950/70 border border-sky-700/60 shadow-xs">
+                    <span class="material-symbols-outlined text-[15px]">badge</span> Chia Sẻ Bởi Chính Chủ Sở Hữu
+                </span>
+            </div>
             <h1 class="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight uppercase leading-tight">
                 {{ student.full_name }}
             </h1>
@@ -25,7 +30,7 @@
     <!-- Container Chính -->
     <div class="max-w-5xl w-full mx-auto px-4 -mt-20 relative z-20 space-y-6">
         
-        <!-- Thanh Thông Tin Hạn Dùng Của Link Chia Sẻ (Security Badge) -->
+        <!-- Thanh Thông Tin Hạn Dùng Của Link Chia Sẻ (Security Badge & Countdown) -->
         <div class="bg-white rounded-2xl shadow-md border border-slate-200/80 p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 backdrop-blur-md">
             <div class="flex items-center gap-3 text-slate-700">
                 <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200">
@@ -34,13 +39,23 @@
                 <div>
                     <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">Thời hạn cấp quyền truy cập CV</p>
                     <p class="text-sm font-extrabold text-slate-800">
-                        Khả dụng đến <span class="text-amber-600">{{ link.expires_at|date:"d/m/Y H:i" }}</span> (Còn <strong>{{ link.remaining_days }}</strong> ngày)
+                        Hết hạn lúc: <span class="text-slate-900">{{ link.expires_at|date:"d/m/Y H:i" }}</span> • 
+                        Còn lại: <span id="countdown-timer" class="text-amber-600 font-mono font-black">Đang tính...</span>
                     </p>
                 </div>
             </div>
             <div class="flex items-center gap-2 text-xs font-semibold text-slate-500">
-                <span class="px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200">Lượt xem: <strong>{{ link.view_count }}</strong></span>
-                <span class="px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">✓ Xác minh On-chain</span>
+                <span class="px-3 py-1.5 rounded-lg bg-slate-100 border border-slate-200">
+                    Lượt xem: <strong>{{ link.view_count }}</strong>{% if link.max_views > 0 %} / <strong class="text-slate-700">{{ link.max_views }} tối đa</strong>{% endif %}
+                </span>
+                {% if link.has_password %}
+                <span class="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 font-bold flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[14px]">lock</span> Đã khóa PIN
+                </span>
+                {% endif %}
+                <span class="px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">
+                    ✓ Xác minh On-chain
+                </span>
             </div>
         </div>
 
@@ -127,15 +142,23 @@
                     </div>
 
                     <!-- Nút Tải Tài Liệu & Giấy Chứng Thực -->
-                    <div class="flex flex-col sm:flex-row md:flex-col gap-2.5 w-full md:w-auto shrink-0">
-                        <a href="{% url 'verification:download_verification_cert_pdf' deg.id %}" target="_blank" class="animate-btn w-full px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider inline-flex items-center justify-center gap-2 shadow-sm transition-all text-center">
-                            <span class="material-symbols-outlined text-[16px]">file_download</span> Tải Giấy Chứng Thực PDF
+                    <div class="flex flex-col sm:flex-row md:flex-col gap-2 w-full md:w-auto shrink-0">
+                        <!-- Nút Xác Minh Nhanh (Task 6) -->
+                        <a href="{% url 'verification:public_verify' %}?q={{ deg.credential_public_id }}" target="_blank" class="taste-btn w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider inline-flex items-center justify-center gap-1.5 shadow-2xs transition-all text-center">
+                            <span class="material-symbols-outlined text-[16px]">verified</span> Đối Soát On-Chain
+                        </a>
+                        <a href="{% url 'verification:download_verification_cert_pdf' deg.id %}" target="_blank" class="taste-btn w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider inline-flex items-center justify-center gap-1.5 shadow-2xs transition-all text-center">
+                            <span class="material-symbols-outlined text-[16px]">file_download</span> Tải Chứng Thực PDF
                         </a>
                         {% if deg.pdf_path %}
-                        <a href="{% url 'student_portal:preview_pdf' deg.id %}" target="_blank" class="animate-btn w-full px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs uppercase tracking-wider inline-flex items-center justify-center gap-2 transition-all text-center">
-                            <span class="material-symbols-outlined text-[16px]">visibility</span> Xem File Bằng Gốc
+                        <a href="{% url 'student_portal:preview_pdf' deg.id %}" target="_blank" class="taste-btn w-full px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs uppercase tracking-wider inline-flex items-center justify-center gap-1.5 transition-all text-center">
+                            <span class="material-symbols-outlined text-[16px]">visibility</span> Xem Bằng Gốc
                         </a>
                         {% endif %}
+                        <!-- Nút Chia Sẻ LinkedIn (Task 12) -->
+                        <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.build_absolute_uri|urlencode }}" target="_blank" class="taste-btn w-full px-4 py-1.5 bg-[#0a66c2]/10 hover:bg-[#0a66c2]/20 text-[#0a66c2] border border-[#0a66c2]/30 rounded-xl font-bold text-xs inline-flex items-center justify-center gap-1 transition-all text-center">
+                            <span class="material-symbols-outlined text-[15px]">share</span> Chia sẻ LinkedIn
+                        </a>
                     </div>
 
                 </div>
@@ -151,4 +174,40 @@
 
     </div>
 </div>
+
+<!-- Countdown Timer JavaScript (Task 6) -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const expiresISO = "{{ link.expires_at|date:'c' }}";
+    const targetDate = new Date(expiresISO).getTime();
+    const timerEl = document.getElementById('countdown-timer');
+
+    function updateCountdown() {
+        if (!timerEl) return;
+        const now = new Date().getTime();
+        const diff = targetDate - now;
+
+        if (diff <= 0) {
+            timerEl.textContent = "Đã hết hạn";
+            timerEl.className = "text-rose-600 font-mono font-black";
+            return;
+        }
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        const pad = (n) => String(n).padStart(2, '0');
+        if (days > 0) {
+            timerEl.textContent = `${days} ngày ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+        } else {
+            timerEl.textContent = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+        }
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+});
+</script>
 {% endblock %}

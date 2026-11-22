@@ -99,6 +99,35 @@ class Degree(models.Model):
         from datetime import date
         return date(2026, 6, 30)
 
+    @property
+    def tx_hash(self):
+        """Mã giao dịch phát hành On-Chain (trực tiếp hoặc theo đợt)"""
+        # 1. Giao dịch trực tiếp liên kết với văn bằng này
+        tx = self.blockchaintransaction_set.filter(
+            status__in=['confirmed', 'CONFIRMED', 'pending', 'PENDING']
+        ).order_by('-created_at').first()
+        if tx and tx.tx_hash:
+            return tx.tx_hash
+
+        # 2. Qua Merkle Proof liên kết với IssuanceBatch
+        if hasattr(self, 'merkle_proof') and self.merkle_proof and self.merkle_proof.issuance_batch:
+            ib = self.merkle_proof.issuance_batch
+            ib_tx = ib.blockchaintransaction_set.order_by('-created_at').first()
+            if ib_tx and ib_tx.tx_hash:
+                return ib_tx.tx_hash
+
+        # 3. Qua đợt tốt nghiệp (GraduationBatch -> IssuanceBatch hoặc graduation_batch.tx_hash)
+        if self.batch:
+            if getattr(self.batch, 'tx_hash', None):
+                return self.batch.tx_hash
+            ib = self.batch.issuance_batches.order_by('-created_at').first()
+            if ib:
+                ib_tx = ib.blockchaintransaction_set.order_by('-created_at').first()
+                if ib_tx and ib_tx.tx_hash:
+                    return ib_tx.tx_hash
+
+        return None
+
     class Meta:
         verbose_name = "Văn bằng số"
         verbose_name_plural = "Sổ cái Văn bằng số"

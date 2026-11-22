@@ -18,6 +18,9 @@ class StudentProfileShareLink(models.Model):
     expires_at = models.DateTimeField(verbose_name="Thời điểm hết hạn")
     days_valid = models.IntegerField(default=14, verbose_name="Số ngày hiệu lực")
     view_count = models.PositiveIntegerField(default=0, verbose_name="Số lượt xem")
+    max_views = models.PositiveIntegerField(default=0, verbose_name="Số lượt xem tối đa (0 = không giới hạn)")
+    password_hash = models.CharField(max_length=128, blank=True, default="", verbose_name="Mật khẩu bảo vệ (hash)")
+    viewer_log = models.JSONField(default=list, blank=True, verbose_name="Nhật ký người xem")
     is_active = models.BooleanField(default=True, verbose_name="Đang kích hoạt")
 
     class Meta:
@@ -29,8 +32,20 @@ class StudentProfileShareLink(models.Model):
         return f"{self.student.student_code} - {self.token} (Hạn: {self.expires_at.strftime('%d/%m/%Y')})"
 
     @property
+    def has_password(self):
+        return bool(self.password_hash and self.password_hash.strip())
+
+    @property
+    def is_view_limit_reached(self):
+        return self.max_views > 0 and self.view_count >= self.max_views
+
+    @property
     def is_expired(self):
         return (not self.is_active) or (timezone.now() > self.expires_at)
+
+    @property
+    def is_accessible(self):
+        return (not self.is_expired) and (not self.is_view_limit_reached)
 
     @property
     def remaining_days(self):

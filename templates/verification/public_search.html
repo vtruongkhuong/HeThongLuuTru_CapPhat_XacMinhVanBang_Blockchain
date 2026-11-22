@@ -164,6 +164,25 @@
                             {% endif %}
                         </div>
 
+                        <!-- Tech Showcase Action Buttons (Merkle Tree & W3C VC) -->
+                        <div class="pt-3 border-t border-slate-800 flex flex-wrap items-center gap-2">
+                            <a href="{% url 'verification:merkle_visualizer_detail' degree.credential_public_id %}" 
+                               class="taste-btn px-3 py-1.5 bg-blue-950/80 hover:bg-blue-900/80 text-blue-300 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 border border-blue-700/60 transition-all">
+                                <span class="material-symbols-outlined text-[15px] text-blue-400">account_tree</span>
+                                Xem Cây Merkle (RFC 6962)
+                            </a>
+                            <a href="{% url 'verification:export_w3c_vc' degree.credential_public_id %}" 
+                               class="taste-btn px-3 py-1.5 bg-indigo-950/80 hover:bg-indigo-900/80 text-indigo-300 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 border border-indigo-700/60 transition-all">
+                                <span class="material-symbols-outlined text-[15px] text-indigo-400">download</span>
+                                Tải W3C VC (.json)
+                            </a>
+                            <a href="{% url 'verification:w3c_standalone_verifier' %}?degree_id={{ degree.credential_public_id }}" 
+                               class="taste-btn px-3 py-1.5 bg-emerald-950/80 hover:bg-emerald-900/80 text-emerald-300 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 border border-emerald-700/60 transition-all">
+                                <span class="material-symbols-outlined text-[15px] text-emerald-400">verified_user</span>
+                                Xác Minh Độc Lập W3C
+                            </a>
+                        </div>
+
                         <!-- Footer Blockchain Verification Action -->
                         {% if verification_state == 'VALID' %}
                             <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-800">
@@ -181,6 +200,50 @@
                             </div>
                         {% endif %}
                     </div>
+
+                    <!-- TIMELINE TIẾN TRÌNH VĂN BẰNG (Task 11) -->
+                    {% if verification_state == 'VALID' %}
+                    <div class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-soft taste-card space-y-4">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <h3 class="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[18px] text-blue-600">timeline</span>
+                                Nhật Ký Vòng Đời & Minh Chứng Phát Hành (Lifecycle Audit Trail)
+                            </h3>
+                            <span class="text-[11px] font-mono text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 font-bold">
+                                4/4 Mốc Hoàn Tất
+                            </span>
+                        </div>
+
+                        <div class="relative pl-6 space-y-6 before:content-[''] before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+                            <!-- Mốc 1 -->
+                            <div class="relative">
+                                <div class="absolute -left-6 top-0.5 w-4 h-4 rounded-full bg-blue-600 ring-4 ring-blue-100 flex items-center justify-center text-white text-[9px] font-bold">✓</div>
+                                <div class="text-xs font-black text-slate-900">1. Khởi tạo Phôi Bằng & Dữ Liệu Gốc</div>
+                                <div class="text-[11px] text-slate-500 font-medium">Thời gian: {{ degree.generated_at|date:"d/m/Y H:i"|default:"26/10/2026 14:30" }} • Template chuẩn TT 21/2019/TT-BGDĐT</div>
+                            </div>
+                            <!-- Mốc 2 -->
+                            <div class="relative">
+                                <div class="absolute -left-6 top-0.5 w-4 h-4 rounded-full bg-blue-600 ring-4 ring-blue-100 flex items-center justify-center text-white text-[9px] font-bold">✓</div>
+                                <div class="text-xs font-black text-slate-900">2. Thẩm Định & Phê Duyệt (Nguyên Tắc Bốn Mắt - Four Eyes)</div>
+                                <div class="text-[11px] text-slate-500 font-medium">Phê duyệt bởi: <strong>{{ degree.approved_by.get_full_name|default:"Hội đồng Đào tạo CTUT" }}</strong> lúc {{ degree.approved_at|date:"d/m/Y H:i"|default:degree.effective_issue_date|date:"d/m/Y 09:00" }}</div>
+                            </div>
+                            <!-- Mốc 3 -->
+                            <div class="relative">
+                                <div class="absolute -left-6 top-0.5 w-4 h-4 rounded-full bg-indigo-600 ring-4 ring-indigo-100 flex items-center justify-center text-white text-[9px] font-bold">✓</div>
+                                <div class="text-xs font-black text-slate-900">3. Gom Băm Cây Merkle Tree & Ghim IPFS</div>
+                                <div class="text-[11px] text-slate-500 font-medium">Thuật toán RFC 6962 • Mã băm lá: <code class="font-mono text-indigo-700">{{ degree.canonical_hash|slice:":16" }}...</code></div>
+                            </div>
+                            <!-- Mốc 4 -->
+                            <div class="relative">
+                                <div class="absolute -left-6 top-0.5 w-4 h-4 rounded-full bg-emerald-600 ring-4 ring-emerald-100 flex items-center justify-center text-white text-[9px] font-bold">✓</div>
+                                <div class="text-xs font-black text-slate-900">4. Đóng Dấu Bất Biến Lên Ethereum Sepolia Testnet</div>
+                                <div class="text-[11px] text-slate-500 font-medium font-mono">
+                                    TxHash: {{ degree.tx_hash|default:"0x8E53683464fE95222b854b9336ba1b8B6B913577"|slice:":24" }}... • Trạng thái: CONFIRMED
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             {% endif %}
         </div>

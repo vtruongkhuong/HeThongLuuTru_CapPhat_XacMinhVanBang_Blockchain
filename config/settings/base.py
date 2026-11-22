@@ -173,6 +173,7 @@ def check_menu_role(request, allowed_roles):
         return False
 
 UNFOLD = {
+    "THEME": "light",
     "SITE_TITLE": "CTUT Blockchain Degree Admin",
     "SITE_HEADER": "Hệ thống Quản lý & Xác minh Văn bằng Blockchain",
     "SITE_SYMBOL": "school",
@@ -227,6 +228,12 @@ UNFOLD = {
                         "icon": "token",
                         "link": reverse_lazy("admin:blockchain_issuancebatch_changelist"),
                         "permission": lambda request: request.user.is_superuser or check_menu_role(request, ['issuer']),
+                    },
+                    {
+                        "title": _("Blockchain TX Explorer"),
+                        "icon": "receipt_long",
+                        "link": reverse_lazy("admin_blockchain_transactions"),
+                        "permission": lambda request: request.user.is_staff,
                     },
                     {
                         "title": _("Sổ Cái Văn Bằng Số"),

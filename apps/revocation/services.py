@@ -173,7 +173,6 @@ def execute(revocation_request, executed_by, tx_hash=None, supersedes=None, http
         defaults={
             'operation_type': 'REVOKE',
             'degree': degree,
-            'submitted_by': executed_by,
             'status': 'pending',
         }
     )

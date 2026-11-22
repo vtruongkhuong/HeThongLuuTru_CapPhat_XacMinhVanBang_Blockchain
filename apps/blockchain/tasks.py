@@ -172,6 +172,13 @@ def _handle_revoke_confirmed(tx_record):
     Sau khi giao dịch REVOKE được xác nhận:
       Chuyển Degree liên quan sang REVOKED.
     """
+    if not tx_record.degree:
+        from apps.revocation.models import RevocationRequest
+        rev_req = RevocationRequest.objects.filter(tx_hash=tx_record.tx_hash).first()
+        if rev_req and rev_req.degree:
+            tx_record.degree = rev_req.degree
+            tx_record.save(update_fields=['degree'])
+
     if tx_record.degree and tx_record.degree.status != 'REVOKED':
         tx_record.degree.status = 'REVOKED'
         tx_record.degree.save(update_fields=['status'])

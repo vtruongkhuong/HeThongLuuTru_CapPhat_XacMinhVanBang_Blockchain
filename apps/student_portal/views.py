@@ -328,8 +328,8 @@ def download_verification_package(request, degree_id):
 @login_required
 def create_share_link(request):
     """
-    [Nghĩa - Task 3] Sinh liên kết chia sẻ hồ sơ tạm thời (7, 14, 30 ngày)
-    để sinh viên đính kèm vào CV xin việc gửi nhà tuyển dụng.
+    [Nghĩa - Task 3 & Task 6] Sinh liên kết chia sẻ hồ sơ tạm thời (1, 7, 14, 30 ngày)
+    Hỗ trợ tùy chọn Mật khẩu bảo vệ (password_hash) và Giới hạn số lượt xem (max_views).
     """
     if request.method != 'POST':
         return JsonResponse({'success': False, 'error': 'Phương thức không được hỗ trợ.'}, status=405)
@@ -340,10 +340,21 @@ def create_share_link(request):
 
     try:
         days = int(request.POST.get('days', 14))
-        if days not in (7, 14, 30):
+        if days not in (1, 7, 14, 30):
             days = 14
     except (ValueError, TypeError):
         days = 14
+
+    try:
+        max_views = int(request.POST.get('max_views', 0) or 0)
+        if max_views < 0:
+            max_views = 0
+    except (ValueError, TypeError):
+        max_views = 0
+
+    password = request.POST.get('password', '').strip()
+    from django.contrib.auth.hashers import make_password
+    password_hash = make_password(password) if password else ""
 
     label = request.POST.get('label', '').strip() or f"CV Ứng tuyển ({days} ngày)"
     token = secrets.token_urlsafe(16)
@@ -355,6 +366,8 @@ def create_share_link(request):
         label=label,
         days_valid=days,
         expires_at=expires_at,
+        max_views=max_views,
+        password_hash=password_hash,
         is_active=True
     )
 
@@ -367,6 +380,8 @@ def create_share_link(request):
         'label': label,
         'expires_at': expires_at.strftime('%d/%m/%Y'),
         'remaining_days': days,
+        'has_password': bool(password_hash),
+        'max_views': max_views,
         'message': f'Tạo liên kết chia sẻ thành công ({days} ngày).'
     })
 
@@ -392,8 +407,9 @@ def revoke_share_link(request, link_id):
 
 def public_shared_profile_view(request, token):
     """
-    [Nghĩa - Task 3] Cổng xem hồ sơ văn bằng chia sẻ công khai dành cho Nhà tuyển dụng / HR.
-    Không yêu cầu đăng nhập. Kiểm tra thời hạn hết hạn 7-30 ngày.
+    [Nghĩa - Task 3 & Task 6] Cổng xem hồ sơ văn bằng chia sẻ công khai dành cho Nhà tuyển dụng / HR.
+    Không yêu cầu đăng nhập. Kiểm tra thời hạn hết hạn, giới hạn số lượt xem, và mật khẩu bảo mật (nếu có).
+    Ghi nhận nhật ký lượt xem (IP, User-Agent, thời gian).
     """
     link = StudentProfileShareLink.objects.filter(token=token).select_related(
         'student', 'student__major', 'student__faculty'
@@ -402,8 +418,45 @@ def public_shared_profile_view(request, token):
     if not link or link.is_expired:
         return render(request, 'student_portal/share_expired.html', {'link': link}, status=410)
 
-    # Tăng lượt xem
-    StudentProfileShareLink.objects.filter(id=link.id).update(view_count=F('view_count') + 1)
+    # 1. Kiểm tra giới hạn số lượt xem (max_views)
+    if link.is_view_limit_reached:
+        return render(request, 'student_portal/share_limit_reached.html', {'link': link}, status=403)
+
+    # 2. Kiểm tra mật khẩu bảo vệ (nếu có)
+    if link.has_password:
+        session_key = f"unlocked_share_{link.token}"
+        if not request.session.get(session_key):
+            if request.method == 'POST':
+                from django.contrib.auth.hashers import check_password
+                input_pw = request.POST.get('password', '')
+                if check_password(input_pw, link.password_hash):
+                    request.session[session_key] = True
+                else:
+                    return render(request, 'student_portal/share_password_prompt.html', {
+                        'link': link,
+                        'error_message': 'Mật khẩu truy cập không chính xác. Vui lòng kiểm tra lại!'
+                    }, status=403)
+            else:
+                return render(request, 'student_portal/share_password_prompt.html', {'link': link})
+
+    # 3. Ghi nhận nhật ký lượt xem (IP, User Agent, Time)
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        client_ip = x_forwarded_for.split(',')[0].strip()
+    else:
+        client_ip = request.META.get('REMOTE_ADDR', '')
+
+    user_agent = request.META.get('HTTP_USER_AGENT', '')[:120]
+    log_entry = {
+        'ip': client_ip,
+        'ua': user_agent,
+        'time': timezone.now().strftime('%d/%m/%Y %H:%M:%S')
+    }
+    curr_logs = list(link.viewer_log or [])
+    curr_logs.append(log_entry)
+    link.viewer_log = curr_logs[-50:]
+    link.view_count += 1
+    link.save(update_fields=['view_count', 'viewer_log'])
 
     student = link.student
     raw_degrees = student.degrees.filter(status='ISSUED').select_related(

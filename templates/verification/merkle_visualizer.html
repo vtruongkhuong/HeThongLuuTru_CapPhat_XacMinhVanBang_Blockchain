@@ -1,0 +1,488 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Trực Quan Hóa Cây Merkle (Visual Merkle Proof) | CTUT Blockchain{% endblock %}
+
+{% block content %}
+<style>
+    /* Styling Cây Merkle */
+    .merkle-canvas-container {
+        background: radial-gradient(circle at 50% 10%, #f8fafc 0%, #eef2f6 100%);
+        border: 1px solid #cbd5e1;
+        border-radius: 16px;
+        position: relative;
+        overflow: auto;
+        min-height: 540px;
+    }
+    .dark .merkle-canvas-container {
+        background: radial-gradient(circle at 50% 10%, #0f172a 0%, #090d16 100%);
+        border-color: #1e293b;
+    }
+
+    /* Node Cards */
+    .tree-node-card {
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        user-select: none;
+    }
+    .tree-node-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15);
+    }
+    .node-target {
+        border-color: #10b981 !important;
+        background-color: #ecfdf5 !important;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25) !important;
+    }
+    .node-proof {
+        border-color: #0284c7 !important;
+        background-color: #f0f9ff !important;
+        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2) !important;
+    }
+    .node-root {
+        border-color: #6366f1 !important;
+        background-color: #eef2ff !important;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25) !important;
+    }
+    .node-dimmed {
+        opacity: 0.3 !important;
+        filter: grayscale(0.5);
+    }
+
+    /* Edge Lines SVG */
+    .tree-edge {
+        stroke: #cbd5e1;
+        stroke-width: 2;
+        fill: none;
+        transition: all 0.3s ease;
+    }
+    .tree-edge-active {
+        stroke: #0284c7 !important;
+        stroke-width: 3.5 !important;
+        stroke-dasharray: 6 3;
+        animation: dashMove 1.5s linear infinite;
+    }
+    @keyframes dashMove {
+        to { stroke-dashoffset: -18; }
+    }
+</style>
+
+<div class="max-w-7xl mx-auto px-4 py-8">
+
+    <!-- BREADCRUMBS & TIÊU ĐỀ CHÍNH -->
+    <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 mb-1">
+                <a href="{% url 'verification:landing' %}" class="hover:text-blue-600 transition-colors">Trang chủ</a>
+                <span>/</span>
+                <a href="{% url 'verification:public_verify' %}" class="hover:text-blue-600 transition-colors">Tra cứu công khai</a>
+                <span>/</span>
+                <span class="text-blue-600 font-bold">Trực quan hóa Cây Merkle</span>
+            </div>
+            <h1 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+                <span class="material-symbols-outlined text-[32px] text-blue-600">account_tree</span>
+                Trực Quan Hóa Cây Merkle (Visual Merkle Proof)
+            </h1>
+            <p class="text-xs md:text-sm text-slate-500 mt-1 max-w-3xl">
+                Minh họa mô hình phân cấp mật mã học toán học cây Merkle (RFC 6962 / Ethereum Keccak-256). 
+                Bấm vào từng lá văn bằng để kiểm chứng lộ trình đường đi kiểm toán (Audit Path) lên tới Smart Contract On-chain.
+            </p>
+        </div>
+
+        <!-- CÁC NÚT ĐIỀU HƯỚNG NHANH -->
+        <div class="flex items-center gap-2.5 shrink-0">
+            <a href="{% url 'verification:w3c_standalone_verifier' %}{% if target_degree %}?degree_id={{ target_degree.credential_public_id }}{% endif %}" 
+               class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-xl border border-indigo-200 transition-all flex items-center gap-1.5 shadow-sm">
+                <span class="material-symbols-outlined text-[17px]">verified_user</span>
+                Trình Xác Minh W3C VC
+            </a>
+            <a href="{% url 'verification:public_verify' %}{% if target_degree %}?q={{ target_degree.credential_public_id }}{% endif %}" 
+               class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-300 transition-all flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[17px]">search</span>
+                Tra Cứu Văn Bằng
+            </a>
+        </div>
+    </div>
+
+    <!-- KHỐI 1: BỘ LỌC ĐỢT & TÌM KIẾM VĂN BẰNG -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-5 mb-6 shadow-sm">
+        <form method="GET" action="{% url 'verification:merkle_visualizer' %}" class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+            <!-- Chọn Đợt Tốt Nghiệp -->
+            <div class="md:col-span-5">
+                <label for="batchSelect" class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Đợt phát hành tốt nghiệp
+                </label>
+                <select name="batch_id" id="batchSelect" onchange="var d = document.getElementById('degreeSelect'); if(d) d.value=''; this.form.submit();" 
+                        class="w-full h-10 bg-slate-50 border border-slate-300 rounded-xl px-3.5 text-xs font-semibold text-slate-800 outline-none focus:border-blue-500 cursor-pointer">
+                    {% for b in batches %}
+                    <option value="{{ b.id }}" {% if selected_batch and selected_batch.id == b.id %}selected{% endif %}>
+                        #{{ b.id }} - {{ b.name }} ({{ b.degrees.count }} văn bằng)
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Tìm & Tô sáng văn bằng cụ thể -->
+            <div class="md:col-span-5">
+                <label for="degreeSelect" class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Chọn văn bằng cần kiểm toán đường dẫn (Audit Path)
+                </label>
+                <select name="degree_id" id="degreeSelect" onchange="this.form.submit()" 
+                        class="w-full h-10 bg-slate-50 border border-slate-300 rounded-xl px-3.5 text-xs font-semibold text-slate-800 outline-none focus:border-blue-500 cursor-pointer">
+                    {% for d in degrees %}
+                    <option value="{{ d.credential_public_id }}" {% if target_degree and target_degree.id == d.id %}selected{% endif %}>
+                        {{ forloop.counter }}. {{ d.student.full_name }} - {{ d.student.student_code }} ({{ d.serial_number }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Nút hành động -->
+            <div class="md:col-span-2">
+                <div class="block text-[11px] font-bold uppercase tracking-wider text-transparent mb-1.5 select-none pointer-events-none" aria-hidden="true">&nbsp;</div>
+                <button type="submit" class="w-full h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span class="material-symbols-outlined text-[17px]">sync</span>
+                    <span>Tải Cây Merkle</span>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- KHỐI 2: 4 THẺ THÔNG SỐ TOÁN HỌC & CRYPTO -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <!-- Merkle Root -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-indigo-600">On-Chain Merkle Root</span>
+                <span class="material-symbols-outlined text-indigo-500 text-[20px]">vpn_key</span>
+            </div>
+            <div class="mt-2">
+                <div class="font-mono text-xs font-extrabold text-slate-800 truncate" title="{{ computed_root }}">
+                    {% if computed_root %}0x{{ computed_root|slice:":12" }}...{{ computed_root|slice:"-8:" }}{% else %}---{% endif %}
+                </div>
+                <div class="text-[11px] text-emerald-600 font-semibold mt-1 flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Đã khóa trên Sepolia Testnet
+                </div>
+            </div>
+        </div>
+
+        <!-- Chiều cao cây & Số lá -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Quy mô Cây Merkle</span>
+                <span class="material-symbols-outlined text-blue-500 text-[20px]">layers</span>
+            </div>
+            <div class="mt-2 flex items-baseline gap-3">
+                <div>
+                    <span class="text-2xl font-black text-slate-900 font-mono">{{ degrees|length }}</span>
+                    <span class="text-xs text-slate-400 font-medium ml-1">Lá ($N$)</span>
+                </div>
+                <div class="text-slate-300 font-light">|</div>
+                <div>
+                    <span class="text-2xl font-black text-blue-600 font-mono">{{ levels|length }}</span>
+                    <span class="text-xs text-slate-400 font-medium ml-1">Tầng ($h$)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chuẩn băm & Độ phức tạp -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Chuẩn Mật Mã</span>
+                <span class="material-symbols-outlined text-amber-500 text-[20px]">shield</span>
+            </div>
+            <div class="mt-2">
+                <div class="text-xs font-bold text-slate-800">RFC 6962 / Keccak-256</div>
+                <div class="text-[11px] text-slate-500 mt-1 font-mono">
+                    Độ phức tạp: <strong class="text-blue-600 font-mono">O(log₂ {{ degrees|length }}) = {{ proof_path|length }} bước</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Xác minh Smart Contract Sepolia -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-600">Smart Contract v2</span>
+                <span class="material-symbols-outlined text-emerald-500 text-[20px]">verified</span>
+            </div>
+            <div class="mt-2">
+                <div class="text-xs font-bold text-emerald-700 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[16px]">check_circle</span>
+                    verifyDegree() = Hợp Lệ
+                </div>
+                <div class="text-[11px] text-slate-400 mt-1 truncate font-mono" title="{{ contract_address }}">
+                    Contract: {{ contract_address|slice:":10" }}...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KHỐI 3: CANVAS VẼ CÂY MERKLE TRỰC QUAN ĐA TẦNG -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-6 mb-6 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-4 border-b border-slate-100">
+            <div>
+                <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                    <span class="material-symbols-outlined text-blue-600 text-[19px]">schema</span>
+                    Sơ Đồ Phân Cấp Các Tầng Cây Merkle (Levels & Sibling Proof Nodes)
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">
+                    Các nút màu <span class="text-emerald-600 font-bold">Xanh Lục</span> là lá văn bằng được chọn; 
+                    màu <span class="text-sky-600 font-bold">Xanh Dương</span> là các node anh em (Siblings) thuộc mảng Proof Path; 
+                    màu <span class="text-indigo-600 font-bold">Tím</span> là Merkle Root.
+                </p>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="resetHighlight()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors">
+                    Xem toàn bộ cây
+                </button>
+            </div>
+        </div>
+
+        <!-- Tree Canvas Viewport -->
+        <div class="merkle-canvas-container p-6">
+            <div class="flex flex-col items-center gap-10 min-w-[700px]">
+                {% for lvl in levels reversed %}
+                {% with lvl_index=forloop.revcounter0 %}
+                <div class="w-full flex flex-col items-center">
+                    <div class="text-[11px] font-mono font-bold text-slate-400 mb-2.5 uppercase tracking-wider">
+                        {% if forloop.first %}
+                            ROOT LEVEL (Tầng {{ lvl_index }}) - Merkle Root
+                        {% elif forloop.last %}
+                            LEAF LEVEL (Tầng 0) - {{ lvl|length }} Lá Văn Bằng Sinh Viên
+                        {% else %}
+                            INTERIOR LEVEL {{ lvl_index }} - Các Nút Băm Trung Gian
+                        {% endif %}
+                    </div>
+
+                    <div class="flex flex-wrap items-center justify-center gap-4">
+                        {% for node_hash in lvl %}
+                        {% with node_id=lvl_index|stringformat:"s"|add:"_"|add:forloop.counter0|stringformat:"s" %}
+                        <div id="node_{{ node_id }}" 
+                             onclick="inspectNode('{{ node_hash }}', '{{ lvl_index }}', '{{ forloop.counter0 }}')"
+                             class="tree-node-card bg-white border-2 rounded-xl p-3 shadow-xs transition-all w-[180px] text-center
+                                    {% if lvl_index == 0 and node_hash == target_hash %}
+                                        node-target border-emerald-500 bg-emerald-50
+                                    {% elif node_hash in proof_path %}
+                                        node-proof border-sky-500 bg-sky-50
+                                    {% elif forloop.parentloop.first %}
+                                        node-root border-indigo-500 bg-indigo-50
+                                    {% else %}
+                                        border-slate-200 bg-white
+                                    {% endif %}">
+                            
+                            <!-- Node Badge -->
+                            <div class="text-[10px] font-bold uppercase tracking-wider mb-1
+                                        {% if lvl_index == 0 and node_hash == target_hash %}text-emerald-700
+                                        {% elif node_hash in proof_path %}text-sky-700
+                                        {% elif forloop.parentloop.first %}text-indigo-700
+                                        {% else %}text-slate-400{% endif %}">
+                                {% if forloop.parentloop.first %}
+                                    <span class="inline-flex items-center gap-0.5"><span class="material-symbols-outlined text-[13px]">vpn_key</span> Merkle Root</span>
+                                {% elif lvl_index == 0 %}
+                                    <span class="inline-flex items-center gap-0.5"><span class="material-symbols-outlined text-[13px]">school</span> Lá #{{ forloop.counter0 }}</span>
+                                {% else %}
+                                    <span class="inline-flex items-center gap-0.5"><span class="material-symbols-outlined text-[13px]">hub</span> Nút {{ lvl_index }}.{{ forloop.counter0 }}</span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Hash Preview -->
+                            <div class="font-mono text-xs font-bold text-slate-800 tracking-tight" title="{{ node_hash }}">
+                                0x{{ node_hash|slice:":6" }}...{{ node_hash|slice:"-4:" }}
+                            </div>
+
+                            <!-- Extra info for Leaf level -->
+                            {% if lvl_index == 0 %}
+                                {% for d in degrees %}
+                                    {% if forloop.counter0 == forloop.parentloop.counter0 %}
+                                    <div class="mt-1.5 pt-1.5 border-t border-slate-100 text-[10px] text-slate-600 truncate">
+                                        <div class="font-bold text-slate-900 truncate">{{ d.student.full_name }}</div>
+                                        <div class="font-mono text-blue-600">{{ d.student.student_code }}</div>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                        {% endwith %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endwith %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- KHỐI 4: 2 CỘT CHI TIẾT - MÔ PHỎNG GIẢI THUẬT & ĐẶC TẢ KỸ THUẬT MẬT MÃ -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- CỘT TRÁI (7 CỘT): TRÌNH MÔ PHỎNG GIẢI THUẬT BĂM TỪNG BƯỚC -->
+        <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                    <span class="material-symbols-outlined text-emerald-600 text-[20px]">calculate</span>
+                    Mô Phỏng Giải Thuật Băm Từng Bước (Step-by-Step Hash Simulator)
+                </h3>
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    {{ step_trace|length }} Bước xác minh
+                </span>
+            </div>
+
+            {% if target_degree %}
+            <div class="space-y-4">
+                {% for st in step_trace %}
+                <div class="p-4 rounded-xl border {% if forloop.last %}bg-indigo-50/60 border-indigo-200{% else %}bg-slate-50 border-slate-200{% endif %}">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="text-xs font-bold {% if forloop.last %}text-indigo-800{% else %}text-slate-800{% endif %} flex items-center gap-1.5">
+                            <span class="w-5 h-5 rounded-full {% if forloop.last %}bg-indigo-600 text-white{% else %}bg-blue-600 text-white{% endif %} text-[11px] flex items-center justify-center font-bold">
+                                {{ st.step }}
+                            </span>
+                            {{ st.title }}
+                        </span>
+                        {% if forloop.last %}
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[13px]">check_circle</span> Khớp On-Chain
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <p class="text-xs text-slate-600 mb-2 leading-relaxed">
+                        {{ st.desc }}
+                    </p>
+
+                    <!-- Hash comparison / Pair formula -->
+                    <div class="space-y-1.5 font-mono text-[11px] bg-white p-2.5 rounded-lg border border-slate-200/80">
+                        {% if st.sibling_hash %}
+                        <div class="text-slate-500">
+                            Sibling: <span class="text-sky-600 font-semibold" title="{{ st.sibling_hash }}">0x{{ st.sibling_hash|slice:":12" }}...{{ st.sibling_hash|slice:"-8:" }}</span>
+                        </div>
+                        <div class="text-slate-500">
+                            Thứ tự ghép: <span class="text-slate-700 font-semibold">{{ st.pair_order }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="text-slate-800 font-bold flex items-center justify-between">
+                            <span>Kết quả: <span class="text-blue-700" title="{{ st.result_hash }}">0x{{ st.result_hash|slice:":14" }}...{{ st.result_hash|slice:"-10:" }}</span></span>
+                            <button type="button" onclick="navigator.clipboard.writeText('{{ st.result_hash }}'); alert('Đã chép mã băm!');" class="text-slate-400 hover:text-slate-700 p-0.5 cursor-pointer" title="Chép mã băm">
+                                <span class="material-symbols-outlined text-[14px]">content_copy</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Tải W3C VC Button -->
+            <div class="mt-5 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                <span class="text-xs text-slate-500">
+                    Toàn bộ đường đi này được gói trong cấu trúc <strong>W3C Verifiable Credentials</strong>.
+                </span>
+                <a href="{% url 'verification:export_w3c_vc' target_degree.credential_public_id %}" 
+                   class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer">
+                    <span class="material-symbols-outlined text-[16px]">download</span>
+                    Tải W3C VC (.json) Của SV Này
+                </a>
+            </div>
+            {% else %}
+            <div class="text-center py-10 text-slate-400 text-xs">
+                Vui lòng chọn một văn bằng ở bộ lọc trên để xem mô phỏng băm từng bước.
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- CỘT PHẢI (5 CỘT): KIẾN TRÚC MẬT MÃ HỌC & TIÊU CHUẨN KỸ THUẬT -->
+        <div class="lg:col-span-5 space-y-4">
+            
+            <!-- Thẻ 1: Kiến trúc Merkle Tree chuẩn Enterprise -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-3 pb-2.5 border-b border-slate-100">
+                    <span class="material-symbols-outlined text-blue-600 text-[20px]">architecture</span>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800">
+                        Kiến Trúc Mật Mã Cây Merkle (RFC 6962)
+                    </h4>
+                </div>
+                
+                <div class="space-y-3 text-xs">
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                        <strong class="text-slate-900 block font-semibold mb-1">
+                            1. Tối ưu hóa lưu trữ On-Chain: O(1)
+                        </strong>
+                        <p class="text-[11px] text-slate-600 leading-relaxed">
+                            Thay vì lưu trữ hàng nghìn văn bằng riêng lẻ trên Blockchain gây tắc nghẽn và chi phí gas lớn, hệ thống gom toàn bộ đợt tốt nghiệp thành duy nhất <strong>một mã Merkle Root (32 bytes)</strong> neo giữ trên Ethereum Sepolia.
+                        </p>
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                        <strong class="text-slate-900 block font-semibold mb-1">
+                            2. Tốc độ kiểm toán tức thì: O(log₂ N)
+                        </strong>
+                        <p class="text-[11px] text-slate-600 leading-relaxed">
+                            Mỗi văn bằng chỉ cần một đường dẫn kiểm toán (Audit Path) gồm ít mã băm anh em. Với đợt 10,000 sinh viên, chỉ cần đúng <strong>14 mã băm</strong> để hoàn tất quy trình đối soát trực tiếp với Smart Contract trong tích tắc.
+                        </p>
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                        <strong class="text-slate-900 block font-semibold mb-1">
+                            3. Bảo vệ dữ liệu cá nhân (Zero-Knowledge Privacy)
+                        </strong>
+                        <p class="text-[11px] text-slate-600 leading-relaxed">
+                            Khi sinh viên xuất trình bằng cho đơn vị tuyển dụng, cơ chế Merkle Proof chỉ chứng thực duy nhất văn bằng được thẩm định, bảo vệ tuyệt đối danh tính và thông tin của các sinh viên khác trong cùng đợt.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thẻ 2: Chuẩn RFC 6962 & Sắp xếp từ điển -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-2.5 pb-2 border-b border-slate-100">
+                    <span class="material-symbols-outlined text-slate-600 text-[18px]">verified</span>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+                        Đặc Tả Kỹ Thuật RFC 6962 & Smart Contract
+                    </h4>
+                </div>
+                <ul class="text-xs text-slate-600 space-y-2 list-disc pl-4 leading-relaxed">
+                    <li>
+                        <strong>Leaf Hash:</strong> Dữ liệu gốc của văn bằng được định dạng JSON chuẩn hóa (Canonical JSON) và băm bằng thuật toán Keccak-256.
+                    </li>
+                    <li>
+                        <strong>Sắp xếp từ điển (Lexicographical ordering):</strong> Hai node con được sắp xếp theo thứ tự <code>min(a, b) || max(a, b)</code> trước khi ghép cặp băm, đảm bảo đồng bộ 100% với hàm <code>verifyDegree()</code> trong Smart Contract.
+                    </li>
+                    <li>
+                        <strong>Cơ chế chống giả mạo:</strong> Ngăn chặn hoàn toàn các dạng tấn công mở rộng độ dài (Length Extension Attack) và va chạm nút giả (Second Preimage Attack).
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Thẻ 3: Link sang W3C Verifier -->
+            <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-5 shadow-sm">
+                <div class="flex items-center gap-2 mb-1.5">
+                    <span class="material-symbols-outlined text-indigo-600 text-[20px]">verified_user</span>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-900">
+                        Trình Xác Minh Độc Lập W3C VC
+                    </h4>
+                </div>
+                <p class="text-xs text-indigo-700 leading-relaxed mb-3">
+                    Muốn kiểm chứng xem file JSON tải về có thực sự tự xác minh được ngoài client mà không cần server trường hay không?
+                </p>
+                <a href="{% url 'verification:w3c_standalone_verifier' %}{% if target_degree %}?degree_id={{ target_degree.credential_public_id }}{% endif %}" 
+                   class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm">
+                    Mở Trình Xác Minh Độc Lập <span class="material-symbols-outlined text-[15px]">arrow_forward</span>
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    function inspectNode(hash, level, index) {
+        console.log('Inspecting node:', hash, 'Level:', level, 'Index:', index);
+    }
+
+    function resetHighlight() {
+        document.querySelectorAll('.tree-node-card').forEach(el => {
+            el.classList.remove('node-dimmed');
+        });
+    }
+</script>
+{% endblock %}

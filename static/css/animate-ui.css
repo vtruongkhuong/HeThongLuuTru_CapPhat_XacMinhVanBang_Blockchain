@@ -271,44 +271,12 @@ button.apple-hash-pill:hover {
     transition-duration: 70ms !important;
 }
 
-.dark .merkle-hash-badge,
-.dark .apple-hash-pill,
-.dark button.merkle-hash-badge,
-.dark button.apple-hash-pill,
-html.dark .merkle-hash-badge,
-body.dark .merkle-hash-badge,
-[class*="dark"] .merkle-hash-badge {
-    background-color: #141e33 !important;
-    background-image: none !important;
-    color: #93c5fd !important;
-    border: 1px solid rgba(56, 167, 248, 0.35) !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
-}
-
-.dark .merkle-hash-badge:hover,
-.dark .apple-hash-pill:hover,
-.dark button.merkle-hash-badge:hover,
-.dark button.apple-hash-pill:hover {
-    background-color: #1a2744 !important;
-    border-color: #38bdf8 !important;
-    color: #ffffff !important;
-    box-shadow: 0 0 16px rgba(56, 167, 248, 0.35) !important;
-}
-
 .merkle-hash-badge.copied,
 .apple-hash-pill.copied {
     background-color: #ecfdf5 !important;
     border-color: #10b981 !important;
     color: #047857 !important;
     transform: scale(1.05) !important;
-}
-
-.dark .merkle-hash-badge.copied,
-.dark .apple-hash-pill.copied {
-    background-color: rgba(6, 78, 59, 0.7) !important;
-    border-color: #34d399 !important;
-    color: #34d399 !important;
-    box-shadow: 0 0 16px rgba(52, 211, 153, 0.4) !important;
 }
 
 /* ==========================================================================

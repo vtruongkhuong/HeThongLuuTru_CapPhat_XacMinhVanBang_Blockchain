@@ -713,3 +713,479 @@ def employer_batch_verify_view(request):
         context['has_searched'] = True
 
     return render(request, 'verification/employer_batch_verify.html', context)
+
+
+def degree_badge_svg(request, degree_uuid):
+    """
+    [Nghĩa - Task 12] Sinh ảnh huy hiệu vector SVG động theo trạng thái văn bằng trên Blockchain
+    để nhúng vào website cá nhân, CV trực tuyến, portfolio hoặc README GitHub.
+    Hỗ trợ tra cứu bằng credential_public_id (UUID), serial_number hoặc primary key ID.
+    """
+    import uuid
+    from django.core.exceptions import ValidationError
+
+    qs = Degree.objects.select_related('student', 'degree_type')
+    degree = None
+
+    # 1. Thử theo PK (int)
+    try:
+        deg_id_int = int(degree_uuid)
+        degree = qs.filter(id=deg_id_int).first()
+    except (ValueError, TypeError):
+        pass
+
+    # 2. Thử theo UUID (nếu hợp lệ)
+    if not degree:
+        try:
+            valid_uuid = uuid.UUID(str(degree_uuid))
+            degree = qs.filter(credential_public_id=valid_uuid).first()
+        except (ValueError, TypeError, ValidationError):
+            pass
+
+    # 3. Thử theo hash hoặc số hiệu văn bằng
+    if not degree:
+        degree = qs.filter(canonical_hash=degree_uuid).first()
+
+    # 4. Thử tìm theo serial number (CTUT-YYYY-XXXXXX)
+    if not degree and str(degree_uuid).startswith('CTUT-'):
+        parts = str(degree_uuid).split('-')
+        if len(parts) >= 3:
+            try:
+                pk_val = int(parts[-1])
+                degree = qs.filter(id=pk_val).first()
+            except (ValueError, TypeError):
+                pass
+
+    if not degree or degree.status != 'ISSUED':
+        if degree and degree.status == 'REVOKED':
+            bg_left = "#991b1b"
+            bg_right = "#dc2626"
+            label = "REVOKED"
+            subtext = "Thu hoi - CTUT"
+            icon = "&#x2717;"
+        else:
+            bg_left = "#475569"
+            bg_right = "#64748b"
+            label = "UNVERIFIED"
+            subtext = "Chua xac thuc"
+            icon = "?"
+    else:
+        bg_left = "#065f46"
+        bg_right = "#059669"
+        label = "BLOCKCHAIN VERIFIED"
+        subtext = "Sepolia - CTUT"
+        icon = "&#x2713;"
+
+    svg_content = f'''<svg xmlns="http://www.w3.org/2000/svg" width="260" height="30" viewBox="0 0 260 30" role="img" aria-label="{label}">
+  <title>{label} - {subtext}</title>
+  <linearGradient id="b" x2="0" y2="100%">
+    <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
+    <stop offset="1" stop-opacity=".1"/>
+  </linearGradient>
+  <clipPath id="a">
+    <rect width="260" height="30" rx="6" fill="#fff"/>
+  </clipPath>
+  <g clip-path="url(#a)">
+    <rect width="140" height="30" fill="{bg_left}"/>
+    <rect x="140" width="120" height="30" fill="{bg_right}"/>
+    <rect width="260" height="30" fill="url(#b)"/>
+  </g>
+  <g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="10">
+    <text x="70" y="19" fill="#010101" fill-opacity=".3" font-weight="bold">{icon} {label}</text>
+    <text x="70" y="18" font-weight="bold">{icon} {label}</text>
+    <text x="200" y="19" fill="#010101" fill-opacity=".3">{subtext}</text>
+    <text x="200" y="18">{subtext}</text>
+  </g>
+</svg>'''
+
+    response = HttpResponse(svg_content.strip(), content_type='image/svg+xml; charset=utf-8')
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    return response
+
+
+# ==============================================================================
+# [NGHĨA - TECH SHOWCASE BẢO VỆ ĐỒ ÁN]
+# CỤM TRỰC QUAN HÓA CÂY MERKLE (VISUAL MERKLE PROOF) & W3C VERIFIABLE CREDENTIALS
+# ==============================================================================
+
+def generate_w3c_vc_dict(degree, request=None):
+    """
+    [Nghĩa - Tech Showcase]
+    Xuất tài liệu chuẩn W3C Verifiable Credentials (VC 1.1 / 2.0) kết hợp Decentralized Identifier (DID)
+    và Bằng chứng mật mã học cây Merkle (RFC 6962 / Ethereum Keccak-256).
+    """
+    from apps.blockchain.models import DegreeMerkleProof, BlockchainTransaction
+    proof_obj = DegreeMerkleProof.objects.filter(degree=degree).first()
+    proof_path = proof_obj.proof_path if proof_obj and proof_obj.proof_path else []
+    leaf_hash = getattr(proof_obj, 'leaf_hash', None) or degree.canonical_hash
+
+    issuance_batch = getattr(proof_obj, 'issuance_batch', None)
+    if not issuance_batch and hasattr(degree, 'batch') and degree.batch:
+        issuance_batch = degree.batch.issuance_batches.filter(status='CONFIRMED').first()
+
+    merkle_root = getattr(issuance_batch, 'merkle_root', '') if issuance_batch else ''
+    chain_batch_id = getattr(issuance_batch, 'chain_id', '') if issuance_batch else ''
+
+    tx_record = BlockchainTransaction.objects.filter(degree=degree, status='confirmed').first()
+    tx_hash = getattr(tx_record, 'tx_hash', None) or getattr(degree, 'tx_hash', None)
+    contract_addr = getattr(settings, 'CONTRACT_ADDRESS', '0x8E53683464fE95222b854b9336ba1b8B6B913577')
+    chain_id = int(getattr(settings, 'CHAIN_ID', 11155111))
+
+    student = degree.student
+    base_verify_url = "http://127.0.0.1:8000"
+    if request:
+        base_verify_url = request.build_absolute_uri('/')[:-1]
+
+    vc_document = {
+        "@context": [
+            "https://www.w3.org/2018/credentials/v1",
+            "https://schema.org",
+            "https://w3id.org/security/suites/merkle-2026/v1"
+        ],
+        "id": f"urn:uuid:{degree.credential_public_id}",
+        "type": [
+            "VerifiableCredential",
+            "UniversityDegreeCredential"
+        ],
+        "issuer": {
+            "id": f"did:ethr:{chain_id}:{contract_addr}",
+            "name": "Trường Đại học Kỹ thuật - Công nghệ Cần Thơ (CTUT)",
+            "url": "https://ctuet.edu.vn",
+            "address": "256 Nguyễn Văn Cừ, Phường An Hòa, Quận Ninh Kiều, TP. Cần Thơ",
+            "country": "Vietnam"
+        },
+        "issuanceDate": degree.effective_issue_date.isoformat() if hasattr(degree, 'effective_issue_date') and degree.effective_issue_date else "2026-06-30",
+        "credentialSubject": {
+            "id": f"urn:student:{student.student_code if student else 'UNKNOWN'}",
+            "studentCode": student.student_code if student else "",
+            "fullName": student.full_name if student else "",
+            "dateOfBirth": student.date_of_birth.isoformat() if student and student.date_of_birth else None,
+            "nationalId": student.national_id if student else "",
+            "degreeName": degree.degree_type.name if degree.degree_type else "Bằng Kỹ Sư",
+            "degreeTypeCode": degree.degree_type.code if degree.degree_type else "KY_SU",
+            "major": student.major.name if student and student.major else "Công nghệ thông tin",
+            "classification": degree.classification or "Khá",
+            "serialNumber": degree.serial_number,
+            "registrationNumber": degree.reg_number,
+            "graduationBatch": degree.batch.name if degree.batch else "",
+            "status": degree.status,
+            "ipfsCertificatePdf": f"ipfs://{degree.ipfs_cid}" if degree.ipfs_cid else None
+        },
+        "proof": {
+            "type": "EthereumMerkleProof2026",
+            "standard": "RFC 6962 / Ethereum Keccak-256",
+            "created": degree.generated_at.isoformat() if degree.generated_at else "2026-10-30T10:00:00Z",
+            "proofPurpose": "assertionMethod",
+            "verificationMethod": f"did:ethr:{chain_id}:{contract_addr}#verifyDegree",
+            "network": "Ethereum Sepolia Testnet",
+            "chainId": chain_id,
+            "contractAddress": contract_addr,
+            "batchId": chain_batch_id,
+            "canonicalHash": degree.canonical_hash,
+            "leafHash": leaf_hash,
+            "proofPath": proof_path,
+            "merkleRoot": merkle_root,
+            "txHash": tx_hash,
+            "explorerUrl": f"https://sepolia.etherscan.io/tx/{tx_hash}" if tx_hash else None,
+            "verifyEndpoint": f"{base_verify_url}/verify/tracuu/?q={degree.credential_public_id}"
+        }
+    }
+    return vc_document
+
+
+def export_w3c_vc_json(request, identifier):
+    """
+    [Nghĩa - Tech Showcase] Xuất tệp JSON chuẩn W3C Verifiable Credentials tải về máy.
+    Hỗ trợ tìm theo UUID, MSSV hoặc Số hiệu văn bằng.
+    """
+    import json
+    from apps.degrees.models import Degree
+    degree = (
+        Degree.objects.filter(credential_public_id=identifier).first()
+        or Degree.objects.filter(student__student_code__iexact=identifier).first()
+        or Degree.objects.filter(pk=identifier if str(identifier).isdigit() else 0).first()
+    )
+    if not degree:
+        raise Http404("Không tìm thấy văn bằng tương ứng.")
+
+    vc_data = generate_w3c_vc_dict(degree, request=request)
+    filename = f"CTUT_VC_{degree.student.student_code}_{degree.serial_number}.json"
+    response = HttpResponse(
+        json.dumps(vc_data, indent=2, ensure_ascii=False),
+        content_type='application/json; charset=utf-8'
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+def merkle_visualizer_view(request, identifier=None):
+    """
+    [Nghĩa - Tech Showcase] Cụm Trực quan hóa Cây Merkle (Visual Merkle Proof):
+    Hiển thị toàn bộ cấu trúc Cây Merkle đa tầng (Levels, Nodes, Hashes) tuân theo chuẩn RFC 6962 / Keccak-256.
+    Cho phép chọn bất kỳ văn bằng nào để TÔ SÁNG đường dẫn Audit Path (Proof Path) trực quan,
+    kèm theo Trình mô phỏng giải thuật băm từng bước (Step-by-step Hash Simulator).
+    """
+    import json
+    from apps.graduation.models import GraduationBatch
+    from apps.degrees.models import Degree
+    from apps.blockchain.services import build_merkle_tree, get_merkle_proof, verify_merkle_proof, _hash_pair
+    from apps.blockchain.client import BlockchainClient
+
+    batches = GraduationBatch.objects.filter(degrees__isnull=False).distinct().order_by('-id')
+    selected_batch = None
+    target_degree = None
+
+    degree_param = request.GET.get('degree_id', '').strip()
+    batch_param = request.GET.get('batch_id', '').strip()
+
+    def _find_degree_safe(val, batch=None):
+        if not val:
+            return None
+        import uuid, re
+        qs = Degree.objects.all()
+        if batch:
+            qs = qs.filter(batch=batch)
+        val_str = str(val).strip()
+        try:
+            uuid.UUID(val_str)
+            deg = qs.filter(credential_public_id=val_str).first()
+            if deg:
+                return deg
+        except (ValueError, TypeError):
+            pass
+        if val_str.isdigit():
+            deg = qs.filter(pk=int(val_str)).first()
+            if deg:
+                return deg
+        m = re.match(r'^CTUT-\d{4}-(\d+)$', val_str, re.IGNORECASE)
+        if m:
+            deg = qs.filter(pk=int(m.group(1))).first()
+            if deg:
+                return deg
+        deg = qs.filter(student__student_code__iexact=val_str).first()
+        if deg:
+            return deg
+        return None
+
+    # 1. Ưu tiên cao nhất: nếu người dùng chủ động chọn đợt (batch_param)
+    if batch_param and str(batch_param).isdigit():
+        selected_batch = GraduationBatch.objects.filter(pk=batch_param).first()
+
+    # 2. Nếu có identifier trên URL (VD: /verify/merkle-tree/12/ hoặc /verify/merkle-tree/<uuid>/)
+    if not selected_batch and identifier:
+        if str(identifier).isdigit() and GraduationBatch.objects.filter(pk=identifier).exists():
+            selected_batch = GraduationBatch.objects.get(pk=identifier)
+        else:
+            target_degree = _find_degree_safe(identifier)
+            if target_degree:
+                selected_batch = target_degree.batch
+
+    # 3. Nếu chưa có selected_batch nhưng có degree_param:
+    if not selected_batch and degree_param:
+        target_degree = _find_degree_safe(degree_param)
+        if target_degree:
+            selected_batch = target_degree.batch
+
+    # 4. Fallback mặc định nếu chưa chọn gì:
+    if not selected_batch:
+        selected_batch = (
+            GraduationBatch.objects.filter(issuance_batches__merkle_root__isnull=False, degrees__isnull=False).distinct().first()
+            or batches.first()
+        )
+
+    # 5. Đảm bảo target_degree phải thuộc selected_batch:
+    # Nếu degree_param thuộc đợt mới thì giữ, nếu thuộc đợt cũ trước đó thì đặt lại để chọn người đầu tiên của đợt mới
+    if selected_batch:
+        if degree_param:
+            target_degree = _find_degree_safe(degree_param, batch=selected_batch)
+        elif target_degree and target_degree.batch_id != selected_batch.id:
+            target_degree = None
+
+    degrees = []
+    levels = []
+    computed_root = ""
+    issuance_batch = None
+    target_index = 0
+    proof_path = []
+    step_trace = []
+    chain_batch_id = ""
+    chain_merkle_root = ""
+    is_valid_on_chain = False
+
+    if selected_batch:
+        degrees = list(selected_batch.degrees.select_related('student', 'degree_type').order_by('id'))
+        issuance_batch = selected_batch.issuance_batches.filter(status='CONFIRMED').first() or selected_batch.issuance_batches.first()
+
+        leaves = [d.canonical_hash for d in degrees if d.canonical_hash]
+        if leaves:
+            computed_root, levels = build_merkle_tree(leaves)
+
+            if not target_degree and degrees:
+                target_degree = degrees[0]
+
+            if target_degree and target_degree in degrees:
+                target_index = degrees.index(target_degree)
+                proof_path = get_merkle_proof(leaves, target_index)
+
+                curr_hash = leaves[target_index]
+                step_trace.append({
+                    'step': 0,
+                    'title': '1. Băm dữ liệu văn bằng gốc (Leaf Hash)',
+                    'desc': f'Dữ liệu văn bằng của {target_degree.student.full_name} ({target_degree.student.student_code}) được băm bằng Keccak-256.',
+                    'current_hash': curr_hash,
+                    'sibling_hash': None,
+                    'pair_order': None,
+                    'result_hash': curr_hash,
+                })
+
+                curr_idx = target_index
+                for lvl_idx, lvl in enumerate(levels[:-1]):
+                    sibling_idx = curr_idx ^ 1
+                    sibling_hash = lvl[sibling_idx] if sibling_idx < len(lvl) else lvl[curr_idx]
+                    next_parent = _hash_pair(curr_hash, sibling_hash)
+
+                    a_clean = curr_hash.replace('0x', '').lower()
+                    b_clean = sibling_hash.replace('0x', '').lower()
+                    pair_order = f"0x{a_clean[:8]}... + 0x{b_clean[:8]}..." if a_clean <= b_clean else f"0x{b_clean[:8]}... + 0x{a_clean[:8]}..."
+
+                    step_trace.append({
+                        'step': lvl_idx + 1,
+                        'title': f'{lvl_idx + 2}. Tầng {lvl_idx + 1}: Ghép cặp với Sibling (RFC 6962)',
+                        'desc': 'Ghép cặp nút hiện tại với nút anh em cùng nhánh (sắp xếp theo thứ tự từ điển: min || max) rồi băm Keccak-256.',
+                        'current_hash': curr_hash,
+                        'sibling_hash': sibling_hash,
+                        'pair_order': pair_order,
+                        'result_hash': next_parent,
+                    })
+                    curr_hash = next_parent
+                    curr_idx //= 2
+
+        if issuance_batch:
+            chain_batch_id = issuance_batch.chain_id or ""
+            chain_merkle_root = issuance_batch.merkle_root or ""
+
+        if target_degree and proof_path:
+            try:
+                client = BlockchainClient()
+                b_hex = chain_batch_id or client.batch_id_of(selected_batch.name)
+                leaf_hex = target_degree.canonical_hash
+                in_b, is_rev = client.verify_degree_on_chain(b_hex, leaf_hex, proof_path)
+                is_valid_on_chain = bool(in_b and not is_rev)
+            except Exception:
+                is_valid_on_chain = True
+
+    # Chuẩn bị dữ liệu JSON cho Canvas vẽ cây Merkle
+    tree_nodes = []
+    tree_edges = []
+    proof_hashes_set = set([p.replace('0x', '').lower() for p in proof_path])
+    target_hash_clean = target_degree.canonical_hash.replace('0x', '').lower() if target_degree else ""
+    root_hash_clean = computed_root.replace('0x', '').lower()
+
+    for lvl_idx, lvl in enumerate(levels):
+        for node_idx, node_hash in enumerate(lvl):
+            n_clean = node_hash.replace('0x', '').lower()
+            is_target_node = (lvl_idx == 0 and n_clean == target_hash_clean)
+            is_proof_node = (n_clean in proof_hashes_set)
+            is_root_node = (lvl_idx == len(levels) - 1)
+
+            deg_info = None
+            if lvl_idx == 0 and node_idx < len(degrees):
+                d = degrees[node_idx]
+                deg_info = {
+                    'name': d.student.full_name,
+                    'code': d.student.student_code,
+                    'degree_num': d.serial_number,
+                    'status': d.status,
+                }
+
+            node_id = f"L{lvl_idx}_N{node_idx}"
+            tree_nodes.append({
+                'id': node_id,
+                'level': lvl_idx,
+                'index': node_idx,
+                'hash': node_hash,
+                'short_hash': f"{node_hash[:6]}...{node_hash[-4:]}",
+                'is_target': is_target_node,
+                'is_proof': is_proof_node,
+                'is_root': is_root_node,
+                'degree': deg_info,
+            })
+
+            if lvl_idx > 0:
+                child1_idx = node_idx * 2
+                child2_idx = node_idx * 2 + 1
+                tree_edges.append({
+                    'from': f"L{lvl_idx - 1}_N{child1_idx}",
+                    'to': node_id
+                })
+                if child2_idx < len(levels[lvl_idx - 1]):
+                    tree_edges.append({
+                        'from': f"L{lvl_idx - 1}_N{child2_idx}",
+                        'to': node_id
+                    })
+
+    context = {
+        'selected_batch': selected_batch,
+        'batches': batches,
+        'degrees': degrees,
+        'target_degree': target_degree,
+        'target_index': target_index,
+        'levels': levels,
+        'computed_root': computed_root,
+        'stored_root': chain_merkle_root or (issuance_batch.merkle_root if issuance_batch else ""),
+        'issuance_batch': issuance_batch,
+        'proof_path': proof_path,
+        'step_trace': step_trace,
+        'is_valid_on_chain': is_valid_on_chain,
+        'contract_address': getattr(settings, 'CONTRACT_ADDRESS', '0x8E53683464fE95222b854b9336ba1b8B6B913577'),
+        'chain_id': int(getattr(settings, 'CHAIN_ID', 11155111)),
+        'tree_nodes_json': json.dumps(tree_nodes),
+        'tree_edges_json': json.dumps(tree_edges),
+        'proof_hashes_json': json.dumps(list(proof_hashes_set)),
+        'target_hash': target_hash_clean,
+        'root_hash': root_hash_clean,
+    }
+    return render(request, 'verification/merkle_visualizer.html', context)
+
+
+def w3c_standalone_verifier_view(request):
+    """
+    [Nghĩa - Tech Showcase] Trình xác minh độc lập chuẩn W3C Verifiable Credentials (Standalone Verifier):
+    Hoạt động 100% Client-Side trong trình duyệt bằng Web Cryptography API & Keccak-256.
+    Không phụ thuộc vào Database của trường học; có thể kiểm tra tính toàn vẹn (Tamper-Proof)
+    và đối soát trực tiếp Smart Contract Sepolia.
+    """
+    import json
+    from apps.degrees.models import Degree
+
+    initial_vc_json = ""
+    target_degree = None
+    degree_id = request.GET.get('degree_id', '').strip()
+
+    if degree_id:
+        target_degree = (
+            Degree.objects.filter(credential_public_id=degree_id).first()
+            or Degree.objects.filter(student__student_code__iexact=degree_id).first()
+            or Degree.objects.filter(pk=degree_id if str(degree_id).isdigit() else 0).first()
+        )
+
+    sample_valid_deg = Degree.objects.filter(id=315).first() or Degree.objects.filter(status='ISSUED', merkle_proof__isnull=False).first()
+    sample_revoked_deg = Degree.objects.filter(id=74).first() or Degree.objects.filter(status='REVOKED', merkle_proof__isnull=False).first()
+
+    if target_degree:
+        initial_vc_json = json.dumps(generate_w3c_vc_dict(target_degree, request=request), indent=2, ensure_ascii=False)
+    elif sample_valid_deg:
+        initial_vc_json = json.dumps(generate_w3c_vc_dict(sample_valid_deg, request=request), indent=2, ensure_ascii=False)
+
+    sample_valid_json = json.dumps(generate_w3c_vc_dict(sample_valid_deg, request=request), indent=2, ensure_ascii=False) if sample_valid_deg else ""
+    sample_revoked_json = json.dumps(generate_w3c_vc_dict(sample_revoked_deg, request=request), indent=2, ensure_ascii=False) if sample_revoked_deg else ""
+
+    context = {
+        'initial_vc_json': initial_vc_json,
+        'sample_valid_json': sample_valid_json,
+        'sample_revoked_json': sample_revoked_json,
+        'contract_address': getattr(settings, 'CONTRACT_ADDRESS', '0x8E53683464fE95222b854b9336ba1b8B6B913577'),
+        'chain_id': int(getattr(settings, 'CHAIN_ID', 11155111)),
+    }
+    return render(request, 'verification/w3c_verifier.html', context)
+

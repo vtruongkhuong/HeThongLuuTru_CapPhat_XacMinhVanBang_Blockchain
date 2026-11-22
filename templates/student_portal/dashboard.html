@@ -339,6 +339,46 @@
                                         <span class="material-symbols-outlined text-[18px]">verified</span>
                                         Tải gói JSON xác minh
                                     </a>
+                                    <!-- Nút Xem Cây Merkle Trực Quan (Nghĩa - Showcase) -->
+                                    <a href="{% url 'verification:merkle_visualizer_detail' deg.credential_public_id %}" 
+                                       target="_blank"
+                                       class="taste-btn w-full bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 py-2.5 rounded-xl font-bold uppercase text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                                        <span class="material-symbols-outlined text-[18px]">account_tree</span>
+                                        Xem Cây Merkle (Proof Path)
+                                    </a>
+                                    <!-- Nút Tải Chuẩn W3C VC JSON -->
+                                    <a href="{% url 'verification:export_w3c_vc' deg.credential_public_id %}" 
+                                       class="taste-btn w-full bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 py-2.5 rounded-xl font-bold uppercase text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                                        <span class="material-symbols-outlined text-[18px]">download</span>
+                                        Tải Chuẩn W3C VC (.json)
+                                    </a>
+                                    <!-- Nút Tải QR Code (Task 5) -->
+                                    <button type="button" 
+                                            onclick="downloadQR('{{ item.qr_code_base64 }}', '{{ deg.degree_number }}')"
+                                            class="taste-btn w-full bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 py-2.5 rounded-xl font-bold uppercase text-xs transition-all flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer">
+                                        <span class="material-symbols-outlined text-[18px]">qr_code_2</span>
+                                        Tải mã QR Code
+                                    </button>
+                                    <!-- Nút Chia sẻ LinkedIn (Task 12) -->
+                                    <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ item.verify_url|urlencode }}" 
+                                       target="_blank" 
+                                       class="taste-btn w-full bg-[#0a66c2]/10 hover:bg-[#0a66c2]/20 text-[#0a66c2] border border-[#0a66c2]/30 py-2.5 rounded-xl font-bold uppercase text-xs transition-all flex items-center justify-center gap-1.5 shadow-2xs">
+                                        <span class="material-symbols-outlined text-[17px]">share</span>
+                                        Chia sẻ lên LinkedIn
+                                    </a>
+
+                                    <!-- Khối Badge SVG Nhúng (Task 12) -->
+                                    <div class="pt-2 border-t border-slate-200 text-left space-y-1.5">
+                                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Huy hiệu SVG nhúng Web / CV:</span>
+                                        <div class="flex items-center justify-center py-1 bg-slate-100 rounded-lg border border-slate-200">
+                                            <img src="{% url 'verification:degree_badge_svg' degree_uuid=deg.credential_public_id %}" alt="Badge SVG" class="h-6">
+                                        </div>
+                                        <button type="button" 
+                                                onclick="copyEmbedBadge('{% url 'verification:degree_badge_svg' degree_uuid=deg.credential_public_id %}')"
+                                                class="taste-btn w-full py-1.5 bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 rounded-lg text-[11px] font-semibold flex items-center justify-center gap-1 transition-all cursor-pointer">
+                                            <span class="material-symbols-outlined text-[13px]">code</span> Sao chép mã nhúng HTML
+                                        </button>
+                                    </div>
                                 {% else %}
                                     <button disabled class="w-full bg-gray-200 text-gray-400 py-3 rounded-xl font-bold uppercase text-xs flex items-center justify-center gap-1 cursor-not-allowed">
                                         <span class="material-symbols-outlined text-[16px]">block</span>
@@ -423,7 +463,29 @@ function filterCategory(category, button) {
     }
 }
 
-// --- QUẢN LÝ MODAL LINK CHIA SẺ HỒ SƠ TẠM THỜI (Nghĩa - Task 3) ---
+// --- TẢI MÃ QR VÀ SAO CHÉP BADGE SVG (Task 5 & Task 12) ---
+function downloadQR(base64Data, filename) {
+    if (!base64Data) {
+        alert('Mã QR chưa sẵn sàng!');
+        return;
+    }
+    const a = document.createElement('a');
+    a.href = 'data:image/png;base64,' + base64Data;
+    a.download = (filename || 'QRCode') + '_QRCode.png';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+function copyEmbedBadge(svgRelUrl) {
+    const fullUrl = window.location.origin + svgRelUrl;
+    const embedCode = `<a href="${window.location.origin}" target="_blank"><img src="${fullUrl}" alt="Blockchain Verified Credential"></a>`;
+    navigator.clipboard.writeText(embedCode).then(() => {
+        alert('Đã sao chép mã nhúng HTML vào bộ nhớ tạm!\nBạn có thể dán vào CV trực tuyến, Portfolio hoặc README GitHub.');
+    });
+}
+
+// --- QUẢN LÝ MODAL LINK CHIA SẺ HỒ SƠ TẠM THỜI (Nghĩa - Task 3 & Task 6) ---
 function openShareModal() {
     const modal = document.getElementById('share-profile-modal');
     if (modal) {
@@ -592,21 +654,26 @@ function copyShareUrl(relUrl) {
                 <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                     Thời hạn hiệu lực của liên kết:
                 </label>
-                <div class="grid grid-cols-3 gap-2.5" id="share-days-group">
-                    <label onclick="selectShareDays(this)" class="day-opt flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-slate-200 hover:border-amber-400 bg-white cursor-pointer transition-all select-none">
+                <div class="grid grid-cols-4 gap-2" id="share-days-group">
+                    <label onclick="selectShareDays(this)" class="day-opt flex flex-col items-center justify-center p-2.5 rounded-2xl border-2 border-slate-200 hover:border-amber-400 bg-white cursor-pointer transition-all select-none">
+                        <input type="radio" name="days" value="1" class="sr-only">
+                        <span class="text-xs font-black text-slate-800">1 Ngày</span>
+                        <span class="text-[9px] text-slate-400 font-medium">24 giờ</span>
+                    </label>
+                    <label onclick="selectShareDays(this)" class="day-opt flex flex-col items-center justify-center p-2.5 rounded-2xl border-2 border-slate-200 hover:border-amber-400 bg-white cursor-pointer transition-all select-none">
                         <input type="radio" name="days" value="7" class="sr-only">
-                        <span class="text-sm font-black text-slate-800">7 Ngày</span>
-                        <span class="text-[10px] text-slate-400 font-medium">1 tuần</span>
+                        <span class="text-xs font-black text-slate-800">7 Ngày</span>
+                        <span class="text-[9px] text-slate-400 font-medium">1 tuần</span>
                     </label>
-                    <label onclick="selectShareDays(this)" class="day-opt flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-amber-500 bg-amber-50 text-amber-950 font-black shadow-sm ring-2 ring-amber-400/40 cursor-pointer transition-all select-none">
+                    <label onclick="selectShareDays(this)" class="day-opt flex flex-col items-center justify-center p-2.5 rounded-2xl border-2 border-amber-500 bg-amber-50 text-amber-950 font-black shadow-sm ring-2 ring-amber-400/40 cursor-pointer transition-all select-none">
                         <input type="radio" name="days" value="14" checked class="sr-only">
-                        <span class="text-sm font-black text-amber-900">14 Ngày</span>
-                        <span class="text-[10px] text-amber-700 font-semibold">2 tuần (Gợi ý)</span>
+                        <span class="text-xs font-black text-amber-900">14 Ngày</span>
+                        <span class="text-[9px] text-amber-700 font-semibold">2 tuần</span>
                     </label>
-                    <label onclick="selectShareDays(this)" class="day-opt flex flex-col items-center justify-center p-3 rounded-2xl border-2 border-slate-200 hover:border-amber-400 bg-white cursor-pointer transition-all select-none">
+                    <label onclick="selectShareDays(this)" class="day-opt flex flex-col items-center justify-center p-2.5 rounded-2xl border-2 border-slate-200 hover:border-amber-400 bg-white cursor-pointer transition-all select-none">
                         <input type="radio" name="days" value="30" class="sr-only">
-                        <span class="text-sm font-black text-slate-800">30 Ngày</span>
-                        <span class="text-[10px] text-slate-400 font-medium">1 tháng</span>
+                        <span class="text-xs font-black text-slate-800">30 Ngày</span>
+                        <span class="text-[9px] text-slate-400 font-medium">1 tháng</span>
                     </label>
                 </div>
             </div>
@@ -616,6 +683,22 @@ function copyShareUrl(relUrl) {
                     Ghi chú / Doanh nghiệp ứng tuyển (Tùy chọn):
                 </label>
                 <input type="text" name="label" placeholder="VD: Nộp ứng tuyển FPT Software, Viettel..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:border-amber-500 outline-none">
+            </div>
+
+            <!-- Cài đặt bảo mật nâng cao (Task 6) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Mật khẩu bảo vệ (Tùy chọn):
+                    </label>
+                    <input type="password" name="password" placeholder="Để trống = xem tự do" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:bg-white focus:border-amber-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">
+                        Giới hạn lượt xem (Tùy chọn):
+                    </label>
+                    <input type="number" name="max_views" min="0" placeholder="0 = Không giới hạn" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-800 focus:bg-white focus:border-amber-500 outline-none">
+                </div>
             </div>
 
             <p class="text-[11px] text-slate-400 leading-relaxed font-medium">

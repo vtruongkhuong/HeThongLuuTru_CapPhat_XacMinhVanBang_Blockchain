@@ -3,6 +3,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from apps.verification import views as verification_views
+from apps.blockchain import views as blockchain_views
 from apps.core.views import dashboard_view, report_view, custom_404_view, custom_500_view, animate_ui_demo_view
 
 urlpatterns = [
@@ -18,6 +19,7 @@ urlpatterns = [
 
     # Trạm điều phối và Admin
     path('dashboard/', dashboard_view, name='dashboard'),
+    path('admin/blockchain/transactions/', blockchain_views.transaction_list_view, name='admin_blockchain_transactions'),
     path('admin/', admin.site.urls),
     path('report/', report_view, name='report'),
 

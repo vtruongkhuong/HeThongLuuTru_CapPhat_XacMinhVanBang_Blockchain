@@ -7,6 +7,37 @@
 (function () {
     'use strict';
 
+    // -------------------------------------------------------------------------
+    // 0. ENFORCE CRISP LIGHT THEME (Xóa vĩnh viễn Dark Theme, mặc định Light)
+    // -------------------------------------------------------------------------
+    function enforceLightAdminTheme() {
+        try {
+            // Chuẩn hóa JSON string để Alpine.$persist không bị SyntaxError làm trắng trang
+            const val = localStorage.getItem("adminTheme");
+            if (val === "light" || val === "dark" || val === "auto") {
+                localStorage.setItem("adminTheme", JSON.stringify(val));
+            } else if (!val) {
+                localStorage.setItem("adminTheme", JSON.stringify("light"));
+            } else {
+                localStorage.setItem("adminTheme", JSON.stringify("light"));
+            }
+            localStorage.removeItem("_x_adminTheme");
+
+            if (document.documentElement) {
+                document.documentElement.classList.remove("dark");
+                document.documentElement.classList.add("light");
+                document.documentElement.removeAttribute("x-cloak");
+            }
+            if (document.body) {
+                document.body.classList.remove("dark");
+                document.body.classList.add("light");
+                document.body.removeAttribute("x-cloak");
+            }
+        } catch (e) {}
+    }
+    enforceLightAdminTheme();
+    document.addEventListener("DOMContentLoaded", enforceLightAdminTheme);
+
     const hasGSAP = typeof gsap !== 'undefined';
 
     // -------------------------------------------------------------------------
