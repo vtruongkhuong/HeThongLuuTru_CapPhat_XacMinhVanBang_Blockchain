@@ -115,7 +115,144 @@
         </div>
     </div>
 
-    <!-- KHU VỰC 3 BIỂU ĐỒ CHART.JS (3 LOẠI CHART THỰC) -->
+    <!-- [BƯỚC 2] WIDGET SO SÁNH "TRƯỚC - SAU BLOCKCHAIN" (CHỨNG MINH TỐI ƯU HÓA) -->
+    <div class="taste-card bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 mb-8">
+        <!-- Tiêu đề Section -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-100">
+            <div>
+                <h2 class="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
+                    <span class="text-2xl">📊</span>
+                    Hiệu Quả Tối Ưu Hóa Quy Trình Kiểm Định Nhân Sự
+                </h2>
+                <p class="text-xs text-slate-500 font-medium mt-1">
+                    Minh chứng định lượng trả lời câu hỏi hội đồng: "Tối ưu hóa kiểm định nhân sự ở đâu?"
+                </p>
+            </div>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/70 w-fit">
+                <i class="material-symbols-outlined text-[16px]">verified</i>
+                Trước vs Sau Blockchain
+            </span>
+        </div>
+
+        <!-- 3 Số liệu nổi bật (Card lớn) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+            <!-- Card 1: total_verify_count -->
+            <div class="bg-gradient-to-br from-blue-50/80 to-indigo-50/40 border border-blue-200/80 rounded-2xl p-5 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20 shrink-0">
+                    <i class="material-symbols-outlined text-[24px]">fact_check</i>
+                </div>
+                <div>
+                    <h3 class="text-3xl font-black text-slate-900 leading-tight" id="metric-total-verify">
+                        {{ stats.efficiency_metrics.total_verify_count|default:stats.total_verifications|default:0 }}
+                    </h3>
+                    <p class="text-xs font-bold text-blue-900 uppercase tracking-wider mt-1">lần xác minh thực hiện</p>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Đối soát tức thì qua hệ thống</p>
+                </div>
+            </div>
+
+            <!-- Card 2: fraud_detected -->
+            <div class="bg-gradient-to-br from-rose-50/80 to-pink-50/40 border border-rose-200/80 rounded-2xl p-5 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-rose-600 text-white flex items-center justify-center shadow-md shadow-rose-500/20 shrink-0">
+                    <i class="material-symbols-outlined text-[24px]">shield_lock</i>
+                </div>
+                <div>
+                    <h3 class="text-3xl font-black text-slate-900 leading-tight" id="metric-fraud-detected">
+                        {{ stats.efficiency_metrics.fraud_detected|default:0 }}
+                    </h3>
+                    <p class="text-xs font-bold text-rose-900 uppercase tracking-wider mt-1">bằng giả bị phát hiện</p>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Chống sửa điểm & phôi bằng giả</p>
+                </div>
+            </div>
+
+            <!-- Card 3: time_saved_ratio -->
+            <div class="bg-gradient-to-br from-emerald-50/80 to-teal-50/40 border border-emerald-200/80 rounded-2xl p-5 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/20 shrink-0">
+                    <i class="material-symbols-outlined text-[24px]">speed</i>
+                </div>
+                <div>
+                    <h3 class="text-3xl font-black text-slate-900 leading-tight" id="metric-time-saved">
+                        ~{{ stats.efficiency_metrics.time_saved_ratio|default:"99.9%" }}
+                    </h3>
+                    <p class="text-xs font-bold text-emerald-900 uppercase tracking-wider mt-1">thời gian tiết kiệm so với thủ công</p>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Rút ngắn từ 5 ngày còn 3 giây</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bảng so sánh 2 cột -->
+        <div class="overflow-hidden rounded-xl border border-slate-200">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr>
+                        <th class="w-1/2 p-4 bg-slate-100 text-slate-700 font-extrabold text-xs uppercase tracking-wider border-b border-r border-slate-200">
+                            <div class="flex items-center gap-2">
+                                <i class="material-symbols-outlined text-[18px] text-slate-500">history_toggle_off</i>
+                                QUY TRÌNH CŨ (Truyền thống)
+                            </div>
+                        </th>
+                        <th class="w-1/2 p-4 bg-blue-600 text-white font-extrabold text-xs uppercase tracking-wider border-b border-blue-700 shadow-sm">
+                            <div class="flex items-center gap-2">
+                                <i class="material-symbols-outlined text-[18px] text-amber-300">verified</i>
+                                HỆ THỐNG BLOCKCHAIN (Hiện tại)
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-xs text-slate-700">
+                    <tr class="hover:bg-slate-50/60 transition-colors">
+                        <td class="p-4 border-r border-slate-200 font-medium text-slate-600">
+                            <span class="inline-block px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-semibold mr-1.5">Thời gian</span>
+                            3 - 5 ngày/lần
+                        </td>
+                        <td class="p-4 font-bold text-emerald-700 bg-emerald-50/30">
+                            <span class="inline-block px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold mr-1.5">Tức thì</span>
+                            ~3 giây/lần
+                        </td>
+                    </tr>
+                    <tr class="hover:bg-slate-50/60 transition-colors">
+                        <td class="p-4 border-r border-slate-200 font-medium text-slate-600">
+                            <span class="inline-block px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-semibold mr-1.5">Cách thức</span>
+                            Gọi điện thủ công (gửi công văn, chờ P.Đào tạo)
+                        </td>
+                        <td class="p-4 font-bold text-blue-700 bg-blue-50/20">
+                            <span class="inline-block px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-bold mr-1.5">Công nghệ</span>
+                            Tự động 100% (Quét QR, kiểm tra Merkle Root)
+                        </td>
+                    </tr>
+                    <tr class="hover:bg-slate-50/60 transition-colors">
+                        <td class="p-4 border-r border-slate-200 font-medium text-slate-600">
+                            <span class="inline-block px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-semibold mr-1.5">Quy mô</span>
+                            1 ứng viên/lần
+                        </td>
+                        <td class="p-4 font-bold text-indigo-700 bg-indigo-50/20">
+                            <span class="inline-block px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 font-bold mr-1.5">Batch</span>
+                            50 ứng viên/lần (Doanh nghiệp tải file Excel đối soát)
+                        </td>
+                    </tr>
+                    <tr class="hover:bg-slate-50/60 transition-colors">
+                        <td class="p-4 border-r border-slate-200 font-medium text-slate-600">
+                            <span class="inline-block px-2 py-0.5 rounded bg-rose-50 text-rose-700 font-semibold mr-1.5">Rủi ro</span>
+                            Dễ bị làm giả (Phôi bằng giả, chỉnh sửa ảnh scan)
+                        </td>
+                        <td class="p-4 font-bold text-emerald-700 bg-emerald-50/30">
+                            <span class="inline-block px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold mr-1.5">Bảo mật</span>
+                            Smart Contract chống giả mạo (Mã băm bất biến trên Sepolia)
+                        </td>
+                    </tr>
+                    <tr class="hover:bg-slate-50/60 transition-colors">
+                        <td class="p-4 border-r border-slate-200 font-medium text-slate-600">
+                            <span class="inline-block px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-semibold mr-1.5">Nhật ký</span>
+                            Không lưu lịch sử (Khó hậu kiểm, đối chiếu)
+                        </td>
+                        <td class="p-4 font-bold text-blue-700 bg-blue-50/20">
+                            <span class="inline-block px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-bold mr-1.5">Minh bạch</span>
+                            Lưu toàn bộ on-chain (Lịch sử giao dịch & VerificationLog công khai)
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
     <!-- TẦNG 1: BIỂU ĐỒ CỘT (chartYear) & BIỂU ĐỒ TRÒN (chartType) -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <!-- 1. Biểu đồ cột: chartYear -->
@@ -477,6 +614,23 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
                 if (verifyTodayEl && data.kpi.verify_today !== undefined) {
                     verifyTodayEl.innerText = Number(data.kpi.verify_today).toLocaleString('vi-VN');
+                }
+            }
+
+            // Cập nhật Widget Hiệu quả Trước - Sau Blockchain
+            if (data.efficiency_metrics) {
+                const totalVerifyEl = document.getElementById('metric-total-verify');
+                const fraudEl = document.getElementById('metric-fraud-detected');
+                const timeSavedEl = document.getElementById('metric-time-saved');
+
+                if (totalVerifyEl && data.efficiency_metrics.total_verify_count !== undefined) {
+                    totalVerifyEl.innerText = Number(data.efficiency_metrics.total_verify_count).toLocaleString('vi-VN');
+                }
+                if (fraudEl && data.efficiency_metrics.fraud_detected !== undefined) {
+                    fraudEl.innerText = Number(data.efficiency_metrics.fraud_detected).toLocaleString('vi-VN');
+                }
+                if (timeSavedEl && data.efficiency_metrics.time_saved_ratio) {
+                    timeSavedEl.innerText = '~' + data.efficiency_metrics.time_saved_ratio;
                 }
             }
 

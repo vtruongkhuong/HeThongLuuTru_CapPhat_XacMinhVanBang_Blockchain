@@ -14,10 +14,11 @@ from apps.verification.models import VerificationLog
 
 def stats_api(request):
     """
-    [BƯỚC 2] View AJAX trả JSON thống kê cho 3 biểu đồ Chart.js và 4 thẻ KPI
+    [BƯỚC 2] View AJAX trả JSON thống kê cho 3 biểu đồ Chart.js, 4 thẻ KPI và Widget Hiệu quả
     Endpoint: /reporting/api/stats/
     """
     today = timezone.now().date()
+    stats = get_dashboard_stats()
     return JsonResponse({
         'charts': get_chart_data(),
         'kpi': {
@@ -25,7 +26,8 @@ def stats_api(request):
             'pending':      Degree.objects.filter(status__in=['DRAFT', 'REVIEWED', 'APPROVED']).count(),
             'revoked':      Degree.objects.filter(status='REVOKED').count(),
             'verify_today': VerificationLog.objects.filter(created_at__date=today).count(),
-        }
+        },
+        'efficiency_metrics': stats.get('efficiency_metrics', {}),
     })
 
 
