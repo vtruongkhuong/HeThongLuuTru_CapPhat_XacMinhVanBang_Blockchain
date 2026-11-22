@@ -4,6 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from apps.verification import views as verification_views
 from apps.core.views import dashboard_view, report_view, custom_404_view, custom_500_view, animate_ui_demo_view
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
     # Điều hướng gốc & tương thích ngược cho các template gọi trực tiếp tên URL
@@ -31,6 +32,9 @@ urlpatterns = [
     path('revocation/', include('apps.revocation.urls')),
     path('portal/', include('apps.student_portal.urls')),
     path('reports/', include('apps.reporting.urls')),
+    path('api/v1/', include('apps.api.urls')),
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('accounts/', include('allauth.urls')),
 ]
 

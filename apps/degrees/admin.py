@@ -20,6 +20,10 @@ class DegreeAdmin(BaseRoleAdmin):
     allowed_roles = ['officer_a', 'officer_b', 'reviewer', 'approver', 'issuer']
     
     list_display = ['student', 'batch', 'degree_type', 'status', 'short_canonical_hash', 'ipfs_badge', 'generated_at']
+    
+    list_select_related = ['student', 'batch', 'degree_type']   
+    list_per_page = 25                                       
+    autocomplete_fields = ['student', 'batch', 'supersedes']
 
     def short_canonical_hash(self, obj):
         return format_crypto_hash_badge(obj.canonical_hash, title_prefix="Mã Hash Văn Bằng (Canonical Hash)", icon="fingerprint")

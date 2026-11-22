@@ -46,6 +46,9 @@ INSTALLED_APPS = [
     'apps.student_portal',
     'apps.audit',
     'apps.reporting',
+    'apps.api',
+    'rest_framework',
+    'drf_spectacular',
 ]
 
 SITE_ID = 1
@@ -339,4 +342,30 @@ UNFOLD = {
             },
         ],
     },
+}
+
+# ==============================================================================
+# Django REST Framework
+# ==============================================================================
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'apps.api.authentication.APIKeyAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'API Xác Minh Văn Bằng Blockchain - HUTECH',
+    'DESCRIPTION': (
+        'API công khai cho phép doanh nghiệp xác minh văn bằng '
+        'ứng viên tuyển dụng thông qua Blockchain Ethereum Sepolia.'
+    ),
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }

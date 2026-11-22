@@ -22,6 +22,7 @@ DATABASES = {
         default=os.getenv('DATABASE_URL', DEFAULT_DB_URL),
         conn_max_age=600,
         conn_health_checks=True,
+        disable_server_side_cursors=True,
     )
 }
 

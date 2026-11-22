@@ -19,6 +19,8 @@ class IssuanceBatchAdmin(BaseRoleAdmin):
     list_display = ['graduation_batch', 'short_merkle_root', 'status', 'created_at']
     list_filter = ('status', 'created_at')
     list_filter_submit = True
+    list_select_related = ['graduation_batch']
+    list_per_page = 20
     actions = ['issue_with_metamask']
 
     def short_merkle_root(self, obj):
