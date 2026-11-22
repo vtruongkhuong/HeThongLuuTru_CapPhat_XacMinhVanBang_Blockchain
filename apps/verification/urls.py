@@ -9,6 +9,7 @@ urlpatterns = [
     path('tracuu-tam-thoi/', views.verify_temp_cert_view, name='verify_temp_cert'),
     path('doanh-nghiep/', views.employer_batch_verify_view, name='employer_batch_verify'),
     path('doanh-nghiep/mau-excel/', views.download_employer_sample_excel, name='employer_sample_excel'),
+    path('doanh-nghiep/xuat-excel/', views.export_employer_results_excel_view, name='export_employer_results_excel'),
     path('chung-thuc-pdf/<str:degree_id>/', views.download_verification_cert_pdf, name='download_verification_cert_pdf'),
     path('badge/<str:degree_uuid>.svg', views.degree_badge_svg, name='degree_badge_svg'),
     # [Nghĩa - Tech Showcase] Visual Merkle Tree & W3C Verifiable Credentials

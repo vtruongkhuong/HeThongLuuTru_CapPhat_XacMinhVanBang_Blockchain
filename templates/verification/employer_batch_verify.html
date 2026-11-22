@@ -96,9 +96,9 @@
                 </div>
                 
                 <!-- Nút xuất Excel -->
-                <button type="button" onclick="exportResultsExcel()" class="animate-btn px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm transition-all">
+                <a href="{% url 'verification:export_employer_results_excel' %}" class="animate-btn px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm transition-all">
                     <span class="material-symbols-outlined text-[18px]">table_view</span> Xuất Báo Cáo Excel (.XLSX)
-                </button>
+                </a>
             </div>
 
             <!-- 4 Thẻ KPI Tóm Tắt -->
@@ -282,11 +282,7 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 function exportResultsExcel() {
-    const form = document.getElementById('batch-verify-form');
-    const actionInput = document.getElementById('form-action');
-    actionInput.value = 'export_excel';
-    form.submit();
-    actionInput.value = 'verify';
+    window.location.href = "{% url 'verification:export_employer_results_excel' %}";
 }
 </script>
 {% endblock %}

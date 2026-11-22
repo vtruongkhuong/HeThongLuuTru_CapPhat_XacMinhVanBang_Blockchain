@@ -536,6 +536,80 @@ def download_employer_sample_excel(request):
     return HttpResponse("File mẫu chưa được khởi tạo", status=404)
 
 
+def _generate_employer_excel_report(results):
+    """Hàm phụ trợ sinh file Excel báo cáo thẩm định ứng viên có đầy đủ dữ liệu"""
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Ket_Qua_Tham_Dinh"
+
+    ws.merge_cells("A1:H1")
+    title_cell = ws["A1"]
+    title_cell.value = "BÁO CÁO THẨM ĐỊNH VĂN BẰNG ỨNG VIÊN TUYỂN DỤNG (BLOCKCHAIN)"
+    title_cell.font = Font(name="Arial", size=13, bold=True, color="1E3A8A")
+    title_cell.alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions[1].height = 30
+
+    headers = ["STT", "Hồ Sơ / Tệp Nguồn", "Họ và Tên", "MSSV", "Loại Bằng", "Số Hiệu Bằng", "Kết Quả Thẩm Định", "Mã Giao Dịch Chuỗi (TxHash)"]
+    header_fill = PatternFill(start_color="1E3A8A", end_color="1E3A8A", fill_type="solid")
+    header_font = Font(name="Arial", size=10, bold=True, color="FFFFFF")
+
+    for col_idx, h in enumerate(headers, 1):
+        cell = ws.cell(row=3, column=col_idx, value=h)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+    ws.row_dimensions[3].height = 24
+
+    for idx, r in enumerate(results, 1):
+        row_num = 3 + idx
+        ws.cell(row=row_num, column=1, value=idx).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=2, value=r.get('file_name', '---'))
+        ws.cell(row=row_num, column=3, value=r.get('student_name', '---'))
+        ws.cell(row=row_num, column=4, value=r.get('student_code', '---')).alignment = Alignment(horizontal="center")
+        ws.cell(row=row_num, column=5, value=r.get('degree_type', '---'))
+        ws.cell(row=row_num, column=6, value=r.get('degree_number', '---')).alignment = Alignment(horizontal="center")
+
+        status_cell = ws.cell(row=row_num, column=7, value=r.get('status_text', '---'))
+        status_cell.alignment = Alignment(horizontal="center")
+        if r.get('status') == 'VERIFIED':
+            status_cell.font = Font(name="Arial", color="047857", bold=True)
+            status_cell.fill = PatternFill(start_color="ECFDF5", end_color="ECFDF5", fill_type="solid")
+        elif r.get('status') == 'TAMPERED':
+            status_cell.font = Font(name="Arial", color="B91C1C", bold=True)
+            status_cell.fill = PatternFill(start_color="FEF2F2", end_color="FEF2F2", fill_type="solid")
+        elif r.get('status') == 'REVOKED':
+            status_cell.font = Font(name="Arial", color="B45309", bold=True)
+            status_cell.fill = PatternFill(start_color="FFFBEB", end_color="FFFBEB", fill_type="solid")
+        else:
+            status_cell.font = Font(name="Arial", color="475569", bold=True)
+
+        ws.cell(row=row_num, column=8, value=r.get('tx_hash', '---'))
+
+    for col in ws.columns:
+        max_len = max(len(str(cell.value or '')) for cell in col)
+        col_letter = openpyxl.utils.get_column_letter(col[0].column)
+        ws.column_dimensions[col_letter].width = max(max_len + 3, 13)
+
+    excel_buffer = io.BytesIO()
+    wb.save(excel_buffer)
+    excel_buffer.seek(0)
+    return excel_buffer.getvalue()
+
+
+def export_employer_results_excel_view(request):
+    """
+    [Doanh nghiệp] Tải trực tiếp file Excel báo cáo thẩm định từ kết quả tra cứu gần nhất
+    """
+    results = request.session.get('last_employer_batch_results', [])
+    excel_bytes = _generate_employer_excel_report(results)
+    resp = HttpResponse(
+        excel_bytes,
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    resp['Content-Disposition'] = 'attachment; filename="Bao_Cao_Tham_Dinh_Ung_Vien_Blockchain.xlsx"'
+    return resp
+
+
 def employer_batch_verify_view(request):
     """
     [Nghĩa - Task 1] Cổng Doanh nghiệp Xác minh Hàng loạt (Batch Employer Verification).
@@ -792,57 +866,15 @@ def employer_batch_verify_view(request):
             'not_found': sum(1 for r in results if r['status'] == 'NOT_FOUND'),
         }
 
+        # Lưu kết quả vào session để có thể xuất file Excel bất kỳ lúc nào
+        if results:
+            request.session['last_employer_batch_results'] = results
+
         if action == 'export_excel' or request.POST.get('export') == 'excel':
-            wb = openpyxl.Workbook()
-            ws = wb.active
-            ws.title = "Ket_Qua_Tham_Dinh"
-
-            ws.merge_cells("A1:H1")
-            title_cell = ws["A1"]
-            title_cell.value = "BÁO CÁO THẨM ĐỊNH VĂN BẰNG ỨNG VIÊN TUYỂN DỤNG (BLOCKCHAIN)"
-            title_cell.font = Font(name="Arial", size=13, bold=True, color="1E3A8A")
-            title_cell.alignment = Alignment(horizontal="center", vertical="center")
-            ws.row_dimensions[1].height = 30
-
-            headers = ["STT", "Tên File PDF", "Họ và Tên", "MSSV", "Loại Bằng", "Số Hiệu Bằng", "Kết Quả Thẩm Định", "Mã Giao Dịch Chuỗi (TxHash)"]
-            header_fill = PatternFill(start_color="1E3A8A", end_color="1E3A8A", fill_type="solid")
-            header_font = Font(name="Arial", size=10, bold=True, color="FFFFFF")
-
-            for col_idx, h in enumerate(headers, 1):
-                cell = ws.cell(row=3, column=col_idx, value=h)
-                cell.fill = header_fill
-                cell.font = header_font
-                cell.alignment = Alignment(horizontal="center", vertical="center")
-
-            for idx, r in enumerate(results, 1):
-                row_num = 3 + idx
-                ws.cell(row=row_num, column=1, value=idx)
-                ws.cell(row=row_num, column=2, value=r['file_name'])
-                ws.cell(row=row_num, column=3, value=r['student_name'])
-                ws.cell(row=row_num, column=4, value=r['student_code'])
-                ws.cell(row=row_num, column=5, value=r['degree_type'])
-                ws.cell(row=row_num, column=6, value=r['degree_number'])
-
-                status_cell = ws.cell(row=row_num, column=7, value=r['status_text'])
-                if r['status'] == 'VERIFIED':
-                    status_cell.font = Font(name="Arial", color="047857", bold=True)
-                elif r['status'] == 'TAMPERED':
-                    status_cell.font = Font(name="Arial", color="B91C1C", bold=True)
-                elif r['status'] == 'REVOKED':
-                    status_cell.font = Font(name="Arial", color="B45309", bold=True)
-
-                ws.cell(row=row_num, column=8, value=r['tx_hash'])
-
-            for col in ws.columns:
-                max_len = max(len(str(cell.value or '')) for cell in col)
-                col_letter = openpyxl.utils.get_column_letter(col[0].column)
-                ws.column_dimensions[col_letter].width = max(max_len + 3, 12)
-
-            excel_buffer = io.BytesIO()
-            wb.save(excel_buffer)
-            excel_buffer.seek(0)
+            export_data = results if results else request.session.get('last_employer_batch_results', [])
+            excel_bytes = _generate_employer_excel_report(export_data)
             resp = HttpResponse(
-                excel_buffer.getvalue(),
+                excel_bytes,
                 content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             )
             resp['Content-Disposition'] = 'attachment; filename="Bao_Cao_Tham_Dinh_Ung_Vien_Blockchain.xlsx"'

@@ -15,6 +15,7 @@ urlpatterns = [
     path('tracuu-tam-thoi/', verification_views.verify_temp_cert_view, name='verify_temp_cert'),
     path('doanh-nghiep/', verification_views.employer_batch_verify_view, name='employer_batch_verify'),
     path('doanh-nghiep/mau-excel/', verification_views.download_employer_sample_excel, name='employer_sample_excel_root'),
+    path('doanh-nghiep/xuat-excel/', verification_views.export_employer_results_excel_view, name='export_employer_excel_root'),
     path('animate-ui/', animate_ui_demo_view, name='animate_ui_demo'),
 
     # Route chuẩn có app_name = 'verification' theo yêu cầu N2
