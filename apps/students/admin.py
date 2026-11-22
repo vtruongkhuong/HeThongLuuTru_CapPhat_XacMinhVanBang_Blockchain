@@ -211,6 +211,8 @@ class StudentAdmin(BaseRoleAdmin):
     list_display = ('student_code', 'full_name', 'faculty', 'major', 'display_status')
     list_filter = ('status', 'faculty', 'major', 'enrollment_year')
     list_filter_submit = True
+    list_select_related = ['faculty', 'major']
+    list_per_page = 20
     search_fields = ('student_code', 'full_name', 'national_id')
     autocomplete_fields = ['faculty', 'major']
 

@@ -333,6 +333,12 @@
                                         <span class="material-symbols-outlined text-[18px]">download</span>
                                         Tải bản PDF
                                     </a>
+                                    <a href="/api/v1/degrees/{{ deg.credential_public_id }}/credential.json"
+                                        class="taste-btn w-full bg-violet-50 hover:bg-violet-100 text-violet-800 border border-violet-200 py-2.5 rounded-xl font-bold uppercase text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm"
+                                        title="Tải file JSON chuẩn W3C Verifiable Credential — Doanh nghiệp có thể verify offline">
+                                        <span class="material-symbols-outlined text-[18px]">verified_user</span>
+                                        Tải Verifiable Credential (.json)
+                                    </a>
                                     <!-- Nút Tải Gói JSON Xác Minh Độc Lập (N5) -->
                                     <a href="{% url 'student_portal:download_verification_package' degree_id=deg.id %}" 
                                        class="taste-btn w-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 py-2.5 rounded-xl font-bold uppercase text-xs transition-all flex items-center justify-center gap-1.5 shadow-sm">

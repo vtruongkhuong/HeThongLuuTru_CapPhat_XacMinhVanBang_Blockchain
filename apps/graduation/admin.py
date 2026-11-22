@@ -27,6 +27,8 @@ class GraduationBatchAdmin(BaseRoleAdmin):
     list_display = ['name', 'view_students_link', 'status', 'maker', 'checker', 'approved_at', 'short_merkle_root']
     list_filter = ('status', 'degree_type')
     list_filter_submit = True
+    list_select_related = ['maker', 'checker', 'degree_type']
+    list_per_page = 20
     search_fields = ['name']
     actions = ['submit_for_approval', 'approve_batch', 'reject_batch', 'generate_batch_pdfs', 'export_batch_so_goc_excel', 'export_batch_so_goc_pdf']
 
