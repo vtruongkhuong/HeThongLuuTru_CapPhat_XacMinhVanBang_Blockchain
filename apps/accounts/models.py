@@ -52,6 +52,12 @@ class User(AbstractUser):
     def __str__(self):
         return self.get_full_name() or self.username
 
+    @property
+    def unread_notifications_count(self):
+        if not self.is_authenticated:
+            return 0
+        return self.notifications.filter(is_read=False).count()
+
 
 class Role(TimeStampedModel):
     """
@@ -137,3 +143,41 @@ class RolePermission(TimeStampedModel):
 
     def __str__(self):
         return f"{self.role} - {self.permission}"
+
+
+class NotificationQuerySet(models.QuerySet):
+    def unread(self):
+        return self.filter(is_read=False)
+
+    def unread_count(self):
+        return self.filter(is_read=False).count()
+
+
+class Notification(models.Model):
+    """
+    Thông báo trong ứng dụng (In-app Notification) cho người dùng / sinh viên.
+    """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='notifications',
+        verbose_name="Người nhận"
+    )
+    title = models.CharField(max_length=200, verbose_name="Tiêu đề")
+    message = models.TextField(verbose_name="Nội dung")
+    link = models.CharField(max_length=500, blank=True, verbose_name="Liên kết")
+    is_read = models.BooleanField(default=False, verbose_name="Đã đọc")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Thời gian tạo")
+    icon = models.CharField(max_length=50, default='notifications', verbose_name="Icon hiển thị")
+
+    objects = NotificationQuerySet.as_manager()
+
+    class Meta:
+        db_table = 'accounts_notification'
+        ordering = ['-created_at']
+        verbose_name = "Thông báo"
+        verbose_name_plural = "Danh sách Thông báo"
+
+    def __str__(self):
+        return f"{self.user.username} - {self.title}"
+

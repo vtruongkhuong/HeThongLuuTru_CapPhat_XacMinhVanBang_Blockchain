@@ -12,6 +12,11 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
     path('password/change/', views.change_password_view, name='change_password'),
 
+    # In-app Notifications
+    path('notifications/', views.notification_list_view, name='notification_list'),
+    path('notifications/<int:pk>/read/', views.notification_mark_read_view, name='notification_mark_read'),
+    path('notifications/read-all/', views.notification_mark_all_read_view, name='notification_mark_all_read'),
+
     # Đăng nhập bằng Ví Web3 MetaMask (SIWE EIP-4361)
     path('web3/nonce/', views.web3_nonce_view, name='web3_nonce'),
     path('web3/login/', views.web3_login_view, name='web3_login'),

@@ -206,3 +206,82 @@ class VerificationPdfCertificateTests(TestCase):
         self.assertGreaterEqual(len(reader.embedded_signatures), 1)
         self.assertEqual(reader.embedded_signatures[0].field_name, "HUTECH_Digital_Signature")
 
+
+class InAppNotificationTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username="sv_notif_tester",
+            email="notif_tester@ctuet.edu.vn",
+            password="TestPassword123!"
+        )
+        self.faculty = Faculty.objects.create(name="Khoa CNTT Test Notif", code="CNTT_NOTIF")
+        self.major = Major.objects.create(name="KTPM Notif", code="KTPM_NOTIF", faculty=self.faculty)
+        self.student = Student.objects.create(
+            student_code="SV_NOTIF_01",
+            full_name="Trần Văn Thông Báo",
+            user=self.user,
+            faculty=self.faculty,
+            major=self.major
+        )
+        self.degree_type = DegreeType.objects.create(name="Bằng Cử nhân", code="CN_NOTIF")
+        self.batch = GraduationBatch.objects.create(name="Đợt Tốt Nghiệp Test Notif", degree_type=self.degree_type)
+
+    def test_notification_flow_and_unread_count(self):
+        """Test quy trình tạo thông báo, đếm số chưa đọc, và đánh dấu đã đọc"""
+        from apps.accounts.models import Notification
+
+        notif = Notification.objects.create(
+            user=self.user,
+            title="Văn bằng đã sẵn sàng",
+            message="Văn bằng đã được lưu trên Blockchain.",
+            link="/portal/dashboard/",
+            icon="school"
+        )
+        self.assertEqual(self.user.unread_notifications_count, 1)
+
+        # Chưa đăng nhập -> chuyển hướng login
+        resp_anon = self.client.get('/notifications/')
+        self.assertEqual(resp_anon.status_code, 302)
+
+        # Đã đăng nhập -> hiển thị trang thông báo
+        self.client.force_login(self.user)
+        resp = self.client.get('/notifications/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Văn bằng đã sẵn sàng")
+
+        # Click đọc thông báo
+        mark_resp = self.client.get(f'/notifications/{notif.pk}/read/')
+        self.assertRedirects(mark_resp, "/portal/dashboard/")
+        notif.refresh_from_db()
+        self.assertTrue(notif.is_read)
+        self.assertEqual(self.user.unread_notifications_count, 0)
+
+    def test_degree_issued_signal_creates_notification(self):
+        """Test khi Degree đổi trạng thái sang ISSUED thì tự động tạo Notification cho Sinh viên"""
+        from apps.accounts.models import Notification
+
+        degree = Degree.objects.create(
+            student=self.student,
+            degree_type=self.degree_type,
+            batch=self.batch,
+            status="DRAFT"
+        )
+        self.assertEqual(Notification.objects.filter(user=self.user).count(), 0)
+
+        # Chuyển sang ISSUED
+        degree.status = "ISSUED"
+        degree.save()
+
+        notifs = Notification.objects.filter(user=self.user)
+        self.assertEqual(notifs.count(), 1)
+        self.assertIn("Văn bằng đã được cấp phát", notifs.first().title)
+        self.assertEqual(notifs.first().icon, "school")
+
+    def test_employer_history_english_url_alias(self):
+        """Test route /verify/employer/history/ trả về danh sách lịch sử phiên"""
+        resp = self.client.get('/verify/employer/history/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Lịch Sử Phiên Thẩm Định")
+
+

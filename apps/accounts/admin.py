@@ -10,7 +10,7 @@ from unfold.decorators import display
 from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
 
 from apps.blockchain.client import BlockchainClient
-from .models import User, Role, Permission, UserRole, RolePermission
+from .models import User, Role, Permission, UserRole, RolePermission, Notification
 
 
 
@@ -262,6 +262,14 @@ class RoleAdmin(ModelAdmin):
 class PermissionAdmin(ModelAdmin):
     list_display = ('code', 'name')
     search_fields = ('code', 'name')
+
+
+@admin.register(Notification)
+class NotificationAdmin(ModelAdmin):
+    list_display = ('user', 'title', 'is_read', 'icon', 'created_at')
+    list_filter = ('is_read', 'icon', 'created_at')
+    search_fields = ('user__username', 'title', 'message')
+
 
 
 # --- ẨN CÁC BẢNG KỸ THUẬT CỦA THƯ VIỆN GOOGLE / ALLAUTH KHỎI ADMIN ---

@@ -33,6 +33,22 @@ def on_degree_status_change(sender, instance, created=False, **kwargs):
             logger.info(f"[Degree Signal] Kích hoạt gửi email ISSUED cho sinh viên {student.student_code} ({student.email})")
             send_degree_issued_email(instance)
 
+        # In-app Notification cho SV
+        if student and getattr(student, 'user', None):
+            try:
+                from apps.accounts.models import Notification
+                degree_type_name = instance.degree_type.name if instance.degree_type else "Tốt nghiệp"
+                Notification.objects.create(
+                    user=student.user,
+                    title="Văn bằng đã được cấp phát",
+                    message=f"Văn bằng {degree_type_name} của bạn đã được cấp thành công.",
+                    link="/portal/dashboard/",
+                    icon="school"
+                )
+                logger.info(f"[Degree Signal] Đã tạo Notification ISSUED cho sinh viên {student.user.username}")
+            except Exception as ne:
+                logger.warning(f"[Degree Signal] Không thể tạo Notification: {ne}")
+
     # 2. Thu hồi văn bằng (REVOKED)
     elif instance.status == 'REVOKED' and (created or prev_status != 'REVOKED'):
         student = getattr(instance, 'student', None)
@@ -42,6 +58,22 @@ def on_degree_status_change(sender, instance, created=False, **kwargs):
                 reason = instance.revocation_requests.last()
             logger.info(f"[Degree Signal] Kích hoạt gửi email REVOKED cho sinh viên {student.student_code} ({student.email})")
             send_degree_revoked_email(instance, reason)
+
+        # In-app Notification cho SV
+        if student and getattr(student, 'user', None):
+            try:
+                from apps.accounts.models import Notification
+                degree_type_name = instance.degree_type.name if instance.degree_type else "Tốt nghiệp"
+                Notification.objects.create(
+                    user=student.user,
+                    title="Văn bằng đã bị thu hồi",
+                    message=f"Văn bằng {degree_type_name} của bạn đã bị thu hồi trên hệ thống.",
+                    link="/portal/dashboard/",
+                    icon="gavel"
+                )
+                logger.info(f"[Degree Signal] Đã tạo Notification REVOKED cho sinh viên {student.user.username}")
+            except Exception as ne:
+                logger.warning(f"[Degree Signal] Không thể tạo Notification: {ne}")
 
     # Cập nhật lại trạng thái đã xử lý
     instance._previous_status = instance.status

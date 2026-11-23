@@ -1,10 +1,11 @@
 from django.contrib.auth import login, logout, update_session_auth_hash, get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.contrib.auth.views import LoginView as DjangoLoginView
 
+from .models import Notification
 from .forms import LoginForm, ChangePasswordForm, UserProfileForm, RegisterForm
 
 
@@ -176,4 +177,48 @@ def web3_login_view(request):
 
     except Exception as e:
         return JsonResponse({'success': False, 'error': f'Lỗi xác thực Web3: {str(e)}'}, status=500)
+
+
+# ==========================================
+# IN-APP NOTIFICATIONS (THÔNG BÁO NỘI BỘ)
+# ==========================================
+
+@login_required
+def notification_list_view(request):
+    """
+    [In-app Notification] Hiển thị danh sách thông báo của người dùng hiện tại
+    """
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+    unread_count = notifications.filter(is_read=False).count()
+    context = {
+        'notifications': notifications,
+        'unread_count': unread_count,
+    }
+    return render(request, 'accounts/notification_list.html', context)
+
+
+@login_required
+def notification_mark_read_view(request, pk):
+    """
+    [In-app Notification] Đánh dấu thông báo đã đọc khi click và chuyển hướng tới liên kết đích
+    """
+    notif = get_object_or_404(Notification, id=pk, user=request.user)
+    if not notif.is_read:
+        notif.is_read = True
+        notif.save(update_fields=['is_read'])
+
+    if notif.link and notif.link.strip():
+        return redirect(notif.link)
+    return redirect('accounts:notification_list')
+
+
+@login_required
+def notification_mark_all_read_view(request):
+    """
+    [In-app Notification] Đánh dấu tất cả thông báo của người dùng là đã đọc
+    """
+    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    messages.success(request, "Đã đánh dấu tất cả thông báo là đã đọc.")
+    return redirect('accounts:notification_list')
+
 

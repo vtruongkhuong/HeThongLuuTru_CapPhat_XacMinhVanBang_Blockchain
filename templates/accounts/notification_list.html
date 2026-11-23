@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Thông Báo Hệ Thống - CTUT Blockchain{% endblock %}
+
+{% block content %}
+<div class="w-full relative flex flex-col items-center pb-24 bg-slate-50 min-h-screen">
+    
+    <!-- Hero Banner -->
+    <div class="w-full bg-gradient-to-br from-[#0c1a30] via-[#102a4e] to-[#034ea2] pt-14 pb-28 px-4 relative overflow-hidden flex flex-col items-center text-center">
+        <div class="absolute inset-0 pointer-events-none opacity-30 bg-[radial-gradient(circle_at_50%_20%,#38bdf8_0%,transparent_60%)]"></div>
+        <div class="relative z-10 max-w-4xl">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider text-sky-200 bg-sky-950/80 border border-sky-400/30 mb-3 shadow-md backdrop-blur-md">
+                <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
+                <span>IN-APP NOTIFICATIONS • TRUNG TÂM THÔNG BÁO</span>
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight uppercase leading-tight">
+                Thông Báo Hoạt Động & Văn Bằng
+            </h1>
+            <p class="text-blue-100/90 text-xs sm:text-sm mt-2 max-w-2xl mx-auto font-medium">
+                Cập nhật tức thời khi văn bằng tốt nghiệp của bạn được cấp phát, phê duyệt On-Chain hoặc thay đổi trạng thái.
+            </p>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="max-w-4xl w-full mx-auto px-4 -mt-16 relative z-20 space-y-6">
+        
+        <!-- Action bar -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white rounded-2xl shadow-md border border-slate-200 p-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                    <span class="material-symbols-outlined text-xl">notifications</span>
+                </div>
+                <div>
+                    <div class="text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <span>Danh Sách Thông Báo</span>
+                        {% if unread_count > 0 %}
+                        <span class="px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200 text-xs font-bold animate-pulse">
+                            {{ unread_count }} chưa đọc
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="text-xs text-slate-500">Tổng cộng {{ notifications|length }} thông báo</div>
+                </div>
+            </div>
+
+            {% if unread_count > 0 %}
+            <a href="{% url 'accounts:notification_mark_all_read' %}" class="taste-btn px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all">
+                <span class="material-symbols-outlined text-[16px]">done_all</span> Đánh dấu tất cả đã đọc
+            </a>
+            {% endif %}
+        </div>
+
+        <!-- Notification List -->
+        <div class="bg-white rounded-3xl shadow-xl border border-slate-200/80 p-6 sm:p-8 space-y-3">
+            {% if notifications %}
+                {% for n in notifications %}
+                <a href="{% url 'accounts:notification_mark_read' n.pk %}" class="block group">
+                    <div class="p-4 rounded-2xl border transition-all taste-card flex items-start gap-4 
+                        {% if not n.is_read %}
+                            bg-sky-50/40 border-sky-200 hover:border-sky-300 shadow-xs
+                        {% else %}
+                            bg-white border-slate-100 hover:border-slate-200 hover:bg-slate-50/50
+                        {% endif %}">
+                        
+                        <!-- Icon Circle -->
+                        <div class="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 
+                            {% if not n.is_read %}
+                                bg-blue-600 text-white shadow-sm shadow-blue-200
+                            {% else %}
+                                bg-slate-100 text-slate-500
+                            {% endif %}">
+                            <span class="material-symbols-outlined text-xl">{{ n.icon|default:"notifications" }}</span>
+                        </div>
+
+                        <!-- Content -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between gap-2 mb-1">
+                                <h3 class="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors flex items-center gap-2">
+                                    {{ n.title }}
+                                    {% if not n.is_read %}
+                                    <span class="w-2 h-2 rounded-full bg-rose-500 shrink-0"></span>
+                                    {% endif %}
+                                </h3>
+                                <span class="text-[11px] text-slate-400 font-mono shrink-0">
+                                    {{ n.created_at|date:"H:i - d/m/Y" }}
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed font-normal">
+                                {{ n.message }}
+                            </p>
+                            {% if n.link %}
+                            <div class="mt-2 flex items-center gap-1 text-[11px] font-bold text-blue-600 group-hover:underline">
+                                <span>Xem chi tiết</span>
+                                <span class="material-symbols-outlined text-[13px]">arrow_forward</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-16 space-y-4">
+                    <div class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 mx-auto flex items-center justify-center">
+                        <span class="material-symbols-outlined text-3xl">notifications_off</span>
+                    </div>
+                    <h3 class="text-base font-bold text-slate-700">Chưa có thông báo nào</h3>
+                    <p class="text-xs text-slate-500 max-w-sm mx-auto">
+                        Khi văn bằng của bạn được duyệt hoặc cấp phát trên hệ thống Blockchain, thông báo tức thời sẽ được hiển thị tại đây.
+                    </p>
+                    <a href="{% url 'landing' %}" class="inline-flex items-center gap-1.5 px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-blue-700 transition-all">
+                        Quay lại trang chủ
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

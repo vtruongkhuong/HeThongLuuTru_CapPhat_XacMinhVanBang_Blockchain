@@ -4,6 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from apps.verification import views as verification_views
 from apps.blockchain import views as blockchain_views
+from apps.accounts import views as accounts_views
 from apps.core.views import dashboard_view, report_view, custom_404_view, custom_500_view, animate_ui_demo_view
 from apps.reporting import views as reporting_views
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
@@ -17,6 +18,11 @@ urlpatterns = [
     path('doanh-nghiep/mau-excel/', verification_views.download_employer_sample_excel, name='employer_sample_excel_root'),
     path('doanh-nghiep/xuat-excel/', verification_views.export_employer_results_excel_view, name='export_employer_excel_root'),
     path('animate-ui/', animate_ui_demo_view, name='animate_ui_demo'),
+
+    # In-app Notifications
+    path('notifications/', accounts_views.notification_list_view, name='notification_list'),
+    path('notifications/<int:pk>/read/', accounts_views.notification_mark_read_view, name='notification_mark_read'),
+    path('notifications/read-all/', accounts_views.notification_mark_all_read_view, name='notification_mark_all_read'),
 
     # Route chuẩn có app_name = 'verification' theo yêu cầu N2
     path('verify/', include('apps.verification.urls')),
