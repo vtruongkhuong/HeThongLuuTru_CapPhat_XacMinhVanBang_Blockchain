@@ -284,6 +284,7 @@ class DegreeAdmin(BaseRoleAdmin):
         urls = super().get_urls()
         custom_urls = [
             path('create-single/', self.admin_site.admin_view(self.create_single_degree_view), name='degrees_create_single'),
+            path('single-degree/', self.admin_site.admin_view(self.create_single_degree_view), name='degrees_single_degree'),
         ]
         return custom_urls + urls
 
