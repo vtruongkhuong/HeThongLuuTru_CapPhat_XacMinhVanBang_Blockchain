@@ -11,7 +11,7 @@
                 <h1 class="text-xl font-bold text-ntt-dark uppercase">Thực thi Thu hồi Văn bằng (UC-05)</h1>
                 <p class="text-sm text-gray-500 mt-1">Bước 3: Ký giao dịch thu hồi lên mạng lưới Blockchain (Sepolia)</p>
             </div>
-            <span class="px-3 py-1 rounded-full text-xs font-bold bg-yellow-50 text-yellow-700 border border-yellow-200">
+            <span class="px-3 py-1 rounded-full text-xs font-bold {% if rev_request.status == 'APPROVED' %}bg-amber-50 text-amber-700 border border-amber-300{% elif rev_request.status == 'EXECUTED' %}bg-rose-50 text-rose-700 border border-rose-300{% else %}bg-slate-50 text-slate-700 border border-slate-300{% endif %}">
                 {{ rev_request.status }}
             </span>
         </div>
@@ -49,19 +49,12 @@
 
             <div id="walletStatus" class="hidden p-4 rounded-xl text-sm font-medium bg-blue-50 text-blue-800 border border-blue-200 break-all"></div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                <!-- Nút 1: Ký thật bằng MetaMask -->
+            <div class="pt-2">
+                <!-- Nút Ký thật bằng MetaMask -->
                 <button type="button" id="btnSignMetaMask" onclick="handleMetaMaskRevoke(false)"
-                    class="w-full bg-ntt-dark hover:bg-ntt-light text-white py-3.5 px-5 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2">
-                    <span class="material-symbols-outlined">account_balance_wallet</span>
-                    Kết nối MetaMask & Ký thu hồi
-                </button>
-
-                <!-- Nút 2: Giao dịch giả lập để test nhanh -->
-                <button type="button" onclick="handleMockRevoke()"
-                    class="w-full bg-amber-600 hover:bg-amber-700 text-white py-3.5 px-5 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2">
-                    <span class="material-symbols-outlined">science</span>
-                    Thực thi bằng Giao dịch giả (Test)
+                    class="taste-btn w-full bg-gradient-to-r from-red-600 to-rose-700 hover:from-red-700 hover:to-rose-800 text-white py-3.5 px-5 rounded-xl font-bold text-sm transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer">
+                    <span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+                    Kết nối MetaMask & Ký thu hồi On-Chain
                 </button>
             </div>
 
