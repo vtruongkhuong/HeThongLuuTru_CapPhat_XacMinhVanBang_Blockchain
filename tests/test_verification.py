@@ -163,3 +163,46 @@ class EmployerSessionAndDuplicateTests(TestCase):
         self.assertEqual(detail_resp.status_code, 200)
         self.assertContains(detail_resp, "HR-20261123-TEST01")
         self.assertContains(detail_resp, "Tuyển dụng Fresher Q4/2026")
+
+
+class VerificationPdfCertificateTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.faculty = Faculty.objects.create(name="Khoa Công nghệ thông tin", code="CNTT_TEST_CERT")
+        self.major = Major.objects.create(name="Kỹ thuật phần mềm", code="KTPM_TEST_CERT", faculty=self.faculty)
+        self.student = Student.objects.create(
+            student_code="SV_CERT_99",
+            full_name="Nguyễn Văn Chứng Thực",
+            date_of_birth="2002-05-15",
+            national_id="079202009999",
+            major=self.major,
+            faculty=self.faculty
+        )
+        self.degree_type = DegreeType.objects.create(name="Bằng Kỹ sư", code="KS_CERT_TEST")
+        self.batch = GraduationBatch.objects.create(name="Đợt Tốt Nghiệp Demo PDF Cert", degree_type=self.degree_type)
+        self.degree = Degree.objects.create(
+            student=self.student,
+            degree_type=self.degree_type,
+            batch=self.batch,
+            status="ISSUED",
+            classification="Xuất sắc",
+            canonical_hash="0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
+        )
+
+    def test_download_verification_cert_pdf_success_with_pyhanko_signature(self):
+        """Test xuất PDF giấy xác nhận xác minh có QR code và chữ ký số pyHanko"""
+        response = self.client.get(f'/verify/chung-thuc-pdf/{self.degree.id}/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/pdf')
+        self.assertIn("Chung_Thuc_Dien_Tu_SV_CERT_99.pdf", response.get('Content-Disposition', ''))
+
+        pdf_bytes = response.content
+        self.assertTrue(pdf_bytes.startswith(b'%PDF-'))
+
+        # Kiểm tra chữ ký số pyHanko được nhúng trong PDF
+        import io
+        from pyhanko.pdf_utils.reader import PdfFileReader
+        reader = PdfFileReader(io.BytesIO(pdf_bytes))
+        self.assertGreaterEqual(len(reader.embedded_signatures), 1)
+        self.assertEqual(reader.embedded_signatures[0].field_name, "HUTECH_Digital_Signature")
+

@@ -3,7 +3,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>GIAY CHUNG THUC DIEN TU VAN BANG - {{ degree.student.student_code }}</title>
+    <title>GIAY XAC NHAN XAC MINH VAN BANG DIEN TU - {{ degree.student.student_code }}</title>
     <style>
         @font-face {
             font-family: "Tinos";
@@ -16,19 +16,19 @@
         }
         @page {
             size: a4 portrait;
-            margin: 10mm 14mm 8mm 14mm;
+            margin: 8mm 12mm 6mm 12mm;
             @bottom-right {
                 content: "Trang 1 / 1";
                 font-family: "Tinos", serif;
-                font-size: 8pt;
+                font-size: 7.5pt;
                 color: #64748b;
             }
         }
         body {
             font-family: "Tinos", "Times New Roman", serif;
             color: #0f172a;
-            line-height: 1.35;
-            font-size: 9.5pt;
+            line-height: 1.3;
+            font-size: 9pt;
             background-color: #ffffff;
             margin: 0;
             padding: 0;
@@ -36,79 +36,91 @@
         .header-table {
             width: 100%;
             border-bottom: 2px solid #1e3a8a;
-            padding-bottom: 6px;
-            margin-bottom: 10px;
+            padding-bottom: 4px;
+            margin-bottom: 6px;
         }
         .school-title {
-            font-size: 10.5pt;
+            font-size: 10pt;
             font-weight: bold;
             color: #1e3a8a;
             text-transform: uppercase;
         }
         .school-sub {
-            font-size: 8pt;
+            font-size: 7.5pt;
             color: #475569;
         }
         .nation-title {
             text-align: right;
-            font-size: 9.5pt;
+            font-size: 9pt;
             font-weight: bold;
             text-transform: uppercase;
         }
         .nation-motto {
             text-align: right;
-            font-size: 8.5pt;
+            font-size: 8pt;
             font-style: italic;
         }
         .doc-title {
             text-align: center;
-            font-size: 15pt;
+            font-size: 14pt;
             font-weight: bold;
             color: #1e3a8a;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-top: 4px;
-            margin-bottom: 2px;
+            margin-top: 3px;
+            margin-bottom: 1px;
         }
         .doc-subtitle {
             text-align: center;
-            font-size: 8.5pt;
+            font-size: 8pt;
             color: #0284c7;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.8px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
+        }
+        .badge-status {
+            text-align: center;
+            padding: 4px 8px;
+            border-radius: 5px;
+            margin: 0 auto 8px auto;
+            width: 90%;
+            font-size: 8.5pt;
+            font-weight: bold;
         }
         .badge-verified {
             background-color: #ecfdf5;
             border: 1.5px solid #059669;
             color: #065f46;
-            text-align: center;
-            padding: 5px 10px;
-            border-radius: 6px;
-            margin: 0 auto 10px auto;
-            width: 88%;
-            font-size: 8.5pt;
-            font-weight: bold;
+        }
+        .badge-revoked {
+            background-color: #fef2f2;
+            border: 1.5px solid #dc2626;
+            color: #991b1b;
+        }
+        .badge-tampered {
+            background-color: #fffbeb;
+            border: 1.5px solid #d97706;
+            color: #92400e;
         }
         .section-header {
-            font-size: 9.5pt;
+            font-size: 8.5pt;
             font-weight: bold;
             color: #1e3a8a;
             text-transform: uppercase;
             border-bottom: 1px solid #cbd5e1;
             padding-bottom: 2px;
-            margin-top: 8px;
-            margin-bottom: 4px;
+            margin-top: 5px;
+            margin-bottom: 3px;
         }
         table.data-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
         }
         table.data-table td {
-            padding: 2.5px 4px;
-            font-size: 9pt;
+            padding: 1.8px 4px;
+            font-size: 8.5pt;
             vertical-align: top;
         }
         table.data-table td.label {
@@ -123,40 +135,50 @@
         .tech-box {
             background-color: #f8fafc;
             border: 1px solid #cbd5e1;
-            border-radius: 5px;
-            padding: 5px 8px;
-            margin-top: 4px;
-            margin-bottom: 6px;
+            border-radius: 4px;
+            padding: 4px 6px;
+            margin-top: 2px;
+            margin-bottom: 4px;
         }
         .mono-text {
             font-family: 'Courier New', Courier, 'Tinos', monospace;
-            font-size: 7.5pt;
+            font-size: 7pt;
             color: #0f172a;
             word-break: break-all;
         }
         .footer-table {
             width: 100%;
-            margin-top: 10px;
+            margin-top: 6px;
+            border-top: 1px dashed #94a3b8;
+            padding-top: 6px;
         }
         .seal-box {
             border: 1.5px dashed #059669;
             background-color: #f0fdf4;
-            padding: 6px;
+            padding: 5px;
             text-align: center;
-            border-radius: 6px;
-            width: 78%;
+            border-radius: 5px;
+            width: 90%;
             margin: 0 auto;
         }
         .seal-title {
             color: #047857;
-            font-size: 8.5pt;
+            font-size: 8pt;
             font-weight: bold;
             text-transform: uppercase;
         }
         .seal-sub {
             color: #065f46;
-            font-size: 7.5pt;
+            font-size: 7pt;
             margin-top: 1px;
+        }
+        .system-footer-note {
+            text-align: center;
+            font-size: 7.5pt;
+            color: #64748b;
+            margin-top: 6px;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 3px;
         }
     </style>
 </head>
@@ -181,20 +203,30 @@
     </table>
 
     <!-- Tiêu đề chứng thực -->
-    <div class="doc-title">GIẤY CHỨNG THỰC ĐIỆN TỬ VĂN BẰNG</div>
+    <div class="doc-title">GIẤY XÁC NHẬN XÁC MINH VĂN BẰNG ĐIỆN TỬ</div>
     <div class="doc-subtitle">ELECTRONIC DEGREE VERIFICATION CERTIFICATE</div>
 
-    <!-- Badge Trạng thái Hợp Lệ -->
-    <div class="badge-verified">
-        XÁC NHẬN TOÀN VẸN: VĂN BẰNG HỢP LỆ VÀ ĐÃ ĐƯỢC XÁC THỰC TRÊN BLOCKCHAIN
+    <!-- Badge Trạng thái Kết quả Xác minh -->
+    {% if verification_status == "VERIFIED" %}
+    <div class="badge-status badge-verified">
+        XÁC NHẬN TOÀN VẸN: VĂN BẰNG HỢP LỆ VÀ ĐÃ ĐƯỢC XÁC THỰC TRÊN BLOCKCHAIN (VERIFIED)
     </div>
+    {% elif verification_status == "REVOKED" %}
+    <div class="badge-status badge-revoked">
+        CẢNH BÁO: VĂN BẰNG NÀY ĐÃ BỊ THU HỒI TRÊN BLOCKCHAIN (REVOKED)
+    </div>
+    {% else %}
+    <div class="badge-status badge-tampered">
+        CẢNH BÁO: DỮ LIỆU ĐÃ BỊ THAY ĐỔI / KHÔNG NGUYÊN BẢN TRÊN BLOCKCHAIN ({{ verification_status|default:"TAMPERED" }})
+    </div>
+    {% endif %}
 
     <!-- 1. THÔNG TIN NGƯỜI ĐƯỢC CẤP BẰNG -->
     <div class="section-header">1. THÔNG TIN NGƯỜI ĐƯỢC CẤP VĂN BẰNG</div>
     <table class="data-table">
         <tr>
             <td class="label">Họ và tên:</td>
-            <td class="value"><strong style="font-size: 10pt; text-transform: uppercase;">{{ degree.student.full_name }}</strong></td>
+            <td class="value"><strong style="font-size: 9.5pt; text-transform: uppercase;">{{ degree.student.full_name }}</strong></td>
         </tr>
         <tr>
             <td class="label">Mã số sinh viên (MSSV):</td>
@@ -247,8 +279,29 @@
         </tr>
     </table>
 
-    <!-- 3. BẰNG CHỨNG XÁC THỰC MẬT MÃ BLOCKCHAIN -->
-    <div class="section-header">3. BẰNG CHỨNG MẬT MÃ HỌC TRÊN CHUỖI KHỐI (BLOCKCHAIN PROOF)</div>
+    <!-- 3. THÔNG TIN PHIÊN XÁC MINH -->
+    <div class="section-header">3. THÔNG TIN PHIÊN XÁC MINH (VERIFICATION AUDIT)</div>
+    <table class="data-table">
+        <tr>
+            <td class="label">Thời điểm xác minh:</td>
+            <td class="value"><strong>{{ verification_date|date:"d/m/Y H:i:s" }}</strong></td>
+        </tr>
+        <tr>
+            <td class="label">Địa chỉ IP yêu cầu:</td>
+            <td class="value"><code>{{ ip_address|default:"127.0.0.1" }}</code></td>
+        </tr>
+        <tr>
+            <td class="label">Kết quả kiểm định:</td>
+            <td class="value">
+                <strong style="color: {% if verification_status == 'VERIFIED' %}#059669{% else %}#dc2626{% endif %};">
+                    {{ verification_status }} (Khớp Merkle Tree & On-Chain)
+                </strong>
+            </td>
+        </tr>
+    </table>
+
+    <!-- 4. BẰNG CHỨNG MẬT MÃ HỌC TRÊN CHUỖI KHỐI -->
+    <div class="section-header">4. BẰNG CHỨNG MẬT MÃ HỌC TRÊN CHUỖI KHỐI (BLOCKCHAIN PROOF)</div>
     <div class="tech-box">
         <table class="data-table" style="margin-bottom: 0;">
             <tr>
@@ -275,37 +328,43 @@
                 <td class="label">Mã băm file PDF gốc (SHA-256):</td>
                 <td class="value mono-text">{{ degree.pdf_sha256|default:"Đồng bộ hóa chuỗi Sepolia" }}</td>
             </tr>
-            <tr>
-                <td class="label">Chuẩn mật mã áp dụng:</td>
-                <td class="value" style="font-size: 8pt;">Keccak-256, Merkle Tree (RFC 6962), Verifiable Credential W3C</td>
-            </tr>
         </table>
     </div>
 
-    <!-- Footer Ký & Chứng Thực -->
+    <!-- 5. CHỮ KÝ SỐ & MÃ QR XÁC MINH TRỰC TUYẾN -->
     <table class="footer-table">
         <tr>
-            <td style="width: 50%; text-align: center; vertical-align: top;">
-                <div class="seal-box">
-                    <div class="seal-title">CHỨNG THỰC BỞI BLOCKCHAIN</div>
-                    <div class="seal-sub">Hợp đồng thông minh xác nhận:</div>
-                    <div style="font-size: 8pt; font-weight: bold; color: #047857; margin-top: 2px;">KHỚP TOÀN VẸN 100%</div>
-                    <div style="font-size: 7pt; color: #64748b; margin-top: 1px;">Trạng thái: BẢO MẬT & BẤT BIẾN</div>
-                </div>
+            <!-- Cột QR Code -->
+            <td style="width: 28%; text-align: center; vertical-align: middle;">
+                {% if qr_code_base64 %}
+                <img src="data:image/png;base64,{{ qr_code_base64 }}" width="80" height="80" alt="QR Code Verify" style="display: block; margin: 0 auto;" />
+                {% endif %}
+                <div style="font-size: 6.5pt; color: #475569; margin-top: 2px;">Quét để tra cứu On-Chain</div>
             </td>
-            <td style="width: 50%; text-align: center; vertical-align: top;">
-                <div style="font-size: 9pt; font-weight: bold; text-transform: uppercase; color: #1e3a8a;">
-                    BAN THẨM ĐỊNH & XÁC MINH VĂN BẰNG
-                </div>
-                <div style="font-size: 8pt; font-style: italic; color: #64748b; margin-top: 1px;">
-                    (Chứng thực điện tử tự động qua Smart Contract)
-                </div>
-                <div style="margin-top: 20px; font-weight: bold; font-size: 9pt; color: #0f172a;">
-                    HỆ THỐNG XÁC MINH BLOCKCHAIN
+
+            <!-- Cột Dấu chứng thực & Chữ ký số -->
+            <td style="width: 72%; vertical-align: top; padding-left: 10px;">
+                <div class="seal-box">
+                    <div class="seal-title">CHỨNG THỰC BỞI HỆ THỐNG BLOCKCHAIN HUTECH</div>
+                    <div class="seal-sub">Chứng thực bởi hệ thống Blockchain HUTECH tại {{ issued_time|date:"d/m/Y H:i:s" }}</div>
+                    <div style="font-size: 7pt; color: #334155; margin-top: 3px;">
+                        <strong>Mã băm chữ ký số (SHA-256 Fingerprint):</strong>
+                    </div>
+                    <div class="mono-text" style="font-size: 6.5pt; color: #047857; margin-top: 1px;">
+                        {{ cert_sha256 }}
+                    </div>
+                    <div style="font-size: 6.5pt; color: #64748b; margin-top: 2px;">
+                        Được ký số tự động theo chuẩn mật mã PAdES / X.509 RSA-2048 bằng pyHanko
+                    </div>
                 </div>
             </td>
         </tr>
     </table>
+
+    <!-- Footer dòng chữ theo yêu cầu -->
+    <div class="system-footer-note">
+        Giấy này được tạo tự động bởi hệ thống Blockchain HUTECH
+    </div>
 
 </body>
 </html>

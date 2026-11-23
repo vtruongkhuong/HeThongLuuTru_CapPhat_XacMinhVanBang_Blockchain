@@ -20,3 +20,6 @@ contracts/artifacts/
 # IDE
 .vscode/
 .idea/
+
+# Digital Signature Certs
+certs/

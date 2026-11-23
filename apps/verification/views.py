@@ -485,6 +485,42 @@ def download_verification_cert_pdf(request, degree_id):
     student_code = degree.student.student_code if degree.student else 'SV'
     cert_code = f"CERT-{student_code}-{now.strftime('%Y%m%d%H%M')}"
 
+    # Xác định trạng thái xác minh (VERIFIED / REVOKED / TAMPERED)
+    if is_revoked or degree.status == 'REVOKED':
+        verification_status = 'REVOKED'
+    elif is_valid or degree.status == 'ISSUED':
+        verification_status = 'VERIFIED'
+    else:
+        verification_status = 'TAMPERED'
+
+    ip_addr = get_client_ip(request) or '127.0.0.1'
+
+    # Tạo QR Code dẫn về trang tra cứu On-Chain (nhúng base64 vào context)
+    import qrcode
+    import base64
+    import hashlib
+    from django.urls import reverse
+
+    verify_path = reverse('verification:public_verify')
+    verify_url = request.build_absolute_uri(f"{verify_path}?q={degree.credential_public_id}&src=qr")
+
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=5,
+        border=1,
+    )
+    qr.add_data(verify_url)
+    qr.make(fit=True)
+    qr_img = qr.make_image(fill_color="#0f172a", back_color="white")
+    qr_buffer = io.BytesIO()
+    qr_img.save(qr_buffer, format="PNG")
+    qr_code_base64 = base64.b64encode(qr_buffer.getvalue()).decode('utf-8')
+
+    # Tạo mã băm SHA-256 chữ ký số đại diện cho nội dung chứng thực
+    verify_payload = f"{cert_code}:{student_code}:{degree.degree_number}:{merkle_root}:{leaf_hash}:{verification_status}:{now.isoformat()}"
+    cert_sha256 = hashlib.sha256(verify_payload.encode('utf-8')).hexdigest()
+
     context = {
         'degree': degree,
         'merkle_root': merkle_root,
@@ -492,7 +528,13 @@ def download_verification_cert_pdf(request, degree_id):
         'tx_hash': tx_hash,
         'contract_address': contract_addr,
         'issued_time': now,
+        'verification_date': now,
+        'ip_address': ip_addr,
+        'verification_status': verification_status,
         'cert_code': cert_code,
+        'cert_sha256': cert_sha256,
+        'qr_code_base64': qr_code_base64,
+        'verify_url': verify_url,
     }
 
     html_content = render_to_string('verification/verification_certificate_pdf.html', context)
@@ -515,9 +557,17 @@ def download_verification_cert_pdf(request, degree_id):
     if pisa_status.err:
         return HttpResponse("Có lỗi khi tạo file PDF chứng thực điện tử.", status=500)
 
-    pdf_buffer.seek(0)
+    # Thêm chữ ký số bằng pyHanko
+    from .pdf_signer import sign_pdf_with_pyhanko
+    raw_pdf_bytes = pdf_buffer.getvalue()
+    signed_pdf_bytes = sign_pdf_with_pyhanko(
+        raw_pdf_bytes,
+        reason=f"Chứng thực bởi hệ thống Blockchain HUTECH tại {now.strftime('%d/%m/%Y %H:%M:%S')}",
+        location="HUTECH Blockchain Verification System"
+    )
+
     filename = f"Chung_Thuc_Dien_Tu_{student_code}.pdf"
-    response = HttpResponse(pdf_buffer.getvalue(), content_type='application/pdf')
+    response = HttpResponse(signed_pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'inline; filename="{filename}"'
     return response
 
