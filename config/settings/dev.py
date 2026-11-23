@@ -44,9 +44,9 @@ CELERY_RESULT_BACKEND = 'disabled'
 CELERY_BROKER_URL = 'memory://'
 CELERY_TASK_IGNORE_RESULT = True
 
-# Cấu hình gửi Email (Ưu tiên SMTP Gmail qua .env, fallback Console an toàn trong môi trường local)
+# Cấu hình gửi Email (Ưu tiên SMTP Gmail qua .env khi có mật khẩu, fallback Console an toàn trong môi trường local)
 if os.getenv('EMAIL_HOST_USER') and os.getenv('EMAIL_HOST_PASSWORD'):
     EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 else:
-    EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', os.getenv('EMAIL_HOST_USER', 'Hệ Thống Văn Bằng Số <daotao@ctuet.edu.vn>'))

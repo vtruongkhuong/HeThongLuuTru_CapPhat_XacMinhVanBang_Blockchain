@@ -21,6 +21,12 @@
             <p class="text-blue-100/90 text-xs sm:text-sm mt-2 max-w-2xl mx-auto font-medium">
                 Tải lên 20–50 tệp PDF văn bằng ứng viên để đối soát chữ ký số, Merkle Proof và trạng thái Smart Contract trong tích tắc.
             </p>
+            <div class="mt-4 flex flex-wrap items-center justify-center gap-3">
+                <a href="{% url 'verification:employer_history' %}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider text-white bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md transition-all shadow-sm">
+                    <span class="material-symbols-outlined text-[16px]">history_edu</span>
+                    <span>Lịch Sử Các Phiên Thẩm Định</span>
+                </a>
+            </div>
         </div>
     </div>
 
@@ -32,6 +38,22 @@
             <form id="batch-verify-form" method="POST" enctype="multipart/form-data" class="space-y-6">
                 {% csrf_token %}
                 <input type="hidden" name="action" id="form-action" value="verify">
+
+                <!-- [BƯỚC 2] Thông tin Doanh nghiệp & Đợt tuyển dụng -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[16px] text-blue-600">apartment</span> Tên Doanh Nghiệp / Tổ Chức:
+                        </label>
+                        <input type="text" name="employer_name" value="{{ session.employer_name|default:employer_name }}" placeholder="VD: Tập đoàn FPT, Viettel, VNG..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-xs sm:text-sm font-medium transition-all bg-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[16px] text-indigo-600">campaign</span> Tên Đợt Tuyển Dụng / Dự Án:
+                        </label>
+                        <input type="text" name="recruitment_name" value="{{ session.recruitment_name|default:recruitment_name }}" placeholder="VD: Tuyển dụng Kỹ sư Phần mềm Q4/2026..." class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-xs sm:text-sm font-medium transition-all bg-white outline-none">
+                    </div>
+                </div>
 
                 <!-- Dropzone Area -->
                 <div id="drop-zone" class="border-2 border-dashed border-blue-300 hover:border-blue-500 rounded-3xl p-8 sm:p-12 text-center bg-blue-50/40 hover:bg-blue-50/70 transition-all cursor-pointer group flex flex-col items-center justify-center">
@@ -92,13 +114,37 @@
                 <div>
                     <span class="text-xs uppercase tracking-wider font-extrabold text-blue-600">Kết quả thẩm định doanh nghiệp</span>
                     <h2 class="text-2xl font-black text-slate-900 mt-0.5">Báo Cáo Thẩm Định Ứng Viên</h2>
+                    {% if session %}
+                    <div class="flex flex-wrap items-center gap-2.5 mt-2 text-xs">
+                        <span class="px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 font-mono font-bold border border-blue-200">
+                            Phiên: {{ session.session_code }}
+                        </span>
+                        {% if session.employer_name %}
+                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-800 font-bold border border-slate-200">
+                            🏢 {{ session.employer_name }}
+                        </span>
+                        {% endif %}
+                        {% if session.recruitment_name %}
+                        <span class="px-2.5 py-1 rounded-md bg-indigo-50 text-indigo-700 font-bold border border-indigo-200">
+                            🎯 {{ session.recruitment_name }}
+                        </span>
+                        {% endif %}
+                        <span class="text-slate-500 font-medium">⏰ {{ session.created_at|date:"H:i:s, d/m/Y" }}</span>
+                    </div>
+                    {% else %}
                     <p class="text-xs text-slate-500 font-medium mt-0.5">Thời gian thực hiện: {% now "H:i:s, d/m/Y" %}</p>
+                    {% endif %}
                 </div>
                 
-                <!-- Nút xuất Excel -->
-                <a href="{% url 'verification:export_employer_results_excel' %}" class="animate-btn px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm transition-all">
-                    <span class="material-symbols-outlined text-[18px]">table_view</span> Xuất Báo Cáo Excel (.XLSX)
-                </a>
+                <div class="flex items-center gap-3">
+                    <a href="{% url 'verification:employer_history' %}" class="px-4 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all">
+                        <span class="material-symbols-outlined text-[18px]">history</span> Lịch Sử Phiên
+                    </a>
+                    <!-- Nút xuất Excel -->
+                    <a href="{% url 'verification:export_employer_results_excel' %}" class="animate-btn px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm transition-all">
+                        <span class="material-symbols-outlined text-[18px]">table_view</span> Xuất Báo Cáo Excel (.XLSX)
+                    </a>
+                </div>
             </div>
 
             <!-- 4 Thẻ KPI Tóm Tắt -->

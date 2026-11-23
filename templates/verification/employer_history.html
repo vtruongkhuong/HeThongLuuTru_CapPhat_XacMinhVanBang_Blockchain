@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Lịch Sử Phiên Thẩm Định Doanh Nghiệp - CTUT Blockchain{% endblock %}
+
+{% block content %}
+<div class="w-full relative flex flex-col items-center pb-24 bg-slate-50 min-h-screen">
+    
+    <!-- Hero Banner -->
+    <div class="w-full bg-gradient-to-br from-[#0c1a30] via-[#102a4e] to-[#034ea2] pt-14 pb-28 px-4 relative overflow-hidden flex flex-col items-center text-center">
+        <div class="absolute inset-0 pointer-events-none opacity-30 bg-[radial-gradient(circle_at_50%_20%,#38bdf8_0%,transparent_60%)]"></div>
+        <div class="relative z-10 max-w-4xl">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider text-sky-200 bg-sky-950/80 border border-sky-400/30 mb-3 shadow-md backdrop-blur-md">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>AUDIT TRAIL • VERIFICATION SESSIONS HISTORY</span>
+            </div>
+            <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight uppercase leading-tight">
+                Lịch Sử Phiên Thẩm Định Doanh Nghiệp
+            </h1>
+            <p class="text-blue-100/90 text-xs sm:text-sm mt-2 max-w-2xl mx-auto font-medium">
+                Theo dõi và xem lại 20 phiên kiểm định hàng loạt gần nhất của các đơn vị tuyển dụng và doanh nghiệp đối tác.
+            </p>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="max-w-6xl w-full mx-auto px-4 -mt-16 relative z-20 space-y-6">
+        
+        <!-- Action bar -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white rounded-2xl shadow-md border border-slate-200 p-4">
+            <div class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                <span class="material-symbols-outlined text-blue-600">history_edu</span>
+                <span>Tổng số phiên đã lưu: <strong class="text-blue-600">{{ sessions|length }}</strong></span>
+            </div>
+            <a href="{% url 'verification:employer_batch_verify' %}" class="taste-btn px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm transition-all">
+                <span class="material-symbols-outlined text-[18px]">add_circle</span> Tạo Phiên Thẩm Định Mới
+            </a>
+        </div>
+
+        <!-- Bảng danh sách phiên thẩm định -->
+        <div class="bg-white rounded-3xl shadow-xl border border-slate-200/80 p-6 sm:p-8 overflow-hidden">
+            {% if sessions %}
+            <div class="overflow-x-auto rounded-2xl border border-slate-200">
+                <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                    <thead>
+                        <tr class="bg-slate-100 text-slate-700 uppercase font-black tracking-wider text-[11px] border-b border-slate-200">
+                            <th class="py-3.5 px-4">Mã Phiên (Session Code)</th>
+                            <th class="py-3.5 px-4">Doanh Nghiệp / Đợt Tuyển Dụng</th>
+                            <th class="py-3.5 px-4 text-center">Thời Gian</th>
+                            <th class="py-3.5 px-4 text-center">Tổng Hồ Sơ</th>
+                            <th class="py-3.5 px-4 text-center">Kết Quả Phân Bổ</th>
+                            <th class="py-3.5 px-4 text-center">Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 font-medium text-slate-800">
+                        {% for s in sessions %}
+                        <tr class="hover:bg-slate-50/80 transition-colors">
+                            <td class="py-3.5 px-4 font-mono font-bold text-blue-600">
+                                {{ s.session_code }}
+                            </td>
+                            <td class="py-3.5 px-4">
+                                <div class="font-bold text-slate-900">{{ s.employer_name|default:"Doanh nghiệp đối tác" }}</div>
+                                <div class="text-xs text-slate-500">{{ s.recruitment_name|default:"Đợt thẩm định tuyển dụng" }}</div>
+                            </td>
+                            <td class="py-3.5 px-4 text-center text-xs text-slate-600">
+                                {{ s.created_at|date:"H:i - d/m/Y" }}
+                            </td>
+                            <td class="py-3.5 px-4 text-center font-bold text-slate-800">
+                                {{ s.total_checked }}
+                            </td>
+                            <td class="py-3.5 px-4 text-center">
+                                <div class="inline-flex items-center gap-1.5 text-xs font-semibold">
+                                    <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold" title="Hợp lệ">{{ s.total_verified }}</span>
+                                    {% if s.total_tampered %}
+                                    <span class="px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 font-bold" title="Nghi vấn giả mạo">{{ s.total_tampered }}</span>
+                                    {% endif %}
+                                    {% if s.total_revoked %}
+                                    <span class="px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 font-bold" title="Đã thu hồi">{{ s.total_revoked }}</span>
+                                    {% endif %}
+                                    {% if s.total_not_found %}
+                                    <span class="px-2 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200" title="Không tìm thấy">{{ s.total_not_found }}</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="py-3.5 px-4 text-center">
+                                <a href="{% url 'verification:employer_session_detail' s.session_code %}" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white font-bold text-xs transition-all">
+                                    <span class="material-symbols-outlined text-[16px]">visibility</span> Xem Chi Tiết
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-16 space-y-4">
+                <div class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 mx-auto flex items-center justify-center">
+                    <span class="material-symbols-outlined text-3xl">folder_open</span>
+                </div>
+                <h3 class="text-base font-bold text-slate-700">Chưa có phiên thẩm định nào được lưu</h3>
+                <p class="text-xs text-slate-500 max-w-sm mx-auto">
+                    Các đợt tải file Excel đối soát hàng loạt của doanh nghiệp sẽ tự động lưu lại tại đây để phục vụ tra cứu sau này.
+                </p>
+                <a href="{% url 'verification:employer_batch_verify' %}" class="inline-flex items-center gap-1.5 px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-xs uppercase tracking-wider hover:bg-blue-700 transition-all">
+                    Bắt đầu thẩm định đợt đầu tiên
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

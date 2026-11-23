@@ -620,11 +620,17 @@ def employer_batch_verify_view(request):
         'results': [],
         'summary': {'total': 0, 'verified': 0, 'tampered': 0, 'revoked': 0, 'not_found': 0},
         'has_searched': False,
+        'employer_name': '',
+        'recruitment_name': '',
     }
 
     if request.method == 'POST':
         files = request.FILES.getlist('pdf_files')
         action = request.POST.get('action', 'verify')
+        employer_name = request.POST.get('employer_name', '').strip()
+        recruitment_name = request.POST.get('recruitment_name', '').strip()
+        context['employer_name'] = employer_name
+        context['recruitment_name'] = recruitment_name
         results = []
 
         for f in files:
@@ -866,6 +872,34 @@ def employer_batch_verify_view(request):
             'not_found': sum(1 for r in results if r['status'] == 'NOT_FOUND'),
         }
 
+        # [BƯỚC 2] Lưu Phiên Kiểm Định Doanh Nghiệp (EmployerVerificationSession)
+        session = None
+        if results:
+            employer_name = request.POST.get('employer_name', '').strip()
+            recruitment_name = request.POST.get('recruitment_name', '').strip()
+            import secrets
+            from datetime import date
+            from .models import EmployerVerificationSession
+            
+            session_code = f"HR-{date.today().strftime('%Y%m%d')}-{secrets.token_hex(3).upper()}"
+            try:
+                session = EmployerVerificationSession.objects.create(
+                    session_code=session_code,
+                    employer_name=employer_name,
+                    recruitment_name=recruitment_name,
+                    total_checked=summary['total'],
+                    total_verified=summary['verified'],
+                    total_tampered=summary['tampered'],
+                    total_revoked=summary['revoked'],
+                    total_not_found=summary['not_found'],
+                    result_detail=results,
+                    ip_address=get_client_ip(request),
+                )
+                context['session'] = session
+                request.session['last_employer_session_code'] = session_code
+            except Exception as session_err:
+                logger.warning("Không thể tạo EmployerVerificationSession: %s", session_err)
+
         # Lưu kết quả vào session để có thể xuất file Excel bất kỳ lúc nào
         if results:
             request.session['last_employer_batch_results'] = results
@@ -881,13 +915,54 @@ def employer_batch_verify_view(request):
             return resp
 
         if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.POST.get('format') == 'json':
-            return JsonResponse({'success': True, 'results': results, 'summary': summary})
+            return JsonResponse({
+                'success': True,
+                'session_code': session.session_code if session else None,
+                'results': results,
+                'summary': summary
+            })
 
         context['results'] = results
         context['summary'] = summary
         context['has_searched'] = True
 
     return render(request, 'verification/employer_batch_verify.html', context)
+
+
+def employer_history_view(request):
+    """
+    [BƯỚC 3] Danh sách lịch sử các phiên thẩm định doanh nghiệp (20 phiên gần nhất).
+    Cho phép nhà tuyển dụng xem lại các lần đối soát trước đó và tải lại báo cáo Excel.
+    """
+    from .models import EmployerVerificationSession
+    sessions = EmployerVerificationSession.objects.order_by('-created_at')[:20]
+    return render(request, 'verification/employer_history.html', {'sessions': sessions})
+
+
+def employer_session_detail_view(request, session_code):
+    """
+    [BƯỚC 3] Xem lại chi tiết kết quả thẩm định của 1 phiên cụ thể.
+    """
+    from .models import EmployerVerificationSession
+    session = get_object_or_404(EmployerVerificationSession, session_code=session_code)
+    results = session.result_detail or []
+    summary = {
+        'total': session.total_checked,
+        'verified': session.total_verified,
+        'tampered': session.total_tampered,
+        'revoked': session.total_revoked,
+        'not_found': session.total_not_found,
+    }
+    request.session['last_employer_batch_results'] = results
+    return render(request, 'verification/employer_batch_verify.html', {
+        'results': results,
+        'summary': summary,
+        'has_searched': True,
+        'session': session,
+        'employer_name': session.employer_name,
+        'recruitment_name': session.recruitment_name,
+        'is_history_view': True,
+    })
 
 
 def degree_badge_svg(request, degree_uuid):

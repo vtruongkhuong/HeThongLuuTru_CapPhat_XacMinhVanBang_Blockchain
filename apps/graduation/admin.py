@@ -243,6 +243,16 @@ class GraduationBatchAdmin(BaseRoleAdmin):
                     c_hash = canonical_hash(leaf_data)
                     leaves.append(c_hash)
                     
+                    # Phát hiện văn bằng trùng lặp (BƯỚC 4)
+                    from apps.degrees.services import check_duplicate_degree
+                    dup_deg = check_duplicate_degree(student, degree_type.id)
+                    if dup_deg:
+                        self.message_user(
+                            request,
+                            f"⚠️ Cảnh báo trùng lặp: Sinh viên {student.full_name} ({student.student_code}) đã có văn bằng {degree_type.name} (Số hiệu: {dup_deg.degree_number})!",
+                            level=messages.WARNING
+                        )
+
                     # K9: approve_batch chỉ đặt Degree sang APPROVED
                     degrees_to_create.append(Degree(
                         student=student,

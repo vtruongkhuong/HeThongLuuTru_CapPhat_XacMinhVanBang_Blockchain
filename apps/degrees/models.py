@@ -21,14 +21,14 @@ class Degree(models.Model):
     credential_public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     classification = models.CharField(max_length=50, null=True, blank=True, verbose_name="Xếp loại tốt nghiệp")
     issue_date = models.DateField(null=True, blank=True, verbose_name="Ngày cấp bằng")
-    pdf_path = models.CharField(max_length=255)
+    pdf_path = models.CharField(max_length=255, blank=True, default='', verbose_name="Đường dẫn PDF")
 
     pdf_sha256 = models.CharField(max_length=64, null=True, blank=True)
     ipfs_cid = models.CharField(max_length=100, null=True, blank=True, verbose_name="Mã IPFS CID")
     ipfs_url = models.URLField(max_length=255, null=True, blank=True, verbose_name="Đường dẫn IPFS Gateway")
 
-    template_version = models.CharField(max_length=20)
-    credential_version = models.CharField(max_length=20)
+    template_version = models.CharField(max_length=20, blank=True, default='v2')
+    credential_version = models.CharField(max_length=20, blank=True, default='1.0')
     generated_at = models.DateTimeField(null=True, blank=True, verbose_name="Thời gian tạo phôi")
     
     # Hash chuẩn hóa để ghi lên chain

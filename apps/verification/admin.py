@@ -1,6 +1,30 @@
 from django.contrib import admin
 from unfold.admin import ModelAdmin
-from .models import VerificationLog
+from .models import VerificationLog, EmployerVerificationSession
+
+
+@admin.register(EmployerVerificationSession)
+class EmployerVerificationSessionAdmin(ModelAdmin):
+    list_display = (
+        'session_code',
+        'employer_name',
+        'recruitment_name',
+        'total_checked',
+        'total_verified',
+        'total_tampered',
+        'total_revoked',
+        'total_not_found',
+        'created_at'
+    )
+    list_filter = ('created_at',)
+    list_per_page = 25
+    search_fields = ('session_code', 'employer_name', 'recruitment_name', 'ip_address')
+    readonly_fields = (
+        'session_code', 'employer_name', 'recruitment_name',
+        'total_checked', 'total_verified', 'total_tampered',
+        'total_revoked', 'total_not_found', 'result_detail',
+        'ip_address', 'created_at'
+    )
 
 
 @admin.register(VerificationLog)

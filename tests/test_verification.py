@@ -95,3 +95,71 @@ class StudentPortalTests(TestCase):
         response = self.client.get(f'/portal/tai-van-bang/{self.deg_1.id}/')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'application/pdf')
+
+
+class EmployerSessionAndDuplicateTests(TestCase):
+    """Kiểm thử tính năng Lưu phiên kiểm định doanh nghiệp và phát hiện trùng lặp."""
+
+    def setUp(self):
+        self.client = Client()
+        self.faculty = Faculty.objects.create(code='CNTT_TEST', name='Khoa CNTT')
+        self.deg_ks = DegreeType.objects.create(code='KS_TEST', name='Bằng Kỹ Sư')
+        self.major = Major.objects.create(code='7480103_T', name='KTPM', faculty=self.faculty, degree_type=self.deg_ks)
+        self.student = Student.objects.create(
+            student_code='B219999',
+            full_name='Lê Văn Test Trùng',
+            email='test.trung@ctuet.edu.vn',
+            faculty=self.faculty,
+            major=self.major
+        )
+        self.batch = GraduationBatch.objects.create(name='Đợt tốt nghiệp 2026')
+        self.degree = Degree.objects.create(
+            student=self.student,
+            batch=self.batch,
+            degree_type=self.deg_ks,
+            status='ISSUED',
+            canonical_hash='0x' + '9' * 64
+        )
+
+    def test_check_duplicate_degree(self):
+        """Kiểm tra hàm phát hiện văn bằng trùng lặp"""
+        from apps.degrees.services import check_duplicate_degree
+        dup = check_duplicate_degree(self.student, self.deg_ks.id)
+        self.assertIsNotNone(dup)
+        self.assertEqual(dup.id, self.degree.id)
+
+        # Khi văn bằng bị thu hồi (REVOKED), không còn tính là trùng
+        self.degree.status = 'REVOKED'
+        self.degree.save()
+        dup_revoked = check_duplicate_degree(self.student, self.deg_ks.id)
+        self.assertIsNone(dup_revoked)
+
+    def test_employer_session_creation_and_history(self):
+        """Kiểm tra lưu phiên thẩm định doanh nghiệp và xem lịch sử"""
+        from apps.verification.models import EmployerVerificationSession
+
+        session = EmployerVerificationSession.objects.create(
+            session_code="HR-20261123-TEST01",
+            employer_name="FPT Software",
+            recruitment_name="Tuyển dụng Fresher Q4/2026",
+            total_checked=10,
+            total_verified=8,
+            total_tampered=1,
+            total_revoked=1,
+            total_not_found=0,
+            result_detail=[{'student_name': 'Lê Văn Test Trùng', 'status': 'VERIFIED'}]
+        )
+        self.assertEqual(session.session_code, "HR-20261123-TEST01")
+        self.assertEqual(session.employer_name, "FPT Software")
+
+        # Truy cập trang lịch sử phiên
+        response = self.client.get('/verify/doanh-nghiep/lich-su/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "HR-20261123-TEST01")
+        self.assertContains(response, "FPT Software")
+
+        # Truy cập xem chi tiết phiên
+        detail_resp = self.client.get(f'/verify/doanh-nghiep/lich-su/{session.session_code}/')
+        self.assertEqual(detail_resp.status_code, 200)
+        self.assertContains(detail_resp, "HR-20261123-TEST01")
+        self.assertContains(detail_resp, "Tuyển dụng Fresher Q4/2026")

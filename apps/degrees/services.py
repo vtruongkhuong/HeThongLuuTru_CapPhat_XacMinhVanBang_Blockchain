@@ -102,3 +102,20 @@ def approve_degree(degree_id, user):
         pass
 
     return True, single_batch
+
+
+def check_duplicate_degree(student, degree_type_id):
+    """
+    [BƯỚC 4 - Phát hiện văn bằng trùng lặp]
+    Kiểm tra xem sinh viên đã có văn bằng cùng loại còn hiệu lực (chưa bị thu hồi) hay chưa.
+    Trả về: Đối tượng Degree cũ nếu phát hiện trùng lặp, ngược lại trả về None.
+    """
+    if not student or not degree_type_id:
+        return None
+    existing = Degree.objects.filter(
+        student=student, degree_type_id=degree_type_id
+    ).exclude(status='REVOKED')
+    if existing.exists():
+        return existing.first()
+    return None
+

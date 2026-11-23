@@ -143,7 +143,7 @@ class SingleDegreeForm(forms.Form):
                 if not cleaned_data.get(field_name):
                     self.add_error(field_name, msg)
 
-        # Kiểm tra trùng văn bằng trong cùng một đợt
+        # Kiểm tra trùng văn bằng trong cùng một đợt và kiểm tra trùng lặp loại bằng (BƯỚC 4)
         batch = cleaned_data.get('batch')
         student = None
         if mode == 'existing':
@@ -155,6 +155,20 @@ class SingleDegreeForm(forms.Form):
             if Degree.objects.filter(student=student, batch=batch).exists():
                 raise forms.ValidationError(
                     f"Sinh viên '{student.full_name}' ({student.student_code}) đã có văn bằng trong đợt '{batch.name}'!"
+                )
+
+        degree_type = (
+            cleaned_data.get('degree_type')
+            or (batch.degree_type if batch else None)
+            or (student.major.degree_type if (student and student.major) else None)
+        )
+        if student and degree_type:
+            from .services import check_duplicate_degree
+            duplicate_deg = check_duplicate_degree(student, degree_type.id)
+            if duplicate_deg:
+                raise forms.ValidationError(
+                    f"CẢNH BÁO TRÙNG LẶP: Sinh viên '{student.full_name}' ({student.student_code}) đã được cấp văn bằng '{degree_type.name}' "
+                    f"(Số hiệu: {duplicate_deg.degree_number}, Trạng thái: {duplicate_deg.get_status_display()}). Không thể cấp trùng lặp!"
                 )
 
         return cleaned_data
