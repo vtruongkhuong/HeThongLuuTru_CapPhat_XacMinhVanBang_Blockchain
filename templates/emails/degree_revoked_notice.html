@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông Báo Thu Hồi Văn Bằng - CTUT</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f1f5f9;
+            margin: 0;
+            padding: 20px;
+            color: #1e293b;
+        }
+        .email-container {
+            max-width: 620px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #fee2e2;
+        }
+        .email-header {
+            background: linear-gradient(135deg, #991b1b 0%, #7f1d1d 100%);
+            padding: 32px 24px;
+            text-align: center;
+            color: #ffffff;
+        }
+        .header-org {
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #fca5a5;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .header-title {
+            font-size: 20px;
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+        .header-badge {
+            display: inline-block;
+            margin-top: 12px;
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 9999px;
+            padding: 4px 14px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .email-body {
+            padding: 32px 28px;
+        }
+        .greeting {
+            font-size: 16px;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 12px;
+        }
+        .intro-text {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #475569;
+            margin-bottom: 24px;
+        }
+        .alert-card {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-left: 4px solid #ef4444;
+            border-radius: 10px;
+            padding: 16px 18px;
+            margin-bottom: 24px;
+            font-size: 13.5px;
+            line-height: 1.6;
+            color: #991b1b;
+        }
+        .info-card {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 13.5px;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            color: #64748b;
+            font-weight: 500;
+        }
+        .info-val {
+            color: #0f172a;
+            font-weight: 700;
+            text-align: right;
+        }
+        .status-revoked {
+            color: #dc2626;
+            font-weight: 800;
+            background: #fee2e2;
+            padding: 2px 8px;
+            border-radius: 6px;
+        }
+        .blockchain-card {
+            background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+            border: 1px solid #fed7aa;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 24px;
+        }
+        .chain-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #9a3412;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .chain-hash {
+            font-family: monospace;
+            font-size: 11px;
+            background: #ffffff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #fdba74;
+            color: #c2410c;
+            word-break: break-all;
+        }
+        .contact-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 18px 20px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #334155;
+            margin-bottom: 24px;
+        }
+        .email-footer {
+            background-color: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            padding: 20px;
+            text-align: center;
+            font-size: 11.5px;
+            color: #64748b;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- HEADER -->
+        <div class="email-header">
+            <div class="header-org">TRƯỜNG ĐẠI HỌC KỸ THUẬT - CÔNG NGHỆ CẦN THƠ</div>
+            <h1 class="header-title">THÔNG BÁO THU HỒI VĂN BẰNG</h1>
+            <div class="header-badge">Cảnh Báo: Trạng Thái Văn Bằng Đã Bị Vô Hiệu Hóa</div>
+        </div>
+
+        <!-- BODY -->
+        <div class="email-body">
+            <div class="greeting">Kính gửi Ông/Bà {{ student.full_name }},</div>
+            
+            <div class="alert-card">
+                ⚠️ <strong>CẢNH BÁO QUAN TRỌNG:</strong> Văn bằng tốt nghiệp của bạn đã bị <strong>thu hồi và vô hiệu hóa</strong> theo quyết định của Hội đồng kỷ luật & Phòng Đào tạo nhà trường. Trạng thái thu hồi đã được đồng bộ trực tiếp lên Smart Contract trên mạng lưới Blockchain.
+            </div>
+
+            <!-- THÔNG TIN VĂN BẰNG BỊ THU HỒI -->
+            <div class="info-card">
+                <div class="info-row">
+                    <span class="info-label">Mã số sinh viên (MSSV):</span>
+                    <span class="info-val">{{ student.student_code }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Họ và tên:</span>
+                    <span class="info-val">{{ student.full_name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Loại văn bằng:</span>
+                    <span class="info-val">{{ degree.degree_type.name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Số hiệu văn bằng:</span>
+                    <span class="info-val">{{ degree.degree_number }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Trạng thái hiện tại:</span>
+                    <span class="info-val"><span class="status-revoked">ĐÃ THU HỒI (REVOKED)</span></span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Lý do thu hồi:</span>
+                    <span class="info-val" style="color: #b91c1c;">{{ reason|default:"Theo quyết định của Hội đồng Trường" }}</span>
+                </div>
+            </div>
+
+            <!-- ON-CHAIN STATUS -->
+            <div class="blockchain-card">
+                <div class="chain-title">
+                    <span>⛓️ TRẠNG THÁI TRÊN BLOCKCHAIN (ON-CHAIN REVOCATION)</span>
+                </div>
+                <div style="font-size: 12px; color: #9a3412; margin-bottom: 6px;">
+                    Mã băm chuẩn hóa (Canonical Hash) đã được đánh dấu thu hồi vĩnh viễn trên Smart Contract:
+                </div>
+                <div class="chain-hash">{{ degree.canonical_hash }}</div>
+            </div>
+
+            <!-- LIÊN HỆ PHÒNG ĐÀO TẠO -->
+            <div class="contact-box">
+                <strong>HƯỚNG DẪN GIẢI QUYẾT & LIÊN HỆ:</strong><br>
+                Mọi tra cứu công khai hoặc từ phía nhà tuyển dụng đối với văn bằng này sẽ hiển thị kết quả không hợp lệ/đã thu hồi. Nếu bạn có bất kỳ thắc mắc hoặc cần giải trình, vui lòng liên hệ ngay với <strong>Phòng Đào tạo</strong> trong thời hạn quy định:<br><br>
+                🏢 <strong>Địa chỉ tiếp nhận:</strong> Phòng Đào tạo (Khu hiệu bộ) - 256 Nguyễn Văn Cừ, P. An Hòa, Q. Ninh Kiều, TP. Cần Thơ<br>
+                📧 <strong>Email hỗ trợ:</strong> daotao@ctuet.edu.vn<br>
+                ☎️ <strong>Điện thoại:</strong> (0292) 3890 698
+            </div>
+
+            <div style="font-size: 13.5px; line-height: 1.6; color: #475569;">
+                Trân trọng thông báo,<br>
+                <strong>Phòng Đào tạo & Quản lý Văn bằng</strong><br>
+                Trường Đại học Kỹ thuật - Công nghệ Cần Thơ (CTUT)
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="email-footer">
+            256 Nguyễn Văn Cừ, P. An Hòa, Q. Ninh Kiều, TP. Cần Thơ<br>
+            Email: daotao@ctuet.edu.vn | Website: https://ctuet.edu.vn<br>
+            Hệ thống cấp phát & xác minh văn bằng số phi tập trung trên nền tảng Blockchain.
+        </div>
+    </div>
+</body>
+</html>

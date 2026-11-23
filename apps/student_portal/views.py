@@ -373,6 +373,13 @@ def create_share_link(request):
 
     share_url = request.build_absolute_uri(reverse('student_portal:public_shared_profile', args=[token]))
 
+    # Gửi email thông báo tạo liên kết chia sẻ cho sinh viên
+    try:
+        from apps.degrees.email_service import send_share_link_email
+        send_share_link_email(student, link, share_url)
+    except Exception as email_err:
+        pass
+
     return JsonResponse({
         'success': True,
         'token': token,
