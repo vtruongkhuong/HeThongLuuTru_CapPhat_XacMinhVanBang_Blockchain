@@ -52,6 +52,8 @@
         .animate-pulse-subtle {
             animation: pulse-subtle 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
         }
+        .scrollbar-none::-webkit-scrollbar { display: none; }
+        .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
     {% block extra_head %}{% endblock %}
     <!-- Animate UI Core Styles & Interaction Engine -->
@@ -59,14 +61,14 @@
     <script src="{% static 'js/vendor/gsap.min.js' %}"></script>
     <script defer src="{% static 'js/animate-ui.js' %}"></script>
 </head>
-<body class="bg-gray-50 font-sans text-gray-900 min-h-screen flex flex-col">
+<body class="bg-gray-50 font-sans text-gray-900 min-h-screen flex flex-col w-full overflow-x-hidden">
 
     <!-- Navbar -->
-    <nav class="bg-white/95 backdrop-blur-md px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between shadow-xs sticky top-0 z-50 border-b border-slate-100">
-        <div class="flex items-center gap-3 shrink-0">
-            <a href="{% url 'landing' %}" class="flex items-center gap-2.5 group shrink-0">
-                <div class="w-10 h-10 border-2 border-blue-600 rounded-xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-xs shrink-0">
-                    <span class="material-symbols-outlined text-2xl transition-transform group-hover:scale-105">school</span>
+    <nav class="w-full bg-white/95 backdrop-blur-md px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between shadow-xs sticky top-0 z-50 border-b border-slate-100">
+        <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+            <a href="{% url 'landing' %}" class="flex items-center gap-2 sm:gap-2.5 group shrink-0">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 border-2 border-blue-600 rounded-xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-xs shrink-0">
+                    <span class="material-symbols-outlined text-xl sm:text-2xl transition-transform group-hover:scale-105">school</span>
                 </div>
                 <div class="shrink-0 text-left">
                     <h1 class="font-black text-slate-900 uppercase tracking-wider text-[11px] sm:text-xs leading-tight">CTUT • BLOCKCHAIN</h1>
@@ -82,7 +84,7 @@
             </div>
         </div>
         
-        <div class="flex items-center gap-2.5 sm:gap-3.5 lg:gap-4 text-xs font-semibold whitespace-nowrap shrink-0">
+        <div class="flex items-center gap-2 sm:gap-3.5 lg:gap-4 text-xs font-semibold whitespace-nowrap overflow-x-auto max-w-full scrollbar-none py-1">
             <a href="{% url 'landing' %}" class="text-gray-600 hover:text-blue-600 transition-colors flex items-center gap-1 uppercase tracking-wider font-bold whitespace-nowrap shrink-0">
                 <span class="material-symbols-outlined text-[17px]">search</span> Tra cứu
             </a>
@@ -169,11 +171,11 @@
     </main>
 
     <!-- Footer chuẩn Viện - Trường Đại học Kỹ thuật - Công nghệ Cần Thơ (CTUT) -->
-    <footer class="bg-[#0b1120] text-slate-400 text-xs border-t border-slate-800 mt-auto">
-        <div class="max-w-6xl mx-auto px-6 py-12">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
+    <footer class="w-full bg-[#0b1120] text-slate-400 text-xs border-t border-slate-800 mt-auto">
+        <div class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10 mb-10">
                 <!-- Cột 1 & 2: Thông tin cơ quan chủ quản -->
-                <div class="md:col-span-2 space-y-4">
+                <div class="sm:col-span-2 lg:col-span-2 space-y-4">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold shrink-0">
                             <span class="material-symbols-outlined text-2xl">school</span>
@@ -183,20 +185,24 @@
                             <div class="text-[11px] font-mono text-slate-400">CAN THO UNIVERSITY OF TECHNOLOGY (CTUT)</div>
                         </div>
                     </div>
-                    <p class="text-xs text-slate-400 leading-relaxed max-w-md">
+                    <p class="text-xs text-slate-400 leading-relaxed max-w-xl">
                         Hệ thống Quản lý, Cấp phát & Bảo chứng Toàn vẹn Văn bằng Số trên nền tảng Chuỗi khối (Blockchain) và Lưu trữ phi tập trung (IPFS), tuân thủ tiêu chuẩn Merkle Tree RFC 6962 và quy chế văn bằng hiện hành của Bộ GD&ĐT.
                     </p>
-                    <div class="space-y-1.5 text-xs text-slate-400 font-medium pt-1">
-                        <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-[16px] text-slate-500">location_on</span>
+                    <div class="space-y-2 text-xs text-slate-400 font-medium pt-1">
+                        <div class="flex items-start gap-2">
+                            <span class="material-symbols-outlined text-[16px] text-slate-500 mt-0.5 shrink-0">location_on</span>
                             <span>256 Nguyễn Văn Cừ, P. An Hòa, Q. Ninh Kiều, TP. Cần Thơ</span>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-[16px] text-slate-500">mail</span>
-                            <span>daotao@ctuet.edu.vn</span>
-                            <span class="text-slate-600">•</span>
-                            <span class="material-symbols-outlined text-[16px] text-slate-500">call</span>
-                            <span>(0292) 3898 167</span>
+                        <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[16px] text-slate-500 shrink-0">mail</span>
+                                <a href="mailto:daotao@ctuet.edu.vn" class="hover:text-blue-400 transition-colors">daotao@ctuet.edu.vn</a>
+                            </div>
+                            <span class="text-slate-600 hidden sm:inline">•</span>
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[16px] text-slate-500 shrink-0">call</span>
+                                <a href="tel:02923898167" class="hover:text-blue-400 transition-colors">(0292) 3898 167</a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -204,7 +210,7 @@
                 <!-- Cột 3: Cổng dịch vụ tra cứu -->
                 <div class="space-y-3">
                     <div class="text-xs font-bold text-white uppercase tracking-wider font-mono">Dịch Vụ Tra Cứu</div>
-                    <ul class="space-y-2 text-xs">
+                    <ul class="space-y-2.5 text-xs">
                         <li>
                             <a href="{% url 'landing' %}" class="hover:text-blue-400 transition-colors flex items-center gap-1.5">
                                 <span class="material-symbols-outlined text-[14px] text-slate-500">arrow_forward</span> Tra cứu văn bằng chính quy
@@ -231,24 +237,24 @@
                 <!-- Cột 4: Tiêu chuẩn công nghệ mật mã -->
                 <div class="space-y-3">
                     <div class="text-xs font-bold text-white uppercase tracking-wider font-mono">Tiêu Chuẩn Bảo Chứng</div>
-                    <ul class="space-y-2 text-xs">
+                    <ul class="space-y-2.5 text-xs">
                         <li class="flex items-center gap-2">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
                             <span>Ethereum Sepolia Testnet</span>
                         </li>
                         <li class="flex items-center gap-2">
-                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
                             <a href="{% url 'verification:merkle_visualizer' %}" class="hover:text-blue-400 transition-colors flex items-center gap-1">
                                 <span>Merkle Tree (RFC 6962)</span>
                                 <span class="material-symbols-outlined text-[12px] text-slate-500">open_in_new</span>
                             </a>
                         </li>
                         <li class="flex items-center gap-2">
-                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>
                             <span>Lưu trữ IPFS CIDv1 Pinata</span>
                         </li>
                         <li class="flex items-center gap-2">
-                            <span class="w-1.5 h-1.5 rounded-full bg-sky-500"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-sky-500 shrink-0"></span>
                             <a href="{% url 'verification:w3c_standalone_verifier' %}" class="hover:text-blue-400 transition-colors flex items-center gap-1">
                                 <span>W3C Verifiable Credentials</span>
                                 <span class="material-symbols-outlined text-[12px] text-slate-500">open_in_new</span>
@@ -259,15 +265,15 @@
             </div>
 
             <!-- Dòng đáy (Sub-footer bản quyền) -->
-            <div class="pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500">
+            <div class="pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-500 text-center sm:text-left">
                 <div>
                     &copy; 2026 Trường Đại học Kỹ thuật - Công nghệ Cần Thơ (CTUT). Bảo lưu mọi quyền.
                 </div>
-                <div class="flex items-center gap-4">
+                <div class="flex flex-wrap items-center justify-center sm:justify-end gap-3 sm:gap-4">
                     <a href="{% url 'landing' %}" class="hover:text-slate-300 transition-colors">Trang chủ tra cứu</a>
-                    <span class="text-slate-700">&bull;</span>
+                    <span class="text-slate-700 hidden sm:inline">&bull;</span>
                     <a href="https://ctuet.edu.vn" target="_blank" rel="noopener noreferrer" class="hover:text-slate-300 transition-colors">Cổng TT Đào tạo CTUT</a>
-                    <span class="text-slate-700">&bull;</span>
+                    <span class="text-slate-700 hidden sm:inline">&bull;</span>
                     <a href="/admin/" class="hover:text-slate-300 transition-colors flex items-center gap-1">
                         <span class="material-symbols-outlined text-[13px]">lock</span> Cổng Quản Trị Hệ Thống
                     </a>
