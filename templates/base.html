@@ -62,18 +62,19 @@
 <body class="bg-gray-50 font-sans text-gray-900 min-h-screen flex flex-col">
 
     <!-- Navbar -->
-    <nav class="bg-white/90 backdrop-blur-md px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-50 border-b border-gray-100">
-        <div class="flex items-center gap-4">
-            <a href="{% url 'landing' %}" class="flex items-center gap-3.5 group">
-                <div class="w-11 h-11 border-2 border-blue-600 rounded-2xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-xs">
-                    <span class="material-symbols-outlined text-2xl transition-transform group-hover:scale-110">school</span>
+    <nav class="bg-white/95 backdrop-blur-md px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between shadow-xs sticky top-0 z-50 border-b border-slate-100">
+        <div class="flex items-center gap-3 shrink-0">
+            <a href="{% url 'landing' %}" class="flex items-center gap-2.5 group shrink-0">
+                <div class="w-10 h-10 border-2 border-blue-600 rounded-xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-xs shrink-0">
+                    <span class="material-symbols-outlined text-2xl transition-transform group-hover:scale-105">school</span>
                 </div>
-                <div>
-                    <h1 class="font-black text-slate-900 uppercase tracking-wider text-xs leading-tight">CTUT • BLOCKCHAIN<br><span class="text-blue-600">HỆ THỐNG XÁC THỰC VĂN BẰNG</span></h1>
+                <div class="shrink-0 text-left">
+                    <h1 class="font-black text-slate-900 uppercase tracking-wider text-[11px] sm:text-xs leading-tight">CTUT • BLOCKCHAIN</h1>
+                    <span class="text-blue-600 text-[10px] sm:text-[11px] font-bold tracking-tight block">HỆ THỐNG XÁC THỰC VĂN BẰNG</span>
                 </div>
             </a>
             
-            <div class="hidden xl:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100/90 border border-slate-200/90 text-[11px] font-mono text-slate-600">
+            <div class="hidden 2xl:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100/90 border border-slate-200/90 text-[11px] font-mono text-slate-600 shrink-0">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                 <span class="font-bold text-slate-800">Ethereum Sepolia</span>
                 <span class="text-slate-300">|</span>
@@ -81,37 +82,37 @@
             </div>
         </div>
         
-        <div class="flex items-center gap-5 text-sm font-semibold">
-            <a href="{% url 'landing' %}" class="text-gray-600 hover:text-ntt-light transition-colors flex items-center gap-1.5 text-xs uppercase tracking-wider font-bold">
-                <span class="material-symbols-outlined text-base">search</span> Tra cứu
+        <div class="flex items-center gap-2.5 sm:gap-3.5 lg:gap-4 text-xs font-semibold whitespace-nowrap shrink-0">
+            <a href="{% url 'landing' %}" class="text-gray-600 hover:text-blue-600 transition-colors flex items-center gap-1 uppercase tracking-wider font-bold whitespace-nowrap shrink-0">
+                <span class="material-symbols-outlined text-[17px]">search</span> Tra cứu
             </a>
-            <a href="{% url 'verification:employer_batch_verify' %}" class="text-gray-600 hover:text-blue-600 transition-colors flex items-center gap-1.5 text-xs uppercase tracking-wider font-bold">
-                <span class="material-symbols-outlined text-base">domain</span> Doanh nghiệp
+            <a href="{% url 'verification:employer_batch_verify' %}" class="text-gray-600 hover:text-blue-600 transition-colors flex items-center gap-1 uppercase tracking-wider font-bold whitespace-nowrap shrink-0">
+                <span class="material-symbols-outlined text-[17px]">domain</span> Doanh nghiệp
             </a>
-            <a href="{% url 'verification:merkle_visualizer' %}" class="text-gray-600 hover:text-blue-600 transition-colors flex items-center gap-1.5 text-xs uppercase tracking-wider font-bold">
-                <span class="material-symbols-outlined text-base text-indigo-500">account_tree</span> Cây Merkle
+            <a href="{% url 'verification:merkle_visualizer' %}" class="text-gray-600 hover:text-blue-600 transition-colors flex items-center gap-1 uppercase tracking-wider font-bold whitespace-nowrap shrink-0">
+                <span class="material-symbols-outlined text-[17px] text-indigo-500">account_tree</span> Cây Merkle
             </a>
-            <a href="{% url 'verification:w3c_standalone_verifier' %}" class="text-gray-600 hover:text-blue-600 transition-colors flex items-center gap-1.5 text-xs uppercase tracking-wider font-bold">
-                <span class="material-symbols-outlined text-base text-emerald-500">verified_user</span> Xác minh W3C
+            <a href="{% url 'verification:w3c_standalone_verifier' %}" class="text-gray-600 hover:text-blue-600 transition-colors flex items-center gap-1 uppercase tracking-wider font-bold whitespace-nowrap shrink-0">
+                <span class="material-symbols-outlined text-[17px] text-emerald-500">verified_user</span> Xác minh W3C
             </a>
 
             {% if user.is_authenticated %}
                 {% if not user.is_staff and not user.is_superuser %}
-                    <a href="{% url 'student_portal:dashboard' %}" class="text-gray-600 hover:text-ntt-light transition-colors flex items-center gap-1.5 text-xs uppercase tracking-wider font-bold">
-                        <span class="material-symbols-outlined text-base">workspace_premium</span> Văn bằng của tôi
+                    <a href="{% url 'student_portal:dashboard' %}" class="text-gray-600 hover:text-blue-600 transition-colors flex items-center gap-1 uppercase tracking-wider font-bold whitespace-nowrap shrink-0">
+                        <span class="material-symbols-outlined text-[17px]">workspace_premium</span> Văn bằng của tôi
                     </a>
                 {% endif %}
                 
                 {% if user.is_staff or user.is_superuser %}
-                    <a href="/admin/" class="animate-btn text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 text-xs uppercase tracking-wider font-bold shadow-xs">
-                        <span class="material-symbols-outlined text-base">admin_panel_settings</span> Quản trị
+                    <a href="/admin/" class="animate-btn text-white bg-blue-600 hover:bg-blue-700 px-3.5 py-1.5 rounded-xl transition-all flex items-center gap-1 uppercase tracking-wider font-bold shadow-xs whitespace-nowrap shrink-0">
+                        <span class="material-symbols-outlined text-[17px]">admin_panel_settings</span> Quản trị
                     </a>
                 {% endif %}
 
                 <!-- In-app Notification: Bell Icon + Badge -->
                 {% with unread=user.unread_notifications_count %}
-                <div class="relative flex items-center">
-                    <a href="/notifications/" class="relative p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50/80 rounded-xl transition-all flex items-center justify-center group" title="Thông báo hệ thống">
+                <div class="relative flex items-center shrink-0">
+                    <a href="/notifications/" class="relative p-1.5 text-slate-600 hover:text-blue-600 hover:bg-blue-50/80 rounded-xl transition-all flex items-center justify-center group" title="Thông báo hệ thống">
                         <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">notifications</span>
                         {% if unread > 0 %}
                             <span class="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-black rounded-full h-4 min-w-[16px] px-1 flex items-center justify-center border-2 border-white shadow-xs animate-pulse">
@@ -122,24 +123,27 @@
                 </div>
                 {% endwith %}
                 
-                <div class="w-px h-5 bg-gray-200"></div>
+                <div class="w-px h-4 bg-gray-200 shrink-0"></div>
                 
                 {% if not user.is_staff and not user.is_superuser %}
-                    <a href="{% url 'student_portal:profile_update' %}" class="text-gray-700 hover:text-ntt-dark flex items-center gap-1.5 text-xs font-bold transition-colors">
-                        <span class="material-symbols-outlined text-lg text-ntt-light">account_circle</span>
+                    <a href="{% url 'student_portal:profile_update' %}" class="text-gray-700 hover:text-blue-600 flex items-center gap-1 font-bold transition-colors whitespace-nowrap shrink-0">
+                        <span class="material-symbols-outlined text-base text-blue-600">account_circle</span>
                         {{ user.get_full_name|default:user.username }}
                     </a>
                 {% else %}
-                    <span class="text-gray-700 flex items-center gap-1.5 text-xs font-bold cursor-default">
-                        <span class="material-symbols-outlined text-lg text-emerald-600">verified_user</span>
+                    <span class="text-gray-700 flex items-center gap-1 font-bold cursor-default whitespace-nowrap shrink-0">
+                        <span class="material-symbols-outlined text-base text-emerald-600">verified_user</span>
                         {{ user.get_full_name|default:user.username }}
-                        <span class="text-[10px] bg-blue-50 text-ntt-light px-2 py-0.5 rounded-full uppercase tracking-wider border border-blue-200">Cán bộ</span>
+                        <span class="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-md uppercase tracking-wider border border-blue-200">Cán bộ</span>
                     </span>
                 {% endif %}
                 
-                <a href="{% url 'accounts:logout' %}" class="text-gray-400 hover:text-red-500 transition-colors text-xs font-bold uppercase tracking-wider ml-1">Đăng xuất</a>
+                <a href="{% url 'accounts:logout' %}" class="text-gray-400 hover:text-red-500 transition-colors uppercase tracking-wider whitespace-nowrap shrink-0 ml-0.5" title="Đăng xuất">
+                    <span class="hidden sm:inline">Đăng xuất</span>
+                    <span class="sm:hidden material-symbols-outlined text-lg">logout</span>
+                </a>
             {% else %}
-                <a href="{% url 'accounts:login' %}" class="animate-btn px-5 py-2 border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-xs">
+                <a href="{% url 'accounts:login' %}" class="animate-btn px-4 py-1.5 border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-xs whitespace-nowrap shrink-0">
                     Đăng nhập
                 </a>
             {% endif %}
