@@ -378,7 +378,7 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'API Xác Minh Văn Bằng Blockchain - HUTECH',
+    'TITLE': 'API Xác Minh Văn Bằng Blockchain - CTUT',
     'DESCRIPTION': (
         'API công khai cho phép doanh nghiệp xác minh văn bằng '
         'ứng viên tuyển dụng thông qua Blockchain Ethereum Sepolia.'

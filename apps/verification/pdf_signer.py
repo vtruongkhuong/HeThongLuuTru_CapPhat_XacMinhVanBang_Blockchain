@@ -37,9 +37,9 @@ def get_or_create_signing_cert():
         # 2. Xây dựng X.509 Certificate
         subject = issuer = x509.Name([
             x509.NameAttribute(NameOID.COUNTRY_NAME, "VN"),
-            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "HUTECH Blockchain Verification"),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "CTUT Blockchain Verification"),
             x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, "Digital Certificate Authority"),
-            x509.NameAttribute(NameOID.COMMON_NAME, "HUTECH Digital Signing CA"),
+            x509.NameAttribute(NameOID.COMMON_NAME, "CTUT Digital Signing CA"),
         ])
 
         now = datetime.datetime.now(datetime.timezone.utc)
@@ -73,7 +73,7 @@ def get_or_create_signing_cert():
         return None, None
 
 
-def sign_pdf_with_pyhanko(pdf_bytes: bytes, reason: str = "Xác nhận văn bằng điện tử nguyên bản trên Blockchain", location: str = "HUTECH Blockchain") -> bytes:
+def sign_pdf_with_pyhanko(pdf_bytes: bytes, reason: str = "Xác nhận văn bằng điện tử nguyên bản trên Blockchain", location: str = "CTUT Blockchain") -> bytes:
     """
     Ký số điện tử vào file PDF bằng thư viện pyHanko theo chuẩn PAdES / Adobe Digital Signature.
     Nếu có lỗi hoặc thiếu chứng thư, sẽ trả về file PDF gốc an toàn.
@@ -104,7 +104,7 @@ def sign_pdf_with_pyhanko(pdf_bytes: bytes, reason: str = "Xác nhận văn bằ
         signers.sign_pdf(
             writer,
             signers.PdfSignatureMetadata(
-                field_name='HUTECH_Digital_Signature',
+                field_name='CTUT_Digital_Signature',
                 reason=reason,
                 location=location
             ),

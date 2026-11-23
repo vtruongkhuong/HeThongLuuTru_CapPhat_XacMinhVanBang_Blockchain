@@ -5,7 +5,7 @@ from django.utils import timezone
 
 
 ISSUER_DID = "did:web:ctut.edu.vn"
-ISSUER_NAME = "Trường Đại học Công nghệ TP. Hồ Chí Minh (HUTECH)"
+ISSUER_NAME = "Trường Đại học Kỹ thuật - Công nghệ Cần Thơ (CTUT)"
 VC_CONTEXT = [
     "https://www.w3.org/2018/credentials/v1",
     "https://w3id.org/security/suites/ed25519-2020/v1",

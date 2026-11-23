@@ -204,7 +204,7 @@ class VerificationPdfCertificateTests(TestCase):
         from pyhanko.pdf_utils.reader import PdfFileReader
         reader = PdfFileReader(io.BytesIO(pdf_bytes))
         self.assertGreaterEqual(len(reader.embedded_signatures), 1)
-        self.assertEqual(reader.embedded_signatures[0].field_name, "HUTECH_Digital_Signature")
+        self.assertEqual(reader.embedded_signatures[0].field_name, "CTUT_Digital_Signature")
 
 
 class InAppNotificationTests(TestCase):

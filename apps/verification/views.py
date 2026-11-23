@@ -562,8 +562,8 @@ def download_verification_cert_pdf(request, degree_id):
     raw_pdf_bytes = pdf_buffer.getvalue()
     signed_pdf_bytes = sign_pdf_with_pyhanko(
         raw_pdf_bytes,
-        reason=f"Chứng thực bởi hệ thống Blockchain HUTECH tại {now.strftime('%d/%m/%Y %H:%M:%S')}",
-        location="HUTECH Blockchain Verification System"
+        reason=f"Chứng thực bởi hệ thống Blockchain CTUT tại {now.strftime('%d/%m/%Y %H:%M:%S')}",
+        location="CTUT Blockchain Verification System"
     )
 
     filename = f"Chung_Thuc_Dien_Tu_{student_code}.pdf"
