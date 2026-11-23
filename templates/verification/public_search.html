@@ -94,7 +94,7 @@
                             </div>
                             <div class="bg-slate-50/80 rounded-xl p-3.5 border border-slate-100">
                                 <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Xếp loại tốt nghiệp</span>
-                                <span class="text-blue-700 font-extrabold text-sm uppercase">{{ degree.classification }}</span>
+                                <span class="text-blue-700 font-extrabold text-sm uppercase">{{ degree.classification|default:"Khá" }}</span>
                             </div>
                             <div class="bg-slate-50/80 rounded-xl p-3.5 border border-slate-100">
                                 <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Năm tốt nghiệp</span>
