@@ -4,7 +4,7 @@ Hỗ trợ INSERT, UPDATE, SKIP, ERROR và lưu old_value để Rollback.
 """
 import hashlib
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, date
 from django.db import transaction
 from django.forms.models import model_to_dict
 
@@ -68,17 +68,17 @@ def process_excel_import(excel_file, batch_id, user):
     except Exception as e:
         raise Exception(f"Không thể đọc file Excel. Chi tiết: {str(e)}")
 
-    import_batch = ImportBatch.objects.create(
-        batch=batch_obj,
-        file_name=excel_file.name,
-        file_hash=file_hash,
-        imported_by=user,
-        mode='PARTIAL'
-    )
-
     inserted_count = updated_count = skipped_count = error_count = 0
 
     with transaction.atomic():
+        import_batch = ImportBatch.objects.create(
+            batch=batch_obj,
+            file_name=excel_file.name,
+            file_hash=file_hash,
+            imported_by=user,
+            mode='PARTIAL'
+        )
+
         for index, row in df.iterrows():
             row_num = index + 2 # Header là dòng 1 trong Excel
             mssv = str(row.get('mã sv', row.get('student_code', ''))).strip()
@@ -92,73 +92,75 @@ def process_excel_import(excel_file, batch_id, user):
                 continue
 
             try:
-                ho_ten = str(row.get('họ tên', row.get('full_name', ''))).strip()
-                ma_nganh = str(row.get('mã ngành', row.get('major_code', ''))).strip()
-                email_sv = str(row.get('email', '')).strip()
-                
-                # Loại văn bằng/chứng chỉ (CN, KS, THVP, CNTT) - Hỗ trợ cho H6 sau này
-                loai_van_bang = str(row.get('loại bằng', row.get('degree_type', ''))).strip()
+                with transaction.atomic():  # Savepoint cho từng dòng
+                    ho_ten = str(row.get('họ tên', row.get('full_name', ''))).strip()
+                    ma_nganh = str(row.get('mã ngành', row.get('major_code', ''))).strip()
+                    email_sv = str(row.get('email', '')).strip()
+                    
+                    # Loại văn bằng/chứng chỉ (CN, KS, THVP, CNTT) - Hỗ trợ cho H6 sau này
+                    loai_van_bang = str(row.get('loại bằng', row.get('degree_type', ''))).strip()
 
-                if not email_sv or email_sv == 'nan':
-                    raise ValueError("Thiếu dữ liệu: Cột Email là bắt buộc.")
-                
-                major_obj = Major.objects.filter(code=ma_nganh).first()
-                if not major_obj:
-                    raise ValueError(f"Không tìm thấy mã ngành: {ma_nganh}")
+                    if not email_sv or email_sv == 'nan':
+                        raise ValueError("Thiếu dữ liệu: Cột Email là bắt buộc.")
+                    
+                    major_obj = Major.objects.filter(code=ma_nganh).first()
+                    if not major_obj:
+                        raise ValueError(f"Không tìm thấy mã ngành: {ma_nganh}")
 
-                gpa_val = _read_gpa(row)
-                dob_val = _read_dob(row)
+                    gpa_val = _read_gpa(row)
+                    dob_val = _read_dob(row)
 
-                defaults = {
-                    'full_name': ho_ten,
-                    'email': email_sv,
-                    'major': major_obj,
-                    'faculty': major_obj.faculty,
-                }
-                if gpa_val is not None:
-                    defaults['gpa_score'] = gpa_val
-                if dob_val is not None:
-                    defaults['date_of_birth'] = dob_val
+                    defaults = {
+                        'full_name': ho_ten,
+                        'email': email_sv,
+                        'major': major_obj,
+                        'faculty': major_obj.faculty,
+                    }
+                    if gpa_val is not None:
+                        defaults['gpa_score'] = gpa_val
+                    if dob_val is not None:
+                        defaults['date_of_birth'] = dob_val
 
-                # Kiểm tra Update hay Insert để lưu old_value
-                student = Student.objects.filter(student_code=mssv).first()
-                
-                old_val_json = None
-                new_val_json = {
-                    'full_name': ho_ten,
-                    'email': email_sv,
-                    'major': ma_nganh,
-                    'gpa': gpa_val,
-                    'date_of_birth': str(dob_val) if dob_val else None,
-                    'degree_type': loai_van_bang # Lưu loại văn bằng để H6 dùng
-                }
+                    # Kiểm tra Update hay Insert để lưu old_value
+                    student = Student.objects.filter(student_code=mssv).first()
+                    
+                    old_val_json = None
+                    new_val_json = {
+                        'full_name': ho_ten,
+                        'email': email_sv,
+                        'major': ma_nganh,
+                        'gpa': gpa_val,
+                        'date_of_birth': str(dob_val) if dob_val else None,
+                        'degree_type': loai_van_bang # Lưu loại văn bằng để H6 dùng
+                    }
 
-                if student:
-                    # Chẩn bị update
-                    old_val_json = model_to_dict(student, fields=['full_name', 'email', 'major', 'gpa_score', 'date_of_birth'])
-                    # model_to_dict trả về ID cho khoá ngoại, ta cần convert lại cho dễ đọc nếu cần
-                    old_val_json['major'] = student.major.code if student.major else None
-                    if isinstance(old_val_json['date_of_birth'], datetime):
-                       old_val_json['date_of_birth'] = str(old_val_json['date_of_birth'].date())
+                    if student:
+                        # Chuẩn bị update
+                        old_val_json = model_to_dict(student, fields=['full_name', 'email', 'major', 'gpa_score', 'date_of_birth'])
+                        old_val_json['major'] = student.major.code if student.major else None
+                        if isinstance(old_val_json['date_of_birth'], datetime):
+                            old_val_json['date_of_birth'] = str(old_val_json['date_of_birth'].date())
+                        elif isinstance(old_val_json['date_of_birth'], date):
+                            old_val_json['date_of_birth'] = str(old_val_json['date_of_birth'])
 
-                    for key, value in defaults.items():
-                        setattr(student, key, value)
-                    student.save()
-                    action_type = 'UPDATE'
-                    updated_count += 1
-                else:
-                    student = Student.objects.create(student_code=mssv, **defaults)
-                    action_type = 'INSERT'
-                    inserted_count += 1
+                        for key, value in defaults.items():
+                            setattr(student, key, value)
+                        student.save()
+                        action_type = 'UPDATE'
+                        updated_count += 1
+                    else:
+                        student = Student.objects.create(student_code=mssv, **defaults)
+                        action_type = 'INSERT'
+                        inserted_count += 1
 
-                ImportBatchItem.objects.create(
-                    import_batch=import_batch,
-                    row_number=row_num,
-                    student_code=mssv,
-                    action=action_type,
-                    old_value=old_val_json,
-                    new_value=new_val_json
-                )
+                    ImportBatchItem.objects.create(
+                        import_batch=import_batch,
+                        row_number=row_num,
+                        student_code=mssv,
+                        action=action_type,
+                        old_value=old_val_json,
+                        new_value=new_val_json
+                    )
 
             except Exception as row_err:
                 error_count += 1
@@ -170,12 +172,12 @@ def process_excel_import(excel_file, batch_id, user):
                     error_message=str(row_err)[:250]
                 )
 
-    # Cập nhật tổng kết
-    import_batch.inserted = inserted_count
-    import_batch.updated = updated_count
-    import_batch.skipped = skipped_count
-    import_batch.errors = error_count
-    import_batch.save()
+        # Cập nhật tổng kết
+        import_batch.inserted = inserted_count
+        import_batch.updated = updated_count
+        import_batch.skipped = skipped_count
+        import_batch.errors = error_count
+        import_batch.save()
 
     try:
         log_action(

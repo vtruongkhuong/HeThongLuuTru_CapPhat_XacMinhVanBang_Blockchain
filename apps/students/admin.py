@@ -79,12 +79,23 @@ class BaseRoleAdmin(ModelAdmin):
 @admin.register(ImportBatch)
 class ImportBatchAdmin(BaseRoleAdmin):
     allowed_roles = ['officer_a', 'academic_staff']
-    list_display = ('id', 'file_name', 'batch', 'status_badge', 'imported_by', 'inserted', 'updated', 'errors', 'created_at', 'rollback_button')
+    list_display = ('id', 'short_file_name', 'batch', 'status_badge', 'imported_by', 'inserted', 'updated', 'errors', 'created_at', 'rollback_button')
     list_filter = ('mode',)
     list_filter_submit = True
     readonly_fields = ('inserted', 'updated', 'skipped', 'errors')
 
     actions = ['rollback_import_batch']
+
+    def short_file_name(self, obj):
+        name = obj.file_name or ''
+        display_name = f"{name[:10]}...{name[-9:]}" if len(name) > 22 else name
+        return format_html(
+            '<span title="{}" style="display:inline-block; max-width:190px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; vertical-align:bottom; font-weight:500;">{}</span>',
+            name,
+            display_name,
+        )
+    short_file_name.short_description = "Tên file Excel"
+    short_file_name.admin_order_field = 'file_name'
 
     @admin.action(description="🔄 Rollback (Hoàn tác) dữ liệu import này")
     def rollback_import_batch(self, request, queryset):
@@ -170,7 +181,7 @@ class ImportBatchAdmin(BaseRoleAdmin):
             return mark_safe('<span style="color: #9ca3af; font-size: 11px;" title="Đợt đã duyệt, không thể hoàn tác">Khóa</span>')
         url = reverse('admin:students_importbatch_single_rollback', args=[obj.id])
         return format_html(
-            '<a href="{}" onclick="return confirm(&quot;Xác nhận hoàn tác (Rollback) đợt nạp này?&quot;);" class="apple-action-btn-danger">'
+            '<a href="{}" class="apple-action-btn-danger">'
             '<span class="material-symbols-outlined" style="font-size:13px;">history</span>'
             '<span>Rollback</span>'
             '</a>',

@@ -1,13 +1,91 @@
 from apps.core.admin import format_crypto_hash_badge
+from django import forms
 from django.contrib import admin, messages
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.html import format_html
 from django.core.exceptions import ValidationError
 
+from apps.academic.models import DegreeType
 from apps.degrees.models import Degree
+from apps.graduation.models import GraduationBatch
 from .models import ReasonCode, RevocationRequest
 from . import services
+
+try:
+    from unfold.widgets import UnfoldAdminSelectWidget
+except ImportError:
+    UnfoldAdminSelectWidget = forms.Select
+
+
+class GroupedDegreeIterator(forms.models.ModelChoiceIterator):
+    """Nhóm danh sách văn bằng theo Loại văn bằng và Đợt phát hành (optgroup)."""
+
+    def __iter__(self):
+        if self.field.empty_label is not None:
+            yield ("", self.field.empty_label)
+
+        groups = {}
+        for obj in self.queryset:
+            type_label = obj.degree_type.name if obj.degree_type else "Chưa phân loại"
+            batch_label = obj.batch.name if obj.batch else "Chưa có đợt"
+            group_label = f"{type_label} — {batch_label}"
+            groups.setdefault(group_label, []).append(self.choice(obj))
+
+        for group_label, choices in groups.items():
+            yield (group_label, choices)
+
+
+class GroupedDegreeSelectWidget(UnfoldAdminSelectWidget):
+    """Gắn data-degree-type và data-batch lên từng <option> để lọc tức thì trên form."""
+
+    def create_option(self, name, value, label, selected, index, subindex=None, attrs=None):
+        option = super().create_option(name, value, label, selected, index, subindex=subindex, attrs=attrs)
+        instance = getattr(value, 'instance', None)
+        if instance:
+            if getattr(instance, 'degree_type_id', None):
+                option['attrs']['data-degree-type'] = str(instance.degree_type_id)
+            if getattr(instance, 'batch_id', None):
+                option['attrs']['data-batch'] = str(instance.batch_id)
+        return option
+
+
+class GroupedDegreeChoiceField(forms.ModelChoiceField):
+    iterator = GroupedDegreeIterator
+
+    def label_from_instance(self, obj):
+        student = getattr(obj, 'student', None)
+        student_code = student.student_code if student else ""
+        full_name = student.full_name if student else ""
+        type_name = obj.degree_type.name if obj.degree_type else "Chưa phân loại"
+        batch_name = obj.batch.name if obj.batch else ""
+        short_id = str(obj.credential_public_id)[:8]
+        if batch_name:
+            return f"{student_code} - {full_name} | {type_name} ({batch_name}) | {short_id}..."
+        return f"{student_code} - {full_name} | {type_name} | {short_id}..."
+
+
+class RevocationRequestAdminForm(forms.ModelForm):
+    degree_category = forms.ModelChoiceField(
+        queryset=DegreeType.objects.filter(is_active=True).order_by('name'),
+        required=False,
+        empty_label="--- Tất cả loại văn bằng / chứng chỉ ---",
+        label="Phân loại văn bằng",
+        help_text="Chọn loại văn bằng hoặc chứng chỉ để thu hẹp danh sách bên dưới.",
+        widget=UnfoldAdminSelectWidget(),
+    )
+    issuance_batch = forms.ModelChoiceField(
+        queryset=GraduationBatch.objects.all().order_by('-id'),
+        required=False,
+        empty_label="--- Tất cả đợt phát hành ---",
+        label="Đợt phát hành",
+        help_text="Chọn đợt tốt nghiệp / đợt phát hành chứng chỉ để lọc văn bằng.",
+        widget=UnfoldAdminSelectWidget(),
+    )
+
+    class Meta:
+        model = RevocationRequest
+        fields = '__all__'
 
 try:
     from apps.core.admin import BaseRoleAdmin
@@ -50,6 +128,23 @@ class ReasonCodeAdmin(BaseRoleAdmin):
 
 @admin.register(RevocationRequest)
 class RevocationRequestAdmin(BaseRoleAdmin):
+    form = RevocationRequestAdminForm
+    fields = (
+        'degree_category',
+        'issuance_batch',
+        'degree',
+        'reason_code',
+        'description',
+        'supersedes',
+        'requested_by',
+        'requested_at',
+        'approved_by',
+        'approved_at',
+        'executed_by',
+        'executed_at',
+        'status',
+        'tx_hash',
+    )
     list_display = (
         'id',
         'degree',
@@ -60,7 +155,7 @@ class RevocationRequestAdmin(BaseRoleAdmin):
         'executed_by',
         'metamask_action_link',
     )
-    list_filter = ('status', 'reason_code')
+    list_filter = ('status', 'degree__degree_type', 'degree__batch', 'reason_code')
     list_filter_submit = True
     search_fields = ('degree__student__student_code', 'degree__student__full_name', 'tx_hash')
     readonly_fields = (
@@ -74,6 +169,9 @@ class RevocationRequestAdmin(BaseRoleAdmin):
         'tx_hash',
     )
     actions = ['action_approve_revocation', 'action_reject_revocation', 'action_execute_revocation']
+
+    class Media:
+        js = ('js/revocation_degree_filter.js',)
 
     # --- CẤU HÌNH QUYỀN TRUY CẬP MODULE THEO ROLE ---
     def has_module_permission(self, request):
@@ -110,8 +208,20 @@ class RevocationRequestAdmin(BaseRoleAdmin):
 
         return actions
 
+    def _build_grouped_degree_field(self, db_field, request, queryset, **kwargs):
+        kwargs["queryset"] = queryset.select_related(
+            'student', 'degree_type', 'batch'
+        ).order_by('degree_type__name', 'batch__name', 'student__student_code', '-id')
+        kwargs["form_class"] = GroupedDegreeChoiceField
+        field = super().formfield_for_foreignkey(db_field, request, **kwargs)
+        field.widget = GroupedDegreeSelectWidget(
+            attrs=getattr(field.widget, 'attrs', None),
+            choices=field.choices,
+        )
+        return field
+
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        """Chỉ hiển thị các văn bằng đang ở trạng thái ISSUED trong danh sách chọn"""
+        """Chỉ hiển thị các văn bằng hợp lệ, phân nhóm theo Loại văn bằng và Đợt phát hành"""
         if db_field.name == "degree":
             existing_revocation_degree_ids = RevocationRequest.objects.filter(
                 status__in=['PENDING', 'APPROVED', 'EXECUTED']
@@ -122,15 +232,19 @@ class RevocationRequestAdmin(BaseRoleAdmin):
                 existing_revocation_degree_ids = existing_revocation_degree_ids.exclude(pk=object_id)
                 current_req = RevocationRequest.objects.filter(pk=object_id).first()
                 if current_req:
-                    kwargs["queryset"] = Degree.objects.filter(pk=current_req.degree_id)
+                    qs = Degree.objects.filter(pk=current_req.degree_id)
                 else:
-                    kwargs["queryset"] = Degree.objects.filter(status='ISSUED')
+                    qs = Degree.objects.filter(status='ISSUED')
             else:
-                kwargs["queryset"] = Degree.objects.filter(status='ISSUED').exclude(
+                qs = Degree.objects.filter(status='ISSUED').exclude(
                     pk__in=existing_revocation_degree_ids
                 )
-        elif db_field.name == "supersedes":
-            kwargs["queryset"] = Degree.objects.exclude(status='REVOKED')
+            return self._build_grouped_degree_field(db_field, request, qs, **kwargs)
+
+        if db_field.name == "supersedes":
+            return self._build_grouped_degree_field(
+                db_field, request, Degree.objects.exclude(status='REVOKED'), **kwargs
+            )
 
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 

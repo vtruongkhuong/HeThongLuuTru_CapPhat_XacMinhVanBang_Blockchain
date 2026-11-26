@@ -27,6 +27,14 @@
     .form-help { font-size: 0.75rem; color: #64748b; margin-top: 0.25rem; }
     .form-error { font-size: 0.75rem; color: #ef4444; margin-top: 0.25rem; font-weight: 500; }
     .badge-info-box { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; border-radius: 0.5rem; padding: 1rem; }
+    .submit-primary-btn {
+        background-color: #2563eb !important;
+        color: #ffffff !important;
+        border: 1px solid #1d4ed8 !important;
+    }
+    .submit-primary-btn:hover {
+        background-color: #1d4ed8 !important;
+    }
 
     /* Dark mode */
     html.dark .form-card { background-color: #1e293b; border-color: #334155; }
@@ -305,7 +313,7 @@
                 <a href="{% url 'admin:degrees_degree_changelist' %}" class="px-5 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                     Hủy bỏ
                 </a>
-                <button type="submit" class="taste-btn inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-sm transition-all hover:shadow cursor-pointer">
+                <button type="submit" class="taste-btn submit-primary-btn inline-flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold shadow-sm transition-all hover:shadow cursor-pointer">
                     <span class="material-symbols-outlined text-base">save</span>
                     <span>Khởi tạo & Cấp bằng số</span>
                 </button>

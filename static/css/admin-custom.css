@@ -793,3 +793,41 @@ button.apple-hash-pill:hover {
 .animate-pulse-subtle {
     animation: pulse-subtle 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
 }
+
+/* ==========================================================================
+   14. ALWAYS-VISIBLE HORIZONTAL SCROLLBAR FOR WIDE ADMIN TABLES
+   ========================================================================== */
+.change-list div.overflow-x-auto {
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    max-height: 68vh !important;
+    scrollbar-width: auto !important;
+    scrollbar-color: #94a3b8 #f1f5f9 !important;
+}
+
+.change-list div.overflow-x-auto::-webkit-scrollbar {
+    height: 10px !important;
+    width: 8px !important;
+    display: block !important;
+}
+
+.change-list div.overflow-x-auto::-webkit-scrollbar-track {
+    background: #f1f5f9 !important;
+    border-radius: 9999px !important;
+}
+
+.change-list div.overflow-x-auto::-webkit-scrollbar-thumb {
+    background: #94a3b8 !important;
+    border-radius: 9999px !important;
+    border: 2px solid #f1f5f9 !important;
+}
+
+.change-list div.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+    background: #64748b !important;
+}
+
+.change-list div.overflow-x-auto table#result_list thead th {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 10 !important;
+}
